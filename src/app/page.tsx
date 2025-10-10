@@ -14,7 +14,7 @@ export default function Home() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowVideo(true);
-    }, 2500);
+    }, 1500);
     return () => clearTimeout(timer);
   }, []);
 
