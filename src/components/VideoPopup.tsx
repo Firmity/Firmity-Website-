@@ -30,6 +30,7 @@ export default function VideoPopup({ videoUrl, onClose }: VideoPopupProps) {
     const video = videoRef.current;
     if (video) {
       video.muted = true;
+      video.playbackRate = 1.5;   // 👈 your 1.5x speed right here
       video
         .play()
         .then(() => console.log("Video playing"))

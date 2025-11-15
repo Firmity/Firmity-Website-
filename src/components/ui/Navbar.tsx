@@ -4,6 +4,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import Link, { LinkProps } from "next/link";
 import Image from "next/image";
+import { cn } from "@/utils/cn";
 
 // const transition = {
 //   type: "spring",
@@ -20,6 +21,7 @@ type MenuItemProps = {
   active: string | null;
   item: string;
   href: string;
+  className?: string; 
   //description?: string;
   children?: React.ReactNode;
 };
@@ -29,19 +31,24 @@ export const MenuItem: React.FC<MenuItemProps> = ({
   active,
   item,
   href,
+  className,
   // description,
   children,
 }) => {
   return (
     <div onMouseEnter={() => setActive(item)} className="relative text-center">
       <Link href={href}>
-      <motion.p
-        transition={{ duration: 0.3 }}
-        className="cursor-pointer text-white text-sm"
-      >
-        {item}
-      </motion.p>
-      </Link>
+  <motion.p
+    transition={{ duration: 0.3 }}
+    className={cn(
+      "cursor-pointer text-white text-sm",
+      className
+    )}
+  >
+    {item}
+  </motion.p>
+</Link>
+
 
       {/* {active === item && description && (
         <motion.div
@@ -84,10 +91,7 @@ type MenuProps = {
 
 export const Menu: React.FC<MenuProps> = ({ setActive, children }) => {
   return (
-    <nav
-      onMouseLeave={() => setActive(null)}
-      className="relative rounded-full border border-white/[0.2] dark:bg-black/25 dark:border-white/[0.2] bg-black/25 shadow-input flex justify-center space-x-14 px-4 py-4"
-    >
+    <nav className="relative flex items-center">
       {children}
     </nav>
   );
