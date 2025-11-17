@@ -38,8 +38,9 @@ const AnimatedCard: React.FC<{ children: React.ReactNode; delay: number }> = ({
   // Remove cursor-pointer from the main card!
   return (
     <div
-      className={`transform rounded-xl p-8 bg-white border border-[#9fbc77] shadow-md transition-transform duration-500 ease-in-out ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"
-        } hover:shadow-2xl`}
+      className={`transform rounded-xl p-8 bg-white border border-[#9fbc77] shadow-md transition-transform duration-500 ease-in-out ${
+        visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"
+      } hover:shadow-2xl`}
     >
       {children}
     </div>
@@ -68,19 +69,33 @@ export default function MindBlowingStylishPricingSection() {
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10">
         {pricingTiers.map(({ manpowerRange, price, freeTrial }, idx) => (
           <AnimatedCard key={idx} delay={idx * 300}>
-            <div className="text-2xl font-semibold text-[#557a48] mb-3">
+            <div className="text-2xl font-semibold text-[#4A86C5] mb-3">
               {manpowerRange}
             </div>
-            <div className="text-6xl font-extrabold text-[#04461aff] mb-5 drop-shadow-md relative inline-flex items-baseline">
+            {/* Price */}
+            <div className="text-6xl font-extrabold text-[#4A86C5] mb-5 drop-shadow-md relative inline-flex items-baseline">
               {price}
-              <span className="ml-2 mt-1 text-base italic font-light text-[#557a48] tracking-wide whitespace-nowrap">
+              <span className="ml-2 mt-1 text-base italic font-light text-[#6AA4D8] tracking-wide whitespace-nowrap">
                 per person / per month
               </span>
             </div>
 
             {/* Book Tech Demo Button */}
-            <Link href="https://calendly.com/demo-firmity/30min" target="_blank" rel="noopener noreferrer">
-              <button className="mb-4 w-full rounded-full bg-[#6eebacff] text-[#3b4f1b] font-bold py-2 px-6 tracking-wide shadow-lg hover:bg-[#1fee87ff] transition-colors duration-300 cursor-pointer">
+            <Link
+              href="https://calendly.com/demo-firmity/30min"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <button
+                className="
+        mb-4 w-full rounded-full 
+        bg-[#4A86C5] 
+        text-white 
+        font-bold py-2 px-6 
+        hover:bg-[#3A6FA6] 
+        transition-colors duration-300
+      "
+              >
                 Book Tech Demo
               </button>
             </Link>
@@ -131,7 +146,6 @@ export default function MindBlowingStylishPricingSection() {
             xmlns="http://www.w3.org/2000/svg"
             role="img"
             aria-hidden="true"
-
           >
             <circle cx="13" cy="13" r="13" fill="#7bce7e" />
           </svg>

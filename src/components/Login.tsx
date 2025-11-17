@@ -18,7 +18,12 @@ export function Login() {
             active={active}
             item="Login"
             href="#"
-            className="text-white text-lg font-semibold hover:text-blue-400 transition tracking-wide"
+            className="
+    text-white text-lg font-semibold 
+    hover:text-blue-300 
+    tracking-wide 
+    drop-shadow-[0_0_6px_rgba(0,0,0,0.9)]
+  "
           />
         </Menu>
       </div>

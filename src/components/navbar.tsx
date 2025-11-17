@@ -34,7 +34,6 @@ export default function Navbar() {
 
       {/* RIGHT SIDE */}
       <div className="flex items-center gap-4 md:gap-8">
-
         {/* LOGIN DROPDOWN – mobile fixed */}
         <div className="relative">
           <Login />
@@ -48,19 +47,17 @@ export default function Navbar() {
             });
           }}
           className="
-            bg-gradient-to-r from-blue-500 to-blue-700
-            text-white font-semibold
-            px-4 py-2 md:px-6 md:py-2.5
-            rounded-full
-            shadow-md
-            hover:opacity-90
-            transition
-            text-sm md:text-base
-          "
+    bg-[#4A86C5]
+    text-white font-semibold
+    px-4 py-2 md:px-6 md:py-2.5
+    rounded-full
+    hover:bg-[#3A6FA6]
+    transition
+    text-sm md:text-base
+  "
         >
           Book Demo
         </button>
-
       </div>
     </nav>
   );

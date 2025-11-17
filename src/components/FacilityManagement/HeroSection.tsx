@@ -48,7 +48,7 @@ export default function HeroSection({
       >
         <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold text-white tracking-wide leading-tight drop-shadow-2xl">
           The Future of
-          <span className="block bg-gradient-to-r from-blue-400 to-blue-600 text-transparent bg-clip-text">
+          <span className="block text-white drop-shadow-lg">
             Facility Management
           </span>
         </h1>
@@ -67,20 +67,32 @@ export default function HeroSection({
         >
           {/* Explore */}
           <button
-  onClick={() => {
-    document.getElementById("features-section")?.scrollIntoView({
-      behavior: "smooth",
-    });
-  }}
-  className="px-8 py-3 bg-blue-600 hover:bg-blue-700 transition rounded-full text-white font-semibold shadow-xl"
->
-  Explore Platform
-</button>
+            onClick={() => {
+              document.getElementById("features-section")?.scrollIntoView({
+                behavior: "smooth",
+              });
+            }}
+            className="
+    px-8 py-3 
+    bg-[#4A86C5] 
+    hover:bg-[#3A6FA6] 
+    transition rounded-full 
+    text-white font-semibold 
+  "
+          >
+            Explore Platform
+          </button>
 
           {/* Watch Demo */}
           <button
             onClick={onWatchDemo}
-            className="px-8 py-3 border border-blue-500 text-blue-400 hover:bg-blue-500/10 rounded-full font-semibold transition"
+            className="
+    px-8 py-3 
+    bg-[#4A86C5] 
+    hover:bg-[#3A6FA6] 
+    transition rounded-full 
+    text-white font-semibold 
+  "
           >
             Watch Demo
           </button>
@@ -88,7 +100,14 @@ export default function HeroSection({
           {/* Download Brochure */}
           <button
             onClick={onBrochureDownload}
-            className="px-8 py-3 bg-white/10 text-white border border-white/20 rounded-full font-semibold hover:bg-white/20 transition"
+            className="
+    px-8 py-3 
+    bg-[#4A86C5] 
+    hover:bg-[#3A6FA6] 
+    transition rounded-full 
+    text-white font-semibold 
+    flex items-center gap-2
+  "
           >
             📄 Download Brochure
           </button>
