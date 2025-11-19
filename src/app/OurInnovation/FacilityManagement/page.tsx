@@ -5,7 +5,7 @@ import StylishFeaturesBenefits from "@/components/FacilityManagement/StylishFeat
 import MindBlowingStylishPricingSection from "@/components/FacilityManagement/MindBlowingStylishPricingSection";
 import HeroSection from "@/components/FacilityManagement/HeroSection";
 import ClientCarousel from "@/components/ClientCarousel";
-import Navbar from "@/components/navbar";
+//import Navbar from "@/components/navbar";
 import VideoPopup from "@/components/VideoPopup";
 import BrochureModal from "@/components/BrochureModal";
 

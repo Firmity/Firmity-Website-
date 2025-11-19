@@ -10,7 +10,7 @@ export default function VideoPopup({ videoUrl, onClose }: VideoPopupProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isVisible, setIsVisible] = useState(false);
 
-  // Close on ESC key
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") handleClose();
@@ -30,7 +30,7 @@ export default function VideoPopup({ videoUrl, onClose }: VideoPopupProps) {
     const video = videoRef.current;
     if (video) {
       video.muted = true;
-      video.playbackRate = 1.5;   // 👈 your 1.5x speed right here
+      video.playbackRate = 1.5; // 👈 your 1.5x speed right here
       video
         .play()
         .then(() => console.log("Video playing"))

@@ -4,13 +4,13 @@ import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
 import FacilityManagement from "./OurInnovation/FacilityManagement/page";
 import VideoPopup from "../components/VideoPopup";
-import BrochureModal from "../components/BrochureModal";
+//import BrochureModal from "../components/BrochureModal";
 
 export default function Home() {
   const [showButton, setShowButton] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
   const aboutRef = useRef<HTMLDivElement>(null);
-  const [showBrochure, setShowBrochure] = useState(false);
+  //const [showBrochure, setShowBrochure] = useState(false);
 
   // Show video popup after 2.5s delay
   useEffect(() => {

@@ -89,7 +89,7 @@ type MenuProps = {
   children: React.ReactNode;
 };
 
-export const Menu: React.FC<MenuProps> = ({ setActive, children }) => {
+export const Menu: React.FC<MenuProps> = ({ children }) => {
   return (
     <nav className="relative flex items-center">
       {children}

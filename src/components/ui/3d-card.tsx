@@ -48,18 +48,18 @@ export const CardContainer = ({
     containerRef.current.style.transform = `rotateY(0deg) rotateX(0deg)`;
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    const handleResize = () => {
-      if (containerRef.current && isMobile()) {
-        containerRef.current.style.transform = `rotateY(0deg) rotateX(0deg)`;
-        setIsMouseEntered(false); 
-      }
-    };
+  const handleResize = () => {
+    if (containerRef.current && isMobile()) {
+      containerRef.current.style.transform = `rotateY(0deg) rotateX(0deg)`;
+      setIsMouseEntered(false);
+    }
+  };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
+  window.addEventListener('resize', handleResize);
+  return () => window.removeEventListener('resize', handleResize);
+}, []);
 
   return (
     <MouseEnterContext.Provider value={[isMouseEntered, setIsMouseEntered]}>

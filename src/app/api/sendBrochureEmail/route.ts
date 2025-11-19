@@ -38,11 +38,12 @@ City: ${city}
 
     return NextResponse.json({ success: true });
 
-  } catch (error: any) {
-    console.error("Email error:", error);
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 }
-    );
-  }
+  } catch (error) {
+  const err = error as Error;
+  console.error("Email error:", err);
+  return NextResponse.json(
+    { success: false, error: err.message },
+    { status: 500 }
+  );
+}
 }
