@@ -37,7 +37,7 @@ export function BrochureDownloadForm() {
         setFormData({ name: "", email: "", phone: "", city: "" })
 
         const link = document.createElement("a")
-        link.href = "/firmity-brochure.pdf"
+        link.href = "/Pricing_FIRMITY FACILITY SOFTWARE UFIRM TECHNOLOGIES.pdf"
         link.download = "Firmity-CMMS-Brochure.pdf"
         document.body.appendChild(link)
         link.click()
