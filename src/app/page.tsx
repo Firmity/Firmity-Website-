@@ -17,7 +17,7 @@ export default function Home() {
     setVideoOpen(true)
   }, [])
 
-  const videoUrl = process.env.NEXT_PUBLIC_VIDEO_URL
+  const videoUrl = process.env.NEXT_PUBLIC_VIDEO_URL || '';
 
   const benefits = [
     {
