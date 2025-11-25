@@ -164,7 +164,7 @@ export default function Home() {
               {[
                 "Cloud-based Facility Records",
                 "Planned Preventive Maintenance",
-                "Event Organizer & Booking",
+                
                 "Complaint Management System",
                 "Asset Management & Alerts",
                 "Inventory Purchase & Stock",

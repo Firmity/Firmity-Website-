@@ -245,14 +245,14 @@ export default function FeaturesPage() {
       benefits: ["Auto-scheduling", "Downtime reduction", "Asset longevity"],
       link: "/preventive-maintenance",
     },
-    {
-      icon: Calendar,
-      title: "Event Organizer & Booking",
-      description:
-        "Digitally manage club/conference room bookings and community events with ease and transparency. Eliminate scheduling conflicts with intuitive calendar management.",
-      benefits: ["Room bookings", "Event management", "Transparency"],
-      link: "/event-booking",
-    },
+    // {
+    //   icon: Calendar,
+    //   title: "Event Organizer & Booking",
+    //   description:
+    //     "Digitally manage club/conference room bookings and community events with ease and transparency. Eliminate scheduling conflicts with intuitive calendar management.",
+    //   benefits: ["Room bookings", "Event management", "Transparency"],
+    //   link: "/event-booking",
+    // },
     {
       icon: AlertCircle,
       title: "Complaint Management System",
