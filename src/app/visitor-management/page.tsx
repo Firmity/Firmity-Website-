@@ -16,7 +16,7 @@ export default function VisitorManagementPage() {
                 <span className="text-sm font-semibold text-primary">Visitor Management & Records</span>
               </div>
               <h1 className="text-4xl md:text-5xl font-bold text-foreground text-balance">
-                Enhanced Security Through Digital Visitor Tracking
+                Enhanced Security Through Advanced Digital Visitor Tracking
               </h1>
               <p className="text-lg text-foreground/80 text-balance">
                 Log, monitor, and manage all visitors digitally with photo capture, access control, and comprehensive
