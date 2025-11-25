@@ -2,8 +2,8 @@
 
 import type React from "react"
 
-import { Navigation } from "@/src/components/navigation"
-import { Footer } from "@/src/components/footer"
+import { Navigation } from "@/components/navigation"
+import { Footer } from "@/components/footer"
 import { useState } from "react"
 import { Mail, Phone, MapPin, Send, Loader2, CheckCircle, AlertCircle } from "lucide-react"
 
@@ -175,7 +175,6 @@ export default function ContactPage() {
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">Team Size</label>
                     <select
-                    title="manpower"
                       name="manpower"
                       value={formData.manpower}
                       onChange={handleChange}
@@ -193,7 +192,6 @@ export default function ContactPage() {
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">Request Type</label>
                     <select
-                    title="requestType"
                       name="requestType"
                       value={formData.requestType}
                       onChange={handleChange}
