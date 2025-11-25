@@ -80,7 +80,7 @@ export default function PreventiveMaintenancePage() {
                   history for every asset.
                 </p>
               </div>
-              <div className="bg-card border border-border rounded-lg p-6 space-y-4">
+              {/* <div className="bg-card border border-border rounded-lg p-6 space-y-4">
                 <div className="bg-primary/10 p-3 rounded-lg w-fit">
                   <Wrench className="text-primary" size={24} />
                 </div>
@@ -89,7 +89,7 @@ export default function PreventiveMaintenancePage() {
                   Create, assign, and manage work orders digitally. Include photos, checklists, and detailed
                   instructions for every maintenance task.
                 </p>
-              </div>
+              </div> */}
               <div className="bg-card border border-border rounded-lg p-6 space-y-4">
                 <div className="bg-primary/10 p-3 rounded-lg w-fit">
                   <TrendingUp className="text-primary" size={24} />
