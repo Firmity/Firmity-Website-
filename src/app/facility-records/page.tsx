@@ -112,7 +112,7 @@ export default function FacilityRecordsPage() {
                     href="/pricing"
                     className="cursor-pointer border-2 border-primary text-primary px-8 py-3 rounded-lg hover:bg-primary/10 transition-colors font-semibold"
                   >
-                    Try Free for 6 Weeks
+                    Try Free for 2 Weeks
                   </Link>
                 </div>
               </div>
@@ -347,7 +347,7 @@ export default function FacilityRecordsPage() {
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
             <h2 className="text-3xl md:text-4xl font-bold">Go Paperless with Cloud-Based Records</h2>
             <p className="text-lg opacity-90">
-              Start your digital transformation today with 6 weeks free trial and unlimited training
+              Start your digital transformation today with 2 weeks free trial and unlimited training
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
               <Link

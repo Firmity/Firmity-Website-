@@ -86,7 +86,7 @@ export default function Home() {
                     href="/pricing"
                     className="border-2 border-primary text-primary px-8 py-3 rounded-lg hover:bg-primary/10 transition-colors font-semibold"
                   >
-                    Try Free for 6 Weeks
+                    Try Free for 2 Weeks
                   </Link>
                 </div>
               </div>
@@ -263,7 +263,7 @@ export default function Home() {
         <section className="py-16 md:py-20 bg-primary text-primary-foreground">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
             <h2 className="text-3xl md:text-4xl font-bold">Ready to Transform Your Facility Management?</h2>
-            <p className="text-lg opacity-90">Get 6 weeks free trial with unlimited training and 24/7 support</p>
+            <p className="text-lg opacity-90">Get 2 weeks free trial with unlimited training and 24/7 support</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
               <Link
                 href="/contact"

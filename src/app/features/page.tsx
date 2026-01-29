@@ -436,7 +436,7 @@ export default function FeaturesPage() {
         <section className="py-16 md:py-20 bg-primary text-primary-foreground">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
             <h2 className="text-3xl md:text-4xl font-bold">Experience All Features Risk-Free</h2>
-            <p className="text-lg opacity-90">Try Firmity for 6 weeks with no credit card required</p>
+            <p className="text-lg opacity-90">Try Firmity for 2 weeks with no credit card required</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
               <a
                 href="/contact"

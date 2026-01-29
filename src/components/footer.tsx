@@ -48,7 +48,7 @@ export function Footer() {
           {/* Contact */}
           <div className="flex flex-col gap-3">
             <h4 className="font-semibold">Get Started</h4>
-            <p className="text-sm opacity-80">6 Weeks Free Trial</p>
+            <p className="text-sm opacity-80">2 Weeks Free Trial</p>
             <Link href="/contact" className="text-sm font-semibold hover:underline text-accent">
               Book Demo
             </Link>
