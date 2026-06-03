@@ -40,7 +40,7 @@ export function VideoModal({ isOpen, onClose, videoUrl, title = "Firmity CMMS" }
               ref={videoRef as any}
               width="100%"
               height="100%"
-              src={videoUrl.replace("watch?v=", "embed/").replace("youtu.be/", "youtube.com/embed/") + "?autoplay=1"}
+              src={videoUrl.replace("watch?v=", "embed/").replace("youtu.be/", "youtube.com/embed/") + "?autoplay=1&mute=0&rel=0"}
               title={title}
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
