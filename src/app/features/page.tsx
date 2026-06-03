@@ -444,12 +444,12 @@ export default function FeaturesPage() {
               >
                 Start Free Trial
               </a>
-              <a
+              {/* <a
                 href="/pricing"
                 className="border-2 border-primary-foreground text-primary-foreground px-8 py-3 rounded-lg hover:bg-primary-foreground/10 transition-colors font-semibold"
               >
                 View Pricing
-              </a>
+              </a> */}
             </div>
           </div>
         </section>

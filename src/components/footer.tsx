@@ -23,9 +23,9 @@ export function Footer() {
             <Link href="/features" className="text-sm hover:underline opacity-80">
               Features
             </Link>
-            <Link href="/pricing" className="text-sm hover:underline opacity-80">
+            {/* <Link href="/pricing" className="text-sm hover:underline opacity-80">
               Pricing
-            </Link>
+            </Link> */}
             <Link href="/resources" className="text-sm hover:underline opacity-80">
               Resources
             </Link>

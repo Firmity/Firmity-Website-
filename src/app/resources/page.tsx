@@ -258,12 +258,12 @@ export default function ResourcesPage() {
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
             <h2 className="text-3xl md:text-4xl font-bold">Start Learning & Growing with Firmity</h2>
             <p className="text-lg opacity-90">Access all resources and documentation with your free trial</p>
-            <Link
+            {/* <Link
               href="/pricing"
               className="inline-block bg-primary-foreground text-primary px-8 py-3 rounded-lg hover:bg-background transition-colors font-semibold"
             >
               Start Free Trial
-            </Link>
+            </Link> */}
           </div>
         </section>
       </main>

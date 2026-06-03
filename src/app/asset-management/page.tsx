@@ -29,12 +29,12 @@ export default function AssetManagementPage() {
                 >
                   Start Free Trial
                 </a>
-                <a
+                {/* <a
                   href="/pricing"
                   className="border-2 border-border text-foreground px-8 py-3 rounded-lg hover:bg-muted transition-colors font-semibold cursor-pointer"
                 >
                   View Pricing
-                </a>
+                </a> */}
               </div>
             </div>
           </div>

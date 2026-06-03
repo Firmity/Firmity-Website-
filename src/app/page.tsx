@@ -82,12 +82,12 @@ export default function Home() {
                   >
                     Book Tech Demo <ArrowRight size={20} />
                   </Link>
-                  <Link
+                  {/* <Link
                     href="/pricing"
                     className="border-2 border-primary text-primary px-8 py-3 rounded-lg hover:bg-primary/10 transition-colors font-semibold"
                   >
                     Try Free for 2 Weeks
-                  </Link>
+                  </Link> */}
                 </div>
               </div>
 <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl p-8 flex items-center justify-center min-h-80">
