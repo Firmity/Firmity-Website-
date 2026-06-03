@@ -15,7 +15,14 @@ export function VideoModal({ isOpen, onClose, videoUrl, title = "Firmity CMMS" }
   useEffect(() => {
     if (isOpen && videoRef.current) {
       videoRef.current.playbackRate = 1.5
-      videoRef.current.muted = false
+      videoRef.current.muted = true
+      videoRef.current.play().then(() => {
+        if (videoRef.current) {
+          videoRef.current.muted = false
+        }
+      }).catch((err) => {
+        console.warn("Autoplay failed:", err)
+      })
     }
   }, [isOpen])
 
@@ -40,10 +47,15 @@ export function VideoModal({ isOpen, onClose, videoUrl, title = "Firmity CMMS" }
               ref={videoRef as any}
               width="100%"
               height="100%"
-              src={videoUrl.replace("watch?v=", "embed/").replace("youtu.be/", "youtube.com/embed/") + "?autoplay=1&mute=0&rel=0"}
+              src={
+                videoUrl
+                  .replace("watch?v=", "embed/")
+                  .replace("youtu.be/", "youtube.com/embed/") +
+                "?autoplay=1&mute=0&rel=0"
+              }
               title={title}
               frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
               className="w-full h-full"
             />
@@ -56,9 +68,6 @@ export function VideoModal({ isOpen, onClose, videoUrl, title = "Firmity CMMS" }
               autoPlay
               muted
               className="w-full h-full object-cover"
-              onCanPlay={(e) => {
-                e.currentTarget.muted = false
-              }}
             >
               <source src={videoUrl} type="video/mp4" />
               Your browser does not support the video tag.
