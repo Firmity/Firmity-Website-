@@ -1,5 +1,4 @@
 "use client"
-
 import { X } from "lucide-react"
 import { useEffect, useRef } from "react"
 
@@ -16,6 +15,7 @@ export function VideoModal({ isOpen, onClose, videoUrl, title = "Firmity CMMS" }
   useEffect(() => {
     if (isOpen && videoRef.current) {
       videoRef.current.playbackRate = 1.5
+      videoRef.current.muted = false
     }
   }, [isOpen])
 
@@ -34,7 +34,6 @@ export function VideoModal({ isOpen, onClose, videoUrl, title = "Firmity CMMS" }
         >
           <X size={32} />
         </button>
-
         <div className="w-full aspect-video bg-black rounded-lg overflow-hidden shadow-2xl">
           {videoUrl.includes("youtube.com") || videoUrl.includes("youtu.be") ? (
             <iframe
@@ -49,7 +48,18 @@ export function VideoModal({ isOpen, onClose, videoUrl, title = "Firmity CMMS" }
               className="w-full h-full"
             />
           ) : (
-            <video ref={videoRef} width="100%" height="100%" controls autoPlay className="w-full h-full object-cover">
+            <video
+              ref={videoRef}
+              width="100%"
+              height="100%"
+              controls
+              autoPlay
+              muted
+              className="w-full h-full object-cover"
+              onCanPlay={(e) => {
+                e.currentTarget.muted = false
+              }}
+            >
               <source src={videoUrl} type="video/mp4" />
               Your browser does not support the video tag.
             </video>
