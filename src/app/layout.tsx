@@ -1,35 +1,81 @@
-import type React from "react"
+﻿import type React from "react"
 import type { Metadata } from "next"
-import { Geist, Geist_Mono } from "next/font/google"
+import { DM_Sans, Playfair_Display, DM_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
+import Script from "next/script"
 import "./globals.css"
 
-const _geist = Geist({ subsets: ["latin"] })
-const _geistMono = Geist_Mono({ subsets: ["latin"] })
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+})
+
+const playfairDisplay = Playfair_Display({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-serif",
+  display: "swap",
+})
+
+const dmMono = DM_Mono({
+  subsets: ["latin"],
+  weight: ["300", "400", "500"],
+  variable: "--font-mono",
+  display: "swap",
+})
 
 export const metadata: Metadata = {
-  title: "Firmity CMMS - Complete Facility Management Software",
+  title: "Firmity CMMS — Complete Facility Management Software",
   description:
-    "Firmity is a smart, integrated facility management software built to simplify operations, enhance visibility, and empower teams with real-time control.",
-  generator: "v0.app",
+    "Firmity is a smart, integrated facility management software built to simplify operations, enhance visibility, and empower teams with real-time control over maintenance, assets, workforce, and compliance.",
   icons: {
-    icon: [
-      {
-        url: "/firmity.png"
-      },
-    ],
+    icon: [{ url: "/firmity.png" }],
     apple: "/apple-icon.png",
+  },
+  openGraph: {
+    title: "Firmity CMMS — Complete Facility Management Software",
+    description:
+      "Smart, integrated CMMS platform. Centralised records, automated PPM, complaint management, and workforce control.",
+    type: "website",
   },
 }
 
+const GTM_ID = "GTM-53WBJ5WN"
+
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
-      <body className={`font-sans antialiased`}>
+    <html
+      lang="en"
+      className={`${dmSans.variable} ${playfairDisplay.variable} ${dmMono.variable}`}
+    >
+      <head>
+        {/* GTM — loads after page is interactive; does not block render */}
+        <Script
+          id="gtm-script"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','${GTM_ID}');`,
+          }}
+        />
+      </head>
+      <body className="font-sans antialiased bg-white text-[#1a202c]">
+        {/* GTM noscript fallback — required immediately after <body> */}
+        <noscript>
+          <iframe
+            src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
+            height="0"
+            width="0"
+            style={{ display: "none", visibility: "hidden" }}
+          />
+        </noscript>
+
         {children}
         <Analytics />
       </body>

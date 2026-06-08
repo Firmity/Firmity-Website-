@@ -1,11 +1,11 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+/* @import "tailwindcss";
+@import "tw-animate-css"; */
 
-@custom-variant dark (&:is(.dark *));
+/* @custom-variant dark (&:is(.dark *)); */
 
-:root {
+/* :root { */
   /* Blue color scheme for Firmity */
-  --background: oklch(0.985 0 0);
+  /* --background: oklch(0.985 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
@@ -123,11 +123,11 @@
   body {
     @apply bg-background text-foreground;
   }
-}
+} */
 
-@layer utilities {
+/* @layer utilities { */
   /* Updated animations for smoother continuous scrolling */
-  @keyframes scroll-left {
+  /* @keyframes scroll-left {
     0% {
       transform: translateX(0);
     }
@@ -151,5 +151,205 @@
 
   .animate-scroll-right {
     animation: scroll-right 80s linear infinite;
+  }
+} */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* ── Firmity Typography ──────────────────────────────────────────────────── */
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300;1,9..40,400&family=Playfair+Display:wght@400;500&family=DM+Mono:wght@300;400;500&display=swap");
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* ── Core palette — extracted from logo ── */
+  --background:           #ffffff;
+  --foreground:           #1a202c;
+  --card:                 #ffffff;
+  --card-foreground:      #1a202c;
+  --popover:              #ffffff;
+  --popover-foreground:   #1a202c;
+  --primary:              #2b6cb0;   /* logo steel blue */
+  --primary-foreground:   #ffffff;
+  --secondary:            #2563a8;   /* hover state */
+  --secondary-foreground: #ffffff;
+  --muted:                #f8fafc;
+  --muted-foreground:     #718096;
+  --accent:               #2b6cb0;
+  --accent-foreground:    #ffffff;
+  --destructive:          oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.577 0.245 27.325);
+  --border:               #e2e8f0;
+  --input:                #e2e8f0;
+  --ring:                 #2b6cb0;
+
+  /* Charts */
+  --chart-1: #2b6cb0;
+  --chart-2: #4299e1;
+  --chart-3: #38a169;
+  --chart-4: #d69e2e;
+  --chart-5: #e53e3e;
+
+  /* Sharp corners — enterprise product */
+  --radius: 0.0625rem;
+
+  /* Sidebar */
+  --sidebar:              #f8fafc;
+  --sidebar-foreground:   #1a202c;
+  --sidebar-primary:      #2b6cb0;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent:       #edf2f7;
+  --sidebar-accent-foreground: #1a202c;
+  --sidebar-border:       #e2e8f0;
+  --sidebar-ring:         #2b6cb0;
+}
+
+/* Dark mode kept available */
+.dark {
+  --background:           #0f172a;
+  --foreground:           #f0f4f8;
+  --card:                 #1e293b;
+  --card-foreground:      #f0f4f8;
+  --popover:              #1e293b;
+  --popover-foreground:   #f0f4f8;
+  --primary:              #4299e1;
+  --primary-foreground:   #0f172a;
+  --secondary:            #2b6cb0;
+  --secondary-foreground: #f0f4f8;
+  --muted:                #1e293b;
+  --muted-foreground:     #94a3b8;
+  --accent:               #4299e1;
+  --accent-foreground:    #0f172a;
+  --destructive:          oklch(0.396 0.141 25.723);
+  --destructive-foreground: oklch(0.637 0.237 25.331);
+  --border:               rgba(255,255,255,0.08);
+  --input:                #1e293b;
+  --ring:                 #4299e1;
+  --sidebar:              #1e293b;
+  --sidebar-foreground:   #f0f4f8;
+  --sidebar-primary:      #4299e1;
+  --sidebar-primary-foreground: #f0f4f8;
+  --sidebar-accent:       #0f172a;
+  --sidebar-accent-foreground: #f0f4f8;
+  --sidebar-border:       rgba(255,255,255,0.06);
+  --sidebar-ring:         #4299e1;
+}
+
+@theme inline {
+  --font-sans:  "DM Sans",  system-ui, sans-serif;
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-mono:  "DM Mono",  monospace;
+
+  --color-background:             var(--background);
+  --color-foreground:             var(--foreground);
+  --color-card:                   var(--card);
+  --color-card-foreground:        var(--card-foreground);
+  --color-popover:                var(--popover);
+  --color-popover-foreground:     var(--popover-foreground);
+  --color-primary:                var(--primary);
+  --color-primary-foreground:     var(--primary-foreground);
+  --color-secondary:              var(--secondary);
+  --color-secondary-foreground:   var(--secondary-foreground);
+  --color-muted:                  var(--muted);
+  --color-muted-foreground:       var(--muted-foreground);
+  --color-accent:                 var(--accent);
+  --color-accent-foreground:      var(--accent-foreground);
+  --color-destructive:            var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border:                 var(--border);
+  --color-input:                  var(--input);
+  --color-ring:                   var(--ring);
+  --color-chart-1:                var(--chart-1);
+  --color-chart-2:                var(--chart-2);
+  --color-chart-3:                var(--chart-3);
+  --color-chart-4:                var(--chart-4);
+  --color-chart-5:                var(--chart-5);
+  --radius-sm:  calc(var(--radius) - 2px);
+  --radius-md:  var(--radius);
+  --radius-lg:  calc(var(--radius) + 4px);
+  --radius-xl:  calc(var(--radius) + 8px);
+  --color-sidebar:                    var(--sidebar);
+  --color-sidebar-foreground:         var(--sidebar-foreground);
+  --color-sidebar-primary:            var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent:             var(--sidebar-accent);
+  --color-sidebar-accent-foreground:  var(--sidebar-accent-foreground);
+  --color-sidebar-border:             var(--sidebar-border);
+  --color-sidebar-ring:               var(--sidebar-ring);
+}
+
+@layer base {
+  * { @apply border-border outline-ring/50; }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+    font-weight: 400;
+    line-height: 1.6;
+  }
+
+  /* Utility classes used by page.jsx */
+  .font-serif { font-family: var(--font-serif); }
+  .font-mono  { font-family: var(--font-mono); }
+}
+
+@layer utilities {
+  /* ── Carousel scroll animations — used by ClientsCarousel ── */
+  @keyframes scroll-left {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-33.333%); }
+  }
+  @keyframes scroll-right {
+    0%   { transform: translateX(-33.333%); }
+    100% { transform: translateX(0); }
+  }
+  .animate-scroll-left  { animation: scroll-left  80s linear infinite; }
+  .animate-scroll-right { animation: scroll-right 80s linear infinite; }
+
+  /* ── Fade-up entry animation ── */
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fade-up { animation: fade-up 0.55s ease forwards; }
+
+  /* ── Tabular numerals for data panel ── */
+  .tabular-nums { font-variant-numeric: tabular-nums; }
+
+  /* ── Subtle grid bg utility (used in some CTA backgrounds) ── */
+  .bg-grid-subtle {
+    background-image:
+      repeating-linear-gradient(90deg, rgba(43,108,176,0.04) 0, rgba(43,108,176,0.04) 1px, transparent 0, transparent 60px),
+      repeating-linear-gradient(0deg,  rgba(43,108,176,0.04) 0, rgba(43,108,176,0.04) 1px, transparent 0, transparent 60px);
   }
 }

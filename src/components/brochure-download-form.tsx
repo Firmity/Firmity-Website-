@@ -56,11 +56,11 @@ export function BrochureDownloadForm() {
 
   return (
     <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl p-8 max-w-lg border border-primary/20">
-      <div className="flex items-center gap-3 mb-2">
+      {/* <div className="flex items-center gap-3 mb-2">
         <Download size={24} className="text-primary" />
         <h3 className="text-2xl font-bold text-foreground">Download Brochure</h3>
-      </div>
-      <p className="text-foreground/70 mb-6">Get the complete Firmity overview and features guide</p>
+      </div> */}
+      {/* <p className="text-foreground/70 mb-6">Get the complete Firmity overview and features guide</p> */}
 
       {success ? (
         <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 space-y-3">
