@@ -166,9 +166,15 @@ export function Footer() {
 
         {/* Bottom rule + legal */}
         <div className="border-t border-white/[0.07] pt-7 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-[11px] text-white/[0.22] font-light text-center sm:text-left">
-            Firmity is a registered software of UFIRM Technologies (P) Limited — Proudly Made in India
-          </p>
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            <p className="text-[11px] text-white/[0.22] font-light text-center sm:text-left">
+              Firmity is a registered software of UFIRM Technologies (P) Limited — Proudly Made in India
+            </p>
+            <span className="hidden sm:inline text-white/[0.12] text-[11px]">·</span>
+            <Link href="/privacy-policy" className="text-[11px] text-white/[0.3] hover:text-white/[0.6] font-light transition-colors">
+              Privacy Policy
+            </Link>
+          </div>
           <p className="text-[11px] text-white/[0.18] font-light tracking-wide">
             © {new Date().getFullYear()} UFIRM Technologies (P) Limited
           </p>
