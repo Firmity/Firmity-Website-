@@ -315,57 +315,15 @@ import { Footer } from "@/src/components/footer"
 import { BrochureDownloadForm } from "@/src/components/brochure-download-form"
 import { VideoModal } from "@/src/components/video-modal"
 import { ClientsCarousel } from "@/src/components/clients-carousel"
-import Link from "next/link"
 import {
-  ArrowRight,
-  Home as HomeIcon,
-  Radio,
-  ClipboardList,
-  ShieldCheck,
-  Package,
-  Users,
-  Zap,
-  Clock,
-  Leaf,
-  LucideProps,
-} from "lucide-react"
-import { useState, useEffect, useRef, FC } from "react"
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-type ProblemIconName =
-  | "file-x"
-  | "clock-x"
-  | "receipt-off"
-  | "tool"
-  | "eye-off"
-  | "shield-x"
-  | "clipboard-x"
-
-interface ProblemItem {
-  icon: ProblemIconName
-  label: string
-}
-
-interface ModuleItem {
-  id: string
-  title: string
-  desc: string
-  Icon: FC<LucideProps>
-}
-
-interface PillarItem {
-  title: string
-  desc: string
-  Icon: FC<LucideProps>
-}
-
-interface BenefitItem {
-  num: string
-  Icon: FC<LucideProps>
-  title: string
-  desc: string
-}
+  ProblemsSection,
+  WhyFirmitySection,
+  PillarsSection,
+  ModulesSection,
+} from "@/src/components/home-sections"
+import Link from "next/link"
+import { ArrowRight } from "lucide-react"
+import { useState, useEffect, useRef } from "react"
 
 // ─── Counter hook — fires once when panel enters viewport ─────────────────────
 function useCountUp(target: number, duration: number = 2000, suffix: string = "") {
@@ -406,93 +364,6 @@ function useBarUp(target: number, total: number, duration: number = 1800) {
   return { width, count, start }
 }
 
-// ─── Corinthian Column SVG ────────────────────────────────────────────────────
-interface ColumnProps { height?: number; shaftHeight?: number }
-
-function CorinthianColumn({ height = 260, shaftHeight = 144 }: ColumnProps) {
-  const baseY = 58
-  const topY = baseY + shaftHeight
-  const flutes: number[] = [35, 42, 49, 55, 61, 68, 75]
-
-  return (
-    <svg width="110" height={height} viewBox={`0 0 110 ${height}`} fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <rect x="5" y="8" width="100" height="6" fill="#2b6cb0" opacity="0.18" />
-      <rect x="10" y="14" width="90" height="3" fill="#2b6cb0" opacity="0.12" />
-      <rect x="12" y="17" width="86" height="5" stroke="#2b6cb0" strokeWidth="0.8" opacity="0.6" />
-      <path d="M22 22 Q18 28 22 34 Q26 40 22 46" stroke="#2b6cb0" strokeWidth="0.7" opacity="0.55" />
-      <path d="M88 22 Q92 28 88 34 Q84 40 88 46" stroke="#2b6cb0" strokeWidth="0.7" opacity="0.55" />
-      <path d="M30 46 Q35 36 40 46 Q45 36 50 46 Q55 36 60 46 Q65 36 70 46 Q75 36 80 46" stroke="#2b6cb0" strokeWidth="0.8" opacity="0.5" />
-      <path d="M26 50 Q31 42 36 50 Q41 42 46 50 Q51 42 56 50 Q61 42 66 50 Q71 42 76 50 Q81 42 86 50" stroke="#2b6cb0" strokeWidth="0.7" opacity="0.4" />
-      <path d="M24 54 Q30 48 36 54 Q42 48 48 54 Q54 48 60 54 Q66 48 72 54 Q78 48 84 54" stroke="#2b6cb0" strokeWidth="0.6" opacity="0.35" />
-      <rect x="26" y="54" width="58" height="4" stroke="#2b6cb0" strokeWidth="0.7" opacity="0.5" />
-      <path d={`M30 ${baseY} Q28 ${baseY + shaftHeight / 2} 30 ${topY}`} stroke="#2b6cb0" strokeWidth="0.6" opacity="0.3" />
-      <path d={`M80 ${baseY} Q82 ${baseY + shaftHeight / 2} 80 ${topY}`} stroke="#2b6cb0" strokeWidth="0.6" opacity="0.3" />
-      {flutes.map((x) => (
-        <line key={x} x1={x} y1={baseY} x2={x} y2={topY} stroke="#2b6cb0" strokeWidth={x === 55 ? "0.6" : "0.5"} opacity={x === 55 ? "0.22" : "0.18"} />
-      ))}
-      <rect x="30" y={baseY} width="50" height={shaftHeight} stroke="#2b6cb0" strokeWidth="0.9" opacity="0.45" />
-      <ellipse cx="55" cy={topY} rx="28" ry="4" stroke="#2b6cb0" strokeWidth="0.8" opacity="0.45" />
-      <ellipse cx="55" cy={topY + 5} rx="32" ry="4.5" stroke="#2b6cb0" strokeWidth="0.7" opacity="0.35" />
-      <rect x="15" y={topY + 9} width="80" height="7" stroke="#2b6cb0" strokeWidth="0.8" opacity="0.5" />
-      <rect x="8" y={topY + 16} width="94" height="5" stroke="#2b6cb0" strokeWidth="0.9" opacity="0.55" />
-      <rect x="3" y={topY + 21} width="104" height="4" fill="#2b6cb0" opacity="0.08" />
-      <line x1="0" y1={topY + 25} x2="110" y2={topY + 25} stroke="#2b6cb0" strokeWidth="0.5" opacity="0.3" />
-    </svg>
-  )
-}
-
-// ─── Problem icon component ───────────────────────────────────────────────────
-const PROBLEM_ICON_PATHS: Record<ProblemIconName, React.ReactNode> = {
-  "file-x":      <><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="10" y1="13" x2="16" y2="13"/><line x1="10" y1="17" x2="16" y2="17"/></>,
-  "clock-x":     <><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/><line x1="18" y1="6" x2="22" y2="10"/><line x1="22" y1="6" x2="18" y2="10"/></>,
-  "receipt-off": <><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1z"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="14" y2="13"/><line x1="2" y1="2" x2="22" y2="22"/></>,
-  "tool":        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>,
-  "eye-off":     <><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></>,
-  "shield-x":    <><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></>,
-  "clipboard-x": <><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><line x1="10" y1="13" x2="14" y2="13"/><line x1="10" y1="17" x2="14" y2="17"/><line x1="2" y1="2" x2="22" y2="22"/></>,
-}
-
-function ProblemIcon({ name }: { name: ProblemIconName }) {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
-      {PROBLEM_ICON_PATHS[name]}
-    </svg>
-  )
-}
-
-// ─── Static data ──────────────────────────────────────────────────────────────
-
-const PROBLEMS: ProblemItem[] = [
-  { icon: "file-x",      label: "Missing AMC Renewals" },
-  { icon: "clock-x",     label: "Overdue Cleaning Schedules" },
-  { icon: "receipt-off", label: "Lost Vendor Payments" },
-  { icon: "tool",        label: "Asset Downtime" },
-  { icon: "eye-off",     label: "No Operational Oversight" },
-  { icon: "shield-x",    label: "Compliance Gaps" },
-  { icon: "clipboard-x", label: "Untracked Work Orders" },
-]
-
-const MODULES: ModuleItem[] = [
-  { id: "01", title: "Cloud-based Facility Records",          desc: "Centralised, always-accessible records for every asset, vendor, and compliance document across your estate.", Icon: HomeIcon },
-  { id: "02", title: "Planned Preventive Maintenance",        desc: "Schedule and auto-trigger PPM cycles. Extend asset lifespan through intelligent, timely interventions.",       Icon: Radio },
-  { id: "03", title: "Complaint Management System",           desc: "QR-based ticket raising from any location. Assigned, tracked, and closed with a full audit trail.",              Icon: ClipboardList },
-  { id: "04", title: "Asset Management & Alerts",             desc: "Live asset registry with lifecycle alerts, AMC tracking, and warranty expiry notifications.",                     Icon: ShieldCheck },
-  { id: "05", title: "Inventory Purchase & Stock",            desc: "Stock tracking, auto-reorder triggers, vendor management, and purchase approval workflows.",                      Icon: Package },
-  { id: "06", title: "Staff Attendance & Visitor Management", desc: "Face-recognition attendance, shift management, digital check-in, and full visitor records in one system.",       Icon: Users },
-]
-
-const PILLARS: PillarItem[] = [
-  { title: "Productivity",   Icon: Zap,   desc: "Scheduled PPM extends asset life. Digital logs support better upkeep planning. Smart tracking reduces wear and tear." },
-  { title: "Longevity",      Icon: Clock, desc: "Planned preventive maintenance increases equipment lifespan. Real-time monitoring enables proactive interventions." },
-  { title: "Sustainability", Icon: Leaf,  desc: "Efficient resource use cuts waste. Paperless operations promote eco-friendliness. Smart access control lowers energy use." },
-]
-
-const BENEFITS: BenefitItem[] = [
-  { num: "01", Icon: Zap,     title: "Centralized records enable faster decision-making",        desc: "Every asset, vendor contract, compliance log, and work order lives in one place — accessible instantly, across every team and every site. No spreadsheets, no email chains, no lost documents." },
-  { num: "02", Icon: Clock,   title: "Automated task alerts ensure nothing is missed",           desc: "PPM schedules, AMC renewals, and compliance deadlines trigger automatic alerts to the right person at the right time — no manual chasing, no missed obligations." },
-  { num: "03", Icon: Package, title: "Integrated modules boost team coordination and speed",    desc: "Maintenance, assets, attendance, and visitor management share a single data layer — eliminating silos, reducing operational friction, and keeping every team aligned." },
-]
-
 // ─── Inline video URL builder ─────────────────────────────────────────────────
 // Converts any video URL to an embeddable autoplay URL.
 // Handles YouTube (watch?v= and youtu.be), Vimeo, and direct file/embed URLs.
@@ -517,67 +388,6 @@ function buildInlineVideoUrl(url: string): string {
   }
   // Direct file or custom embed — append autoplay param
   return url.includes("autoplay") ? url : `${url}${url.includes("?") ? "&" : "?"}autoplay=1`
-}
-
-// ─── Module wire canvas effect ────────────────────────────────────────────────
-function ModuleWireEffect() {
-  useEffect(() => {
-    const canvas = document.getElementById("moduleWireCanvas") as HTMLCanvasElement | null
-    if (!canvas) return
-    const ctx = canvas.getContext("2d")
-    if (!ctx) return
-    let animId: number
-    const pts: { x: number; y: number; vx: number; vy: number }[] = []
-
-    const init = () => {
-      canvas.width = canvas.offsetWidth
-      canvas.height = canvas.offsetHeight
-      pts.length = 0
-      for (let i = 0; i < 22; i++) {
-        pts.push({
-          x: Math.random() * canvas.width,
-          y: Math.random() * canvas.height,
-          vx: (Math.random() - 0.5) * 0.3,
-          vy: (Math.random() - 0.5) * 0.3,
-        })
-      }
-    }
-
-    const draw = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-      for (let i = 0; i < pts.length; i++) {
-        for (let j = i + 1; j < pts.length; j++) {
-          const d = Math.hypot(pts[i].x - pts[j].x, pts[i].y - pts[j].y)
-          if (d < 140) {
-            ctx.beginPath()
-            ctx.moveTo(pts[i].x, pts[i].y)
-            ctx.lineTo(pts[j].x, pts[j].y)
-            ctx.strokeStyle = `rgba(99,179,237,${(1 - d / 140) * 0.06})`
-            ctx.lineWidth = 0.5
-            ctx.stroke()
-          }
-        }
-      }
-      pts.forEach((p) => {
-        ctx.beginPath()
-        ctx.arc(p.x, p.y, 1.2, 0, Math.PI * 2)
-        ctx.fillStyle = "rgba(99,179,237,0.12)"
-        ctx.fill()
-        p.x += p.vx
-        p.y += p.vy
-        if (p.x < 0 || p.x > canvas.width) p.vx *= -1
-        if (p.y < 0 || p.y > canvas.height) p.vy *= -1
-      })
-      animId = requestAnimationFrame(draw)
-    }
-
-    const ro = new ResizeObserver(init)
-    if (canvas.parentElement) ro.observe(canvas.parentElement)
-    init()
-    draw()
-    return () => { cancelAnimationFrame(animId); ro.disconnect() }
-  }, [])
-  return null
 }
 
 // ─── Brochure animated SVG illustration ──────────────────────────────────────
@@ -715,14 +525,14 @@ export default function FirmityHome() {
             <div className="flex flex-row flex-wrap items-center gap-3">
               <Link
                 href="/contact"
-                className="group inline-flex items-center gap-2 bg-[#2b6cb0] hover:bg-[#2563a8] text-white text-[13px] font-semibold px-5 py-3 transition-colors duration-200 whitespace-nowrap"
+                className="group inline-flex items-center gap-2 bg-[#2b6cb0] hover:bg-[#2563a8] text-white text-[13px] font-semibold px-5 py-3 rounded-xl transition-colors duration-200 whitespace-nowrap"
               >
                 Book Tech Demo
                 <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
               </Link>
               <Link
                 href="/features"
-                className="inline-flex items-center text-white/60 hover:text-white text-[13px] font-light px-5 py-3 border border-white/[0.18] hover:border-white/[0.4] transition-all duration-200 whitespace-nowrap"
+                className="inline-flex items-center text-white/60 hover:text-white text-[13px] font-light px-5 py-3 rounded-xl border border-white/[0.18] hover:border-white/[0.4] transition-all duration-200 whitespace-nowrap"
               >
                 Explore Features
               </Link>
@@ -746,43 +556,43 @@ export default function FirmityHome() {
             {/* Data cards */}
             <div className="relative z-10 p-4 sm:p-6 lg:p-7 flex flex-col gap-2.5 h-full">
               <div className="grid grid-cols-2 gap-2.5">
-                <div className="bg-white/[0.06] border border-white/[0.1] p-3 sm:p-3.5 backdrop-blur-sm">
+                <div className="bg-white/[0.06] border border-white/[0.1] rounded-xl p-3 sm:p-3.5 backdrop-blur-sm">
                   <div className="text-[8.5px] text-white/[0.38] uppercase tracking-[0.14em] mb-1.5">Assets Tracked</div>
-                  <div className="font-mono text-[20px] sm:text-[22px] font-light text-[#63b3ed] leading-none">{c1.display}</div>
+                  <div className="font-sans text-[20px] sm:text-[22px] font-light text-[#63b3ed] leading-none">{c1.display}</div>
                   <div className="text-[8px] text-[rgba(104,211,145,0.85)] mt-1">● All active</div>
                 </div>
-                <div className="bg-white/[0.06] border border-white/[0.1] p-3 sm:p-3.5 backdrop-blur-sm">
+                <div className="bg-white/[0.06] border border-white/[0.1] rounded-xl p-3 sm:p-3.5 backdrop-blur-sm">
                   <div className="text-[8.5px] text-white/[0.38] uppercase tracking-[0.14em] mb-1.5">PPM Due</div>
-                  <div className="font-mono text-[20px] sm:text-[22px] font-light text-[#fc8181] leading-none">{c2.display}</div>
+                  <div className="font-sans text-[20px] sm:text-[22px] font-light text-[#fc8181] leading-none">{c2.display}</div>
                   <div className="text-[8px] text-[rgba(252,129,129,0.75)] mt-1">● This week</div>
                 </div>
               </div>
 
-              <div className="bg-white/[0.06] border border-white/[0.1] p-3 sm:p-3.5 backdrop-blur-sm">
+              <div className="bg-white/[0.06] border border-white/[0.1] rounded-xl p-3 sm:p-3.5 backdrop-blur-sm">
                 <div className="text-[8.5px] text-white/[0.38] uppercase tracking-[0.14em] mb-2">Staff Attendance Today</div>
-                <div className="bg-white/[0.08] h-[2px] w-full">
+                <div className="bg-white/[0.08] h-[2px] w-full rounded-full">
                   <div
-                    className="h-[2px] bg-[#2b6cb0] transition-all duration-[1800ms]"
+                    className="h-[2px] rounded-full bg-[#2b6cb0] transition-all duration-[1800ms]"
                     style={{ width: `${bar.width}%` }}
                   />
                 </div>
                 <div className="text-[8.5px] text-white/[0.3] mt-1.5">{bar.count} of 40 staff present</div>
               </div>
 
-              <div className="bg-white/[0.06] border border-white/[0.1] p-3 sm:p-3.5 backdrop-blur-sm grid grid-cols-2 gap-3">
+              <div className="bg-white/[0.06] border border-white/[0.1] rounded-xl p-3 sm:p-3.5 backdrop-blur-sm grid grid-cols-2 gap-3">
                 <div>
                   <div className="text-[8.5px] text-white/[0.38] uppercase tracking-[0.14em] mb-1.5">Open Tickets</div>
-                  <div className="font-mono text-[20px] sm:text-[22px] font-light text-[#fbd38d] leading-none">{c3.display}</div>
+                  <div className="font-sans text-[20px] sm:text-[22px] font-light text-[#fbd38d] leading-none">{c3.display}</div>
                   <div className="text-[8px] text-[rgba(251,211,141,0.7)] mt-1">● Awaiting action</div>
                 </div>
                 <div>
                   <div className="text-[8.5px] text-white/[0.38] uppercase tracking-[0.14em] mb-1.5">Compliance</div>
-                  <div className="font-mono text-[20px] sm:text-[22px] font-light text-[#63b3ed] leading-none">{c4.display}</div>
+                  <div className="font-sans text-[20px] sm:text-[22px] font-light text-[#63b3ed] leading-none">{c4.display}</div>
                   <div className="text-[8px] text-[rgba(99,179,237,0.65)] mt-1">● On track</div>
                 </div>
               </div>
 
-              <div className="bg-white/[0.06] border border-white/[0.1] p-3 sm:p-3.5 backdrop-blur-sm flex-1">
+              <div className="bg-white/[0.06] border border-white/[0.1] rounded-xl p-3 sm:p-3.5 backdrop-blur-sm flex-1">
                 <div className="text-[8.5px] text-white/[0.38] uppercase tracking-[0.14em] mb-2">Recent Activity</div>
                 <div className="divide-y divide-white/[0.05]">
                   {[
@@ -801,187 +611,22 @@ export default function FirmityHome() {
           </div>
         </section>
 
-        {/* ── PROBLEM STATEMENT — same visual size as modules section ──── */}
-        <section className="bg-white">
-          <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 pt-10 pb-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
-              <div>
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-6 h-px bg-[#2b6cb0] flex-shrink-0" />
-                  <span className="text-[#2b6cb0] text-[10px] font-semibold tracking-[0.2em] uppercase">
-                    Real Challenges, Real Solutions
-                  </span>
-                </div>
-                <h2 className="font-serif text-[clamp(1.4rem,2.5vw,1.75rem)] font-light text-[#1a202c] leading-snug tracking-tight mb-3">
-                  Everyday gaps that cost facility teams time, money, and compliance
-                </h2>
-                <p className="text-[13.5px] font-light text-[#4a5568] leading-[1.85]">
-                  Imagine missing an AMC renewal, overlooking a water tank cleaning schedule, or losing
-                  track of vendor payments — these are everyday challenges Firmity solves. Experience how
-                  technology can simplify facility management.
-                </p>
-              </div>
-              <div className="relative aspect-[4/3] lg:aspect-auto lg:h-56 bg-[#f0f5fb] border border-[#e2e8f0] overflow-hidden">
-                <div
-                  className="absolute inset-0 bg-cover bg-center opacity-55"
-                  style={{ backgroundImage: "url('https://images.unsplash.com/photo-1497366216548-37526070297c?w=700&q=80&fit=crop')" }}
-                  aria-hidden="true"
-                />
-                <div className="absolute inset-0 bg-gradient-to-br from-[#2b6cb0]/10 to-transparent" />
-                <div className="absolute bottom-4 left-4 text-[10px] text-white/70 tracking-widest uppercase font-medium bg-[#1a2744]/60 px-2 py-1 backdrop-blur-sm">
-                  Firmity in Action
-                </div>
-              </div>
-            </div>
-          </div>
+        {/* ── PROBLEM STATEMENT — hero-aligned, live risk board ──
+            Implementation lives in src/components/home-sections.tsx */}
+        <ProblemsSection />
 
-          <div className="bg-[#1a2744] mt-6">
-            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 border-b border-white/[0.06]">
-              {PROBLEMS.map(({ icon, label }) => (
-                <div
-                  key={label}
-                  className="flex flex-col items-center gap-2.5 py-5 px-3 text-center border-r border-white/[0.05] last:border-r-0 hover:bg-[#1e2f52] transition-colors cursor-default"
-                >
-                  <span className="text-white/[0.65]"><ProblemIcon name={icon} /></span>
-                  <span className="text-[10.5px] font-medium text-white/[0.65] leading-snug">{label}</span>
-                </div>
-              ))}
-            </div>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-6 sm:px-10 lg:px-16 py-3.5">
-              <span className="text-[13px] font-light text-white/[0.42]">Every module in Firmity addresses one of these gaps directly</span>
-              <Link href="/contact" className="inline-flex items-center gap-2 bg-[#2b6cb0] hover:bg-[#2563a8] text-white text-[12px] font-semibold px-5 py-2.5 transition-colors whitespace-nowrap">
-                Book Tech Demo →
-              </Link>
-            </div>
-          </div>
-        </section>
+        {/* ── WHY CHOOSE FIRMITY — hero-aligned animated timeline ──
+            Implementation lives in src/components/home-sections.tsx */}
+        <WhyFirmitySection />
 
-        {/* ── WHY CHOOSE FIRMITY — 3-col grid matching modules ── */}
-        <section className="bg-white border-t border-[#e2e8f0]">
-          <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 pt-10 pb-6">
-            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6">
-              <div>
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-6 h-px bg-[#2b6cb0] flex-shrink-0" />
-                  <span className="text-[#2b6cb0] text-[10px] font-semibold tracking-[0.2em] uppercase">Why Choose Firmity</span>
-                </div>
-                <h2 className="font-serif text-[clamp(1.4rem,2.5vw,1.75rem)] font-light text-[#1a202c] tracking-tight">
-                  Built for operational clarity
-                </h2>
-              </div>
-            </div>
-          </div>
+        {/* ── THREE PILLARS — hero-aligned interactive tilt cards ──
+            Implementation lives in src/components/home-sections.tsx */}
+        <PillarsSection />
 
-          {/* 1-col mobile → 3-col desktop, same gap-px grid as modules */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-px bg-[#e2e8f0] border-t border-[#e2e8f0]">
-            {BENEFITS.map(({ num, Icon, title, desc }) => (
-              <div
-                key={num}
-                className="bg-white hover:bg-[#f8fafc] group transition-colors relative overflow-hidden p-6"
-              >
-                {/* Hover top accent line */}
-                <div className="absolute top-0 left-0 right-0 h-[2px] w-0 group-hover:w-full bg-[#2b6cb0] transition-all duration-500" />
-                {/* Ghost number */}
-                <span className="absolute bottom-3 right-4 font-mono text-[44px] font-light leading-none pointer-events-none text-[rgba(43,108,176,0.04)]">{num}</span>
-                <div className="w-[36px] h-[36px] border border-[rgba(43,108,176,0.2)] group-hover:border-[#2b6cb0] flex items-center justify-center mb-4 text-[#2b6cb0] transition-all">
-                  <Icon size={16} strokeWidth={1.5} />
-                </div>
-                <div className="text-[11px] font-semibold tracking-[0.07em] uppercase text-[#1a202c] mb-2 leading-snug">{title}</div>
-                <p className="text-[12px] font-light text-[#718096] leading-[1.7]">{desc}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* ── THREE PILLARS — white background ── */}
-        <section className="bg-white border-t border-[#e2e8f0]">
-          <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 pt-10 pb-6 text-center">
-            <div className="flex items-center gap-3 mb-2 justify-center">
-              <div className="w-6 h-px bg-[#2b6cb0]" />
-              <span className="text-[#2b6cb0] text-[10px] font-semibold tracking-[0.2em] uppercase">Built on Three Pillars</span>
-              <div className="w-6 h-px bg-[#2b6cb0]" />
-            </div>
-            <h2 className="font-serif text-[clamp(1.4rem,2.5vw,1.75rem)] font-light text-[#1a202c] tracking-tight">
-              The foundations of smarter facility management
-            </h2>
-          </div>
-
-          {/* Desktop: Corinthian columns on white */}
-          <div className="hidden lg:grid border-t border-[#e2e8f0]" style={{ gridTemplateColumns: "1fr 1fr 1fr" }}>
-            {PILLARS.map(({ title, desc }, i) => (
-              <div
-                key={title}
-                className={`flex flex-col items-center pb-8 ${i === 1 ? "bg-[#f8fafc] border-x border-[#e2e8f0]" : "bg-white"}`}
-              >
-                <CorinthianColumn height={i === 1 ? 260 : 240} shaftHeight={i === 1 ? 140 : 128} />
-                <div className="px-8 text-center">
-                  <div className="text-[11px] font-semibold text-[#2b6cb0] tracking-[0.18em] uppercase mb-2">{title}</div>
-                  <p className="text-[12.5px] font-light text-[#4a5568] leading-[1.75]">{desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Mobile: icon cards on white */}
-          <div className="lg:hidden grid grid-cols-1 sm:grid-cols-3 gap-px bg-[#e2e8f0] border-t border-[#e2e8f0]">
-            {PILLARS.map(({ title, desc, Icon }) => (
-              <div key={title} className="bg-white p-6 relative">
-                <div className="absolute top-0 left-0 right-0 h-[3px] bg-[#2b6cb0]" />
-                <div className="w-9 h-9 border border-[rgba(43,108,176,0.2)] flex items-center justify-center text-[#2b6cb0] mb-3 mt-4">
-                  <Icon size={16} strokeWidth={1.5} />
-                </div>
-                <div className="text-[11px] font-semibold text-[#2b6cb0] tracking-[0.18em] uppercase mb-2">{title}</div>
-                <p className="text-[13px] font-light text-[#4a5568] leading-[1.75]">{desc}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* ── SIX MODULES — dark navy with animated wire overlay ── */}
-        <section className="bg-[#111d35] border-t border-white/[0.06] relative overflow-hidden">
-          {/* Animated wire canvas — sits behind content */}
-          <canvas
-            id="moduleWireCanvas"
-            className="absolute inset-0 w-full h-full pointer-events-none"
-            aria-hidden="true"
-          />
-          <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 pt-10 pb-6">
-            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6">
-              <div>
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-6 h-px bg-[#2b6cb0]" />
-                  <span className="text-[#63b3ed] text-[10px] font-semibold tracking-[0.2em] uppercase">Platform</span>
-                </div>
-                <h2 className="font-serif text-[clamp(1.4rem,2.5vw,1.75rem)] font-light text-[#f0f4f8] tracking-tight leading-tight">
-                  Six integrated modules.<br />
-                  <span className="text-[#63b3ed]">One command centre.</span>
-                </h2>
-              </div>
-              <Link href="/features" className="inline-flex items-center gap-1.5 text-[#63b3ed] text-[12px] font-medium hover:gap-2.5 transition-all self-start">
-                All features <ArrowRight size={13} />
-              </Link>
-            </div>
-          </div>
-
-          <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-white/[0.05] border-t border-white/[0.06]">
-            {MODULES.map(({ id, title, desc, Icon }, i) => (
-              <div
-                key={id}
-                className={`group relative overflow-hidden p-6 cursor-default transition-all duration-[250ms] ${i % 2 === 0 ? "bg-[#111d35] hover:bg-[rgba(43,108,176,0.12)]" : "bg-[#1a2744] hover:bg-[rgba(43,108,176,0.12)]"}`}
-              >
-                <span className="absolute bottom-3 right-4 font-mono text-[44px] font-light leading-none pointer-events-none text-[rgba(99,179,237,0.05)]">{id}</span>
-                <div className="w-[36px] h-[36px] border border-[rgba(99,179,237,0.2)] group-hover:border-[rgba(99,179,237,0.5)] flex items-center justify-center mb-4 text-[#63b3ed] transition-all duration-[250ms]">
-                  <Icon size={16} strokeWidth={1.5} />
-                </div>
-                <div className="text-[11px] font-semibold tracking-[0.07em] uppercase text-[#f0f4f8] mb-2 leading-snug">{title}</div>
-                <p className="text-[12px] font-light text-white/[0.42] leading-[1.7]">{desc}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* Wire canvas init */}
-          <ModuleWireEffect />
-        </section>
+        {/* ── SIX MODULES — hero-aligned product showcase (selector + preview) ──
+            Implementation lives in src/components/home-sections.tsx.
+            Each module deep-links to /features#<slug>. */}
+        <ModulesSection />
 
         {/* ── SEE FIRMITY IN ACTION ─────────────────────────────────────
             Video plays INLINE on click (not popup).
@@ -1020,7 +665,7 @@ export default function FirmityHome() {
                     <div className="font-serif text-[18px] font-light text-[#f0f4f8] leading-snug mb-1">Watch the complete platform walkthrough</div>
                     <div className="text-[10px] text-white/[0.35] font-light hidden sm:block">Maintenance · Assets · Attendance · Visitors · Compliance</div>
                   </div>
-                  <div className="absolute top-3 right-3 bg-black/60 px-2 py-1 font-mono text-[9px] text-white/[0.45]">6:24</div>
+                  <div className="absolute top-3 right-3 bg-black/60 rounded-lg px-2 py-1 font-sans font-medium text-[9px] text-white/[0.45]">6:24</div>
                 </button>
               )}
 
@@ -1039,7 +684,7 @@ export default function FirmityHome() {
                 <div className="absolute inset-0 flex items-center justify-center bg-[#0a0f1a]">
                   <div className="text-center">
                     <p className="text-white/40 text-sm mb-2">No video URL configured</p>
-                    <p className="text-white/20 text-xs font-mono">Set NEXT_PUBLIC_VIDEO_URL</p>
+                    <p className="text-white/20 text-xs font-sans">Set NEXT_PUBLIC_VIDEO_URL</p>
                   </div>
                 </div>
               )}
@@ -1159,3 +804,4 @@ export default function FirmityHome() {
     </>
   )
 }
+// EOF

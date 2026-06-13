@@ -14,6 +14,7 @@ export function Navigation() {
     // { label: "About", href: "/about" },
     { label: "Contact", href: "/contact" },
     { label: "Resources", href: "/resources" },
+    { label: "Blog", href: "/blog" },
   ]
 
   return (
@@ -44,7 +45,7 @@ export function Navigation() {
             </Link>
             <Link
               href="/contact"
-              className="bg-primary text-primary-foreground px-6 py-2 rounded-lg hover:bg-secondary transition-colors font-medium"
+              className="bg-primary text-primary-foreground px-6 py-2 rounded-xl hover:bg-secondary transition-colors font-medium"
             >
               Book Demo
             </Link>
@@ -79,7 +80,7 @@ export function Navigation() {
               </Link>
               <Link
                 href="/contact"
-                className="text-center bg-primary text-primary-foreground px-6 py-2 rounded-lg hover:bg-secondary transition-colors font-medium"
+                className="text-center bg-primary text-primary-foreground px-6 py-2 rounded-xl hover:bg-secondary transition-colors font-medium"
                 onClick={() => setIsOpen(false)}
               >
                 Book Demo

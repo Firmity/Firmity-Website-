@@ -82,7 +82,7 @@ export function BrochureDownloadForm() {
             value={formData.name}
             onChange={handleChange}
             required
-            className="w-full px-4 py-3 rounded-lg border border-border bg-background text-foreground placeholder:text-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+            className="w-full px-4 py-3 rounded-xl border border-border bg-background text-foreground placeholder:text-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary transition-all"
           />
           <input
             type="email"
@@ -91,7 +91,7 @@ export function BrochureDownloadForm() {
             value={formData.email}
             onChange={handleChange}
             required
-            className="w-full px-4 py-3 rounded-lg border border-border bg-background text-foreground placeholder:text-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+            className="w-full px-4 py-3 rounded-xl border border-border bg-background text-foreground placeholder:text-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary transition-all"
           />
           <input
             type="tel"
@@ -100,7 +100,7 @@ export function BrochureDownloadForm() {
             value={formData.phone}
             onChange={handleChange}
             required
-            className="w-full px-4 py-3 rounded-lg border border-border bg-background text-foreground placeholder:text-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+            className="w-full px-4 py-3 rounded-xl border border-border bg-background text-foreground placeholder:text-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary transition-all"
           />
           <input
             type="text"
@@ -109,7 +109,7 @@ export function BrochureDownloadForm() {
             value={formData.city}
             onChange={handleChange}
             required
-            className="w-full px-4 py-3 rounded-lg border border-border bg-background text-foreground placeholder:text-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+            className="w-full px-4 py-3 rounded-xl border border-border bg-background text-foreground placeholder:text-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary transition-all"
           />
 
           {error && (
@@ -122,7 +122,7 @@ export function BrochureDownloadForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-primary text-primary-foreground py-3 rounded-lg hover:bg-primary/90 transition-all font-semibold flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+            className="w-full bg-primary text-primary-foreground py-3 rounded-xl hover:bg-primary/90 transition-all font-semibold flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
           >
             {loading ? (
               <>
