@@ -3,7 +3,7 @@
 // import { Navigation } from "@/src/components/navigation"
 // import { Footer } from "@/src/components/footer"
 // import { BrochureDownloadForm } from "@/src/components/brochure-download-form"
-// import { VideoModal } from "@/src/components/video-modal"
+// import { SurveyPopup } from "@/src/components/survey-popup"
 // import { ClientsCarousel } from "@/src/components/clients-carousel"
 // import Link from "next/link"
 // import Image from "next/image"
@@ -313,56 +313,18 @@
 import { Navigation } from "@/src/components/navigation"
 import { Footer } from "@/src/components/footer"
 import { BrochureDownloadForm } from "@/src/components/brochure-download-form"
-import { VideoModal } from "@/src/components/video-modal"
+import { SurveyPopup } from "@/src/components/survey-popup"
 import { ClientsCarousel } from "@/src/components/clients-carousel"
 import {
+  HeroSection,
   ProblemsSection,
   WhyFirmitySection,
   PillarsSection,
   ModulesSection,
 } from "@/src/components/home-sections"
 import Link from "next/link"
-import { ArrowRight } from "lucide-react"
-import { useState, useEffect, useRef } from "react"
-
-// ─── Counter hook — fires once when panel enters viewport ─────────────────────
-function useCountUp(target: number, duration: number = 2000, suffix: string = "") {
-  const [display, setDisplay] = useState<string>(`0${suffix}`)
-
-  const start = (started: boolean) => {
-    if (!started) return
-    const t0 = Date.now()
-    const tick = () => {
-      const p = Math.min((Date.now() - t0) / duration, 1)
-      const e = 1 - Math.pow(1 - p, 3)
-      setDisplay(`${Math.round(e * target)}${suffix}`)
-      if (p < 1) requestAnimationFrame(tick)
-    }
-    requestAnimationFrame(tick)
-  }
-
-  return { display, start }
-}
-
-function useBarUp(target: number, total: number, duration: number = 1800) {
-  const [width, setWidth] = useState<number>(0)
-  const [count, setCount] = useState<number>(0)
-
-  const start = (started: boolean) => {
-    if (!started) return
-    const t0 = Date.now()
-    const tick = () => {
-      const p = Math.min((Date.now() - t0) / duration, 1)
-      const e = 1 - Math.pow(1 - p, 3)
-      setWidth(Math.round(e * (target / total) * 100))
-      setCount(Math.round(e * target))
-      if (p < 1) requestAnimationFrame(tick)
-    }
-    requestAnimationFrame(tick)
-  }
-
-  return { width, count, start }
-}
+import { ArrowRight, ChevronDown } from "lucide-react"
+import { useState } from "react"
 
 // ─── Inline video URL builder ─────────────────────────────────────────────────
 // Converts any video URL to an embeddable autoplay URL.
@@ -453,167 +415,127 @@ function BrochureIllustration() {
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
-export default function FirmityHome() {
-  const [videoOpen, setVideoOpen] = useState<boolean>(false)
-  const [inlineVideoPlaying, setInlineVideoPlaying] = useState<boolean>(false)
 
-  // Popup fires on first load only
-  useEffect(() => { setVideoOpen(true) }, [])
+// ─── FAQ Section ─────────────────────────────────────────────────────────────
+const FAQ_ITEMS = [
+  {
+    q: "What is Firmity?",
+    a: "Firmity is a cloud-based Computerised Maintenance Management System (CMMS) built for facility and property management teams. It centralises planned preventive maintenance, asset tracking, complaint management, inventory, staff attendance, and visitor management into a single platform.",
+  },
+  {
+    q: "How long does it take to go live?",
+    a: "Most clients are fully operational within 1–2 weeks. We handle data migration, system configuration, and user onboarding as part of every deployment — no extra fees.",
+  },
+  {
+    q: "Does Firmity work on mobile?",
+    a: "Yes. Firmity is fully responsive web app and available as an Android application and Apple iOS app. Technicians can log tasks, scan QR codes, check in, and update work orders from any smartphone — online or offline.",
+  },
+  {
+    q: "Can Firmity manage multiple sites or buildings?",
+    a: "Absolutely. Firmity is built for multi-site operations. Each location has its own asset registry, maintenance schedule, staff roster, and visitor log — all visible from a single management dashboard.",
+  },
+  {
+    q: "Is my data secure?",
+    a: "Yes. All data is encrypted at rest and in transit using AES-256 and TLS 1.3. We operate on ISO 27001-aligned infrastructure with daily backups, role-based access control, and 99.9% uptime SLA.",
+  },
+  {
+    q: "What integrations does Firmity support?",
+    a: "Firmity integrates with access control systems, IoT sensors, accounting tools, HR payroll platforms, and ERP systems via REST APIs and webhooks. Custom integrations are available on Enterprise plans.",
+  },
+  {
+    q: "How is Firmity priced?",
+    a: "Firmity is priced per module and per site, with plans starting for small single-site teams through to large multi-property enterprises. Contact us for a tailored quote — no hidden setup or per-user fees.",
+  },
+]
+
+function FaqSection() {
+  const [openIdx, setOpenIdx] = useState<number | null>(null)
+  return (
+    <section className="bg-white py-8 lg:py-12">
+      <div className="max-w-3xl mx-auto px-6 sm:px-10">
+        <h2 className="font-serif font-light text-[clamp(1.8rem,4vw,2.8rem)] text-[#1a202c] tracking-tight mb-10">FAQ</h2>
+        <div>
+          {FAQ_ITEMS.map(function(item, i) {
+            const isOpen = openIdx === i
+            return (
+              <div key={i} style={{ borderTop: "1px solid #e2e8f0" }}>
+                <button
+                  onClick={function() { setOpenIdx(isOpen ? null : i) }}
+                  className="w-full flex items-center gap-4 py-5 text-left group"
+                  aria-expanded={isOpen}
+                >
+                  <ChevronDown
+                    size={18}
+                    className="flex-shrink-0 transition-transform duration-200"
+                    style={{
+                      color: "#2b6cb0",
+                      transform: isOpen ? "rotate(180deg)" : "rotate(-90deg)",
+                    }}
+                  />
+                  <span className="text-[15px] font-medium text-[#1a202c] group-hover:text-[#2b6cb0] transition-colors leading-snug">
+                    {item.q}
+                  </span>
+                </button>
+                {isOpen && (
+                  <div className="pb-6 pl-[34px] pr-2">
+                    <p className="text-[13.5px] leading-[1.8] text-[#4a5568]">{item.a}</p>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+          <div style={{ borderTop: "1px solid #e2e8f0" }} />
+        </div>
+      </div>
+    </section>
+  )
+}
+
+export default function FirmityHome() {
+  const [inlineVideoPlaying, setInlineVideoPlaying] = useState<boolean>(false)
   const videoUrl = process.env.NEXT_PUBLIC_VIDEO_URL ?? ""
 
-  // Counter hooks
-  const c1 = useCountUp(247, 2000)
-  const c2 = useCountUp(14, 1400)
-  const c3 = useCountUp(8, 1200)
-  const c4 = useCountUp(94, 1800, "%")
-  const bar = useBarUp(32, 40, 1800)
-
-  // Single observer on hero right panel — fires all counters at once
-  const panelRef = useRef<HTMLDivElement | null>(null)
-  const firedRef = useRef<boolean>(false)
-
-  useEffect(() => {
-    const el = panelRef.current
-    if (!el) return
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !firedRef.current) {
-          firedRef.current = true
-          c1.start(true)
-          c2.start(true)
-          c3.start(true)
-          c4.start(true)
-          bar.start(true)
-        }
-      },
-      { threshold: 0.2 }
-    )
-    observer.observe(el)
-    return () => observer.disconnect()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   return (
     <>
       <Navigation />
       <main>
 
-        {/* ── HERO ──────────────────────────────────────────────────────────
-            Mobile: stacked (copy top, data panel bottom)
-            Desktop: 50/50 split
+        {/* ── HERO ─────────────────────────────────────────────────────────
+            Full slideshow + data panel — implemented in home-sections.tsx
         ── */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 min-h-[100svh] lg:min-h-[88vh]">
-
-          {/* Left — dark navy copy */}
-          <div className="bg-[#1a2744] px-6 sm:px-10 lg:px-14 py-20 lg:py-0 flex flex-col justify-center order-1">
-            <div className="flex items-center gap-3 mb-5">
-              <div className="w-6 h-px bg-[#2b6cb0] flex-shrink-0" />
-              <span className="text-[#63b3ed] text-[10px] font-semibold tracking-[0.2em] uppercase">
-                Powered by Technology
-              </span>
-            </div>
-            <h1 className="font-serif text-[clamp(1.75rem,5vw,3rem)] font-light leading-[1.1] tracking-tight text-[#f0f4f8] mb-4">
-              The Complete<br />
-              <em className="not-italic text-[#63b3ed]">Facility Management</em><br />
-              Software Suite
-            </h1>
-            <p className="text-[13.5px] font-light leading-[1.8] text-white/50 mb-7 max-w-[380px]">
-              Firmity is a smart, integrated facility management software built to simplify operations,
-              enhance visibility, and empower teams with real-time control over maintenance, assets,
-              workforce, and compliance.
-            </p>
-            <div className="flex flex-row flex-wrap items-center gap-3">
-              <Link
-                href="/contact"
-                className="group inline-flex items-center gap-2 bg-[#2b6cb0] hover:bg-[#2563a8] text-white text-[13px] font-semibold px-5 py-3 rounded-xl transition-colors duration-200 whitespace-nowrap"
-              >
-                Book Tech Demo
-                <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
-              </Link>
-              <Link
-                href="/features"
-                className="inline-flex items-center text-white/60 hover:text-white text-[13px] font-light px-5 py-3 rounded-xl border border-white/[0.18] hover:border-white/[0.4] transition-all duration-200 whitespace-nowrap"
-              >
-                Explore Features
-              </Link>
-            </div>
-          </div>
-
-          {/* Right — data panel with building photo background */}
-          <div
-            ref={panelRef}
-            className="relative order-2 min-h-[360px] lg:min-h-0"
-          >
-            {/* Office building photo */}
-            <div
-              className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-              style={{ backgroundImage: "url('https://images.unsplash.com/photo-1486325212027-8081e485255e?w=900&q=85&fit=crop&crop=top')" }}
-              aria-hidden="true"
-            />
-            {/* Dark overlay so data cards read clearly */}
-            <div className="absolute inset-0 bg-[#111d35]/85" aria-hidden="true" />
-
-            {/* Data cards */}
-            <div className="relative z-10 p-4 sm:p-6 lg:p-7 flex flex-col gap-2.5 h-full">
-              <div className="grid grid-cols-2 gap-2.5">
-                <div className="bg-white/[0.06] border border-white/[0.1] rounded-xl p-3 sm:p-3.5 backdrop-blur-sm">
-                  <div className="text-[8.5px] text-white/[0.38] uppercase tracking-[0.14em] mb-1.5">Assets Tracked</div>
-                  <div className="font-sans text-[20px] sm:text-[22px] font-light text-[#63b3ed] leading-none">{c1.display}</div>
-                  <div className="text-[8px] text-[rgba(104,211,145,0.85)] mt-1">● All active</div>
-                </div>
-                <div className="bg-white/[0.06] border border-white/[0.1] rounded-xl p-3 sm:p-3.5 backdrop-blur-sm">
-                  <div className="text-[8.5px] text-white/[0.38] uppercase tracking-[0.14em] mb-1.5">PPM Due</div>
-                  <div className="font-sans text-[20px] sm:text-[22px] font-light text-[#fc8181] leading-none">{c2.display}</div>
-                  <div className="text-[8px] text-[rgba(252,129,129,0.75)] mt-1">● This week</div>
-                </div>
-              </div>
-
-              <div className="bg-white/[0.06] border border-white/[0.1] rounded-xl p-3 sm:p-3.5 backdrop-blur-sm">
-                <div className="text-[8.5px] text-white/[0.38] uppercase tracking-[0.14em] mb-2">Staff Attendance Today</div>
-                <div className="bg-white/[0.08] h-[2px] w-full rounded-full">
-                  <div
-                    className="h-[2px] rounded-full bg-[#2b6cb0] transition-all duration-[1800ms]"
-                    style={{ width: `${bar.width}%` }}
-                  />
-                </div>
-                <div className="text-[8.5px] text-white/[0.3] mt-1.5">{bar.count} of 40 staff present</div>
-              </div>
-
-              <div className="bg-white/[0.06] border border-white/[0.1] rounded-xl p-3 sm:p-3.5 backdrop-blur-sm grid grid-cols-2 gap-3">
-                <div>
-                  <div className="text-[8.5px] text-white/[0.38] uppercase tracking-[0.14em] mb-1.5">Open Tickets</div>
-                  <div className="font-sans text-[20px] sm:text-[22px] font-light text-[#fbd38d] leading-none">{c3.display}</div>
-                  <div className="text-[8px] text-[rgba(251,211,141,0.7)] mt-1">● Awaiting action</div>
-                </div>
-                <div>
-                  <div className="text-[8.5px] text-white/[0.38] uppercase tracking-[0.14em] mb-1.5">Compliance</div>
-                  <div className="font-sans text-[20px] sm:text-[22px] font-light text-[#63b3ed] leading-none">{c4.display}</div>
-                  <div className="text-[8px] text-[rgba(99,179,237,0.65)] mt-1">● On track</div>
-                </div>
-              </div>
-
-              <div className="bg-white/[0.06] border border-white/[0.1] rounded-xl p-3 sm:p-3.5 backdrop-blur-sm flex-1">
-                <div className="text-[8.5px] text-white/[0.38] uppercase tracking-[0.14em] mb-2">Recent Activity</div>
-                <div className="divide-y divide-white/[0.05]">
-                  {[
-                    { color: "#68d391", text: "PPM — HVAC Unit B2 completed" },
-                    { color: "#fbd38d", text: "AMC renewal due in 7 days — Block A" },
-                    { color: "#90cdf4", text: "Visitor: Mr. Muhammad Ali checked in — Gate 2" },
-                  ].map(({ color, text }, i) => (
-                    <div key={i} className="flex items-center gap-2 py-[5px]">
-                      <div className="w-[5px] h-[5px] rounded-full flex-shrink-0" style={{ background: color }} />
-                      <span className="text-[9px] sm:text-[9.5px] text-white/[0.45] font-light">{text}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+        <HeroSection />
 
         {/* ── PROBLEM STATEMENT — hero-aligned, live risk board ──
             Implementation lives in src/components/home-sections.tsx */}
         <ProblemsSection />
+
+        {/* ── CLIENTS ─────────────────────────────────────────────────────
+            Sits directly below Problems — social proof before deeper content
+        ── */}
+        <section className="bg-white">
+          <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 pt-10 pb-6 text-center">
+            <div className="flex items-center gap-3 mb-2 justify-center">
+              <div className="w-6 h-px bg-[#2b6cb0]" />
+              <span className="text-[#2b6cb0] text-[10px] font-semibold tracking-[0.2em] uppercase">Trusted by Leading Companies</span>
+              <div className="w-6 h-px bg-[#2b6cb0]" />
+            </div>
+            <h2 className="font-serif text-[clamp(1.4rem,2.5vw,1.75rem)] font-light text-[#1a202c] tracking-tight mb-1">
+              Companies Using Firmity
+            </h2>
+            <p className="text-[13px] font-light text-[#a0aec0] mb-6">
+              Join hundreds of facility managers transforming their operations
+            </p>
+          </div>
+          <div>
+            <ClientsCarousel />
+          </div>
+          <div className="pb-5 text-center pt-4">
+            <Link href="/contact" className="inline-flex items-center gap-1.5 text-[#2b6cb0] text-[12.5px] font-semibold hover:gap-2.5 transition-all">
+              Learn how they use Firmity →
+            </Link>
+          </div>
+        </section>
 
         {/* ── WHY CHOOSE FIRMITY — hero-aligned animated timeline ──
             Implementation lives in src/components/home-sections.tsx */}
@@ -640,7 +562,7 @@ export default function FirmityHome() {
             - Form heading size: text-[1.1rem]
         ── */}
         <section className="bg-white border-t border-[#e2e8f0]">
-          <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr]">
+          <div className="grid grid-cols-1 lg:grid-cols-2">
 
             {/* Left — video panel (inline player) */}
             <div className="relative bg-[#0a0f1a] min-h-[280px] lg:min-h-[440px] overflow-hidden">
@@ -690,26 +612,41 @@ export default function FirmityHome() {
               )}
             </div>
 
-            {/* Right — white form panel */}
-            <div className="bg-white border-t lg:border-t-0 lg:border-l border-[#e2e8f0] flex flex-col">
-              <div className="relative bg-[#f0f5fb] border-b border-[#e2e8f0] flex items-center justify-center py-3 overflow-hidden">
-                <BrochureIllustration />
-                <div className="absolute bottom-2 left-0 right-0 text-center">
-                  <p className="text-[9.5px] text-[#2b6cb0]/55 font-medium tracking-[0.12em] uppercase">Instant download · No spam</p>
+            {/* Right — B2 floating card on light band */}
+            <div className="bg-[white] border-t lg:border-t-0 lg:border-l border-[#dbe5f0] flex flex-col items-center justify-center px-6 py-10 lg:py-14">
+              <div className="w-full max-w-[340px]">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-4 h-px bg-[#2b6cb0]" />
+                  <span className="text-[#2b6cb0] text-[9.5px] font-semibold tracking-[0.18em] uppercase">Download Brochure</span>
                 </div>
-              </div>
+                <h3 className="font-serif text-[1.2rem] font-light text-[#1a202c] leading-tight mb-1">
+                  Get the complete Firmity overview
+                </h3>
+                <p className="text-[11.5px] font-light text-[#718096] mb-5">
+                  Modules, pricing, integrations, and deployment guide — all in one PDF.
+                </p>
 
-              <div className="flex flex-col flex-1 px-5 sm:px-6 py-4">
-                <div className="mb-3">
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="w-4 h-px bg-[#2b6cb0]" />
-                    <span className="text-[#2b6cb0] text-[9.5px] font-semibold tracking-[0.18em] uppercase">Resources</span>
-                  </div>
-                  <h3 className="font-serif text-[1.1rem] font-light text-[#1a202c] leading-tight">Download Product Brochure</h3>
-                  <p className="text-[11.5px] font-light text-[#718096] mt-0.5">Full feature overview and implementation guide.</p>
+                {/* Floating white card */}
+                <div className="bg-white rounded-[20px] border border-[#dbe5f0] shadow-[0_8px_32px_rgba(17,29,53,0.09)] p-5">
+                  <BrochureDownloadForm />
                 </div>
-                <BrochureDownloadForm />
-                <div className="mt-3 pt-2.5 border-t border-[#e2e8f0] text-center">
+
+                {/* Trust chips */}
+                <div className="flex items-center justify-center gap-5 mt-4">
+                  {[
+                    { icon: "🔒", label: "No spam" },
+                    { icon: "⚡", label: "Instant download" },
+                    { icon: "📄", label: "PDF brochure" },
+                  ].map(function(chip) {
+                    return (
+                      <span key={chip.label} className="flex items-center gap-1.5 text-[10.5px] font-light text-[#a0aec0]">
+                        <span>{chip.icon}</span>{chip.label}
+                      </span>
+                    )
+                  })}
+                </div>
+
+                <div className="mt-4 text-center">
                   <span className="text-[11px] text-[#a0aec0] font-light">Prefer a live walkthrough? </span>
                   <Link href="/contact" className="text-[11px] text-[#2b6cb0] font-semibold hover:underline">Book a Tech Demo →</Link>
                 </div>
@@ -718,34 +655,8 @@ export default function FirmityHome() {
           </div>
         </section>
 
-        {/* ── CLIENTS ─────────────────────────────────────────────────────
-            White band removed: section runs directly into CTA
-        ── */}
-        <section className="bg-white border-t border-[#e2e8f0]">
-          <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 pt-10 pb-6 text-center">
-            <div className="flex items-center gap-3 mb-2 justify-center">
-              <div className="w-6 h-px bg-[#2b6cb0]" />
-              <span className="text-[#2b6cb0] text-[10px] font-semibold tracking-[0.2em] uppercase">Trusted by Leading Companies</span>
-              <div className="w-6 h-px bg-[#2b6cb0]" />
-            </div>
-            <h2 className="font-serif text-[clamp(1.4rem,2.5vw,1.75rem)] font-light text-[#1a202c] tracking-tight mb-1">
-              Companies Using Firmity
-            </h2>
-            <p className="text-[13px] font-light text-[#a0aec0] mb-6">
-              Join hundreds of facility managers transforming their operations
-            </p>
-          </div>
-          {/* ClientsCarousel sits flush — no extra padding below */}
-          <div className="border-t border-[#e2e8f0]">
-            <ClientsCarousel />
-          </div>
-          {/* Removed the empty div that was creating the white gap */}
-          <div className="pb-5 text-center pt-4">
-            <Link href="/contact" className="inline-flex items-center gap-1.5 text-[#2b6cb0] text-[12.5px] font-semibold hover:gap-2.5 transition-all">
-              Learn how they use Firmity →
-            </Link>
-          </div>
-        </section>
+        {/* ── FAQ ─────────────────────────────────────────────────────────── */}
+        <FaqSection />
 
         {/* ── CTA ───────────────────────────────────────────────────────── */}
         <section className="relative bg-[#0d1525] overflow-hidden">
@@ -795,12 +706,7 @@ export default function FirmityHome() {
       </main>
       <Footer />
 
-      <VideoModal
-        isOpen={videoOpen}
-        onClose={() => setVideoOpen(false)}
-        videoUrl={videoUrl}
-        title="Firmity CMMS - Complete Facility Management Software"
-      />
+      <SurveyPopup />
     </>
   )
 }

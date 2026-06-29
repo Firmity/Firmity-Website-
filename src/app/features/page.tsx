@@ -487,8 +487,8 @@ export default function FeaturesPage() {
                 <em className="not-italic text-[#63b3ed]">risk-free.</em>
               </h2>
               <p className="text-[14px] font-light text-white/[0.5] leading-[1.8] max-w-xl mx-auto mb-8">
-                Try Firmity for 2 weeks with your real facility data — every module unlocked,
-                no credit card, and onboarding support from day one.
+                Book a personalised demo with your real facility data — every module covered,
+                dedicated onboarding support, and zero setup friction.
               </p>
 
               {/* Assurance chips — light up on hover */}
@@ -508,7 +508,7 @@ export default function FeaturesPage() {
                   href="/contact"
                   className="group inline-flex items-center gap-2.5 bg-[#2b6cb0] hover:bg-[#2563a8] text-white text-[13.5px] font-semibold px-8 py-4 rounded-xl transition-all duration-300 hover:shadow-[0_0_44px_rgba(43,108,176,0.45)] hover:-translate-y-0.5"
                 >
-                  Start Free Trial
+                  Book a Demo
                   <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform duration-300" />
                 </Link>
                 <Link

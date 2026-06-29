@@ -1,480 +1,335 @@
 import { Navigation } from "@/src/components/navigation"
 import { Footer } from "@/src/components/footer"
-import { Users, Calendar, CheckCircle, Clock, BarChart, Smartphone, FileText } from "lucide-react"
+import { Reveal } from "@/src/components/reveal"
+import {
+  Users, Clock, CheckCircle, ArrowRight, Bell,
+  BarChart2, Smartphone, FileText, Zap, Shield, Calendar, MapPin
+} from "lucide-react"
+import Link from "next/link"
+
+function DashboardMockup() {
+  const staff = [
+    { name: "Ravi Kumar",    role: "Technician", time: "08:02 AM", status: "Present" },
+    { name: "Sunita Patil",  role: "Supervisor", time: "08:17 AM", status: "Present" },
+    { name: "Arun Mehta",    role: "Housekeeping",time: "09:45 AM",status: "Late"    },
+    { name: "Deepa Nair",    role: "Security",   time: "—",        status: "Absent"  },
+  ]
+  return (
+    <div className="w-full rounded-2xl overflow-hidden shadow-2xl" style={{ background: "#0a1620", border: "1px solid rgba(56,189,248,0.15)" }}>
+      <div className="flex items-center justify-between px-4 py-3" style={{ background: "#071018", borderBottom: "1px solid rgba(56,189,248,0.1)" }}>
+        <div className="flex items-center gap-2">
+          <div className="w-2.5 h-2.5 rounded-full bg-[#38bdf8]" />
+          <span className="text-[11px] font-medium text-white/70 tracking-wide">Firmity Attendance · Today</span>
+        </div>
+        <div className="flex gap-1.5">
+          <span className="text-[9px] px-2 py-0.5 rounded-full font-medium" style={{ background: "rgba(56,189,248,0.15)", color: "#38bdf8" }}>Live</span>
+          <span className="text-[9px] px-2 py-0.5 rounded-full font-medium text-white/40 bg-white/5">History</span>
+        </div>
+      </div>
+      <div className="grid grid-cols-4 px-4 py-3" style={{ background: "rgba(56,189,248,0.04)", borderBottom: "1px solid rgba(56,189,248,0.08)" }}>
+        {[{ val: "32", sub: "Present", col: "#4ade80" }, { val: "4", sub: "Late", col: "#fbbf24" }, { val: "2", sub: "Absent", col: "#f87171" }, { val: "89%", sub: "Rate", col: "#38bdf8" }].map(function(s) {
+          return (
+            <div key={s.sub} className="text-center">
+              <p className="text-[13px] font-bold" style={{ color: s.col }}>{s.val}</p>
+              <p className="text-[8.5px] text-white/35">{s.sub}</p>
+            </div>
+          )
+        })}
+      </div>
+      <div className="px-4 py-3 space-y-2">
+        <span className="text-[9.5px] font-semibold text-white/30 uppercase tracking-widest">Staff Log</span>
+        {staff.map(function(s) {
+          const col = s.status === "Present" ? "#4ade80" : s.status === "Late" ? "#fbbf24" : "#f87171"
+          return (
+            <div key={s.name} className="flex items-center gap-2.5 rounded-lg px-3 py-2" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(56,189,248,0.08)" }}>
+              <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "rgba(56,189,248,0.1)" }}>
+                <span className="text-[9px] font-bold" style={{ color: "#38bdf8" }}>{s.name.charAt(0)}</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] font-medium text-white/80 truncate">{s.name}</p>
+                <p className="text-[9px] text-white/30">{s.role}</p>
+              </div>
+              <span className="text-[8.5px] text-white/30">{s.time}</span>
+              <span className="text-[8px] px-1.5 py-0.5 rounded font-semibold flex-shrink-0 ml-1" style={{ background: col + "20", color: col }}>{s.status}</span>
+            </div>
+          )
+        })}
+      </div>
+      <div className="px-4 py-2.5" style={{ background: "#071018", borderTop: "1px solid rgba(56,189,248,0.08)" }}>
+        <div className="flex items-center justify-between">
+          <span className="text-[9px] text-white/35">Shift ends at 5:00 PM</span>
+          <span className="text-[9px] font-semibold" style={{ color: "#38bdf8" }}>Export report →</span>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export default function StaffAttendancePage() {
+  const capabilities = [
+    { Icon: Smartphone, title: "Mobile Check-In and Check-Out",    desc: "Staff mark attendance via mobile app with GPS verification. Supervisors get a live view of who is on-site, on time, and on shift." },
+    { Icon: MapPin,     title: "Geo-Fenced Attendance",            desc: "Restrict check-ins to authorised locations. If a staff member checks in outside the facility perimeter, the system flags it immediately." },
+    { Icon: Clock,      title: "Shift and Roster Management",      desc: "Define shifts, assign rosters, and track adherence in real time. Handle rotating shifts, night duties, and multi-site assignments." },
+    { Icon: Bell,       title: "Late and Absence Alerts",          desc: "Supervisors receive instant alerts when staff are late or absent. Escalation chains ensure cover is arranged before operations are affected." },
+    { Icon: Calendar,   title: "Leave and Holiday Management",     desc: "Staff apply for leave digitally. Supervisors approve or reject with one click. Leave balances update automatically against payroll records." },
+    { Icon: BarChart2,  title: "Attendance Analytics and Reports", desc: "Track punctuality trends, absenteeism patterns, overtime, and compliance across teams. Export payroll-ready reports for HR and accounts." },
+  ]
+  const steps = [
+    { num: "01", Icon: Users,      title: "Set Up Staff Profiles", desc: "Add staff details, assign roles, shifts, and locations. Import existing HR data in bulk." },
+    { num: "02", Icon: Calendar,   title: "Define Shifts and Rosters", desc: "Create shift patterns, assign to staff, and publish rosters. Handle substitutions and overtime." },
+    { num: "03", Icon: Smartphone, title: "Staff Check In",        desc: "Staff use mobile app or biometric terminal. GPS and timestamp are recorded automatically." },
+    { num: "04", Icon: BarChart2,  title: "Review and Report",     desc: "Daily summaries, exception reports, and payroll-ready exports are generated automatically." },
+  ]
+  const useCases = [
+    { Icon: Shield,    title: "Security Personnel",      desc: "Track guard shifts, patrol completion, and site coverage with real-time location verification." },
+    { Icon: Users,     title: "Housekeeping Teams",      desc: "Monitor cleaning staff attendance per floor or zone and link to daily task completion records." },
+    { Icon: Zap,       title: "Maintenance Technicians", desc: "Track technician availability by shift and location. Link attendance to work order assignment." },
+    { Icon: FileText,  title: "Office and Admin Staff",  desc: "Standard attendance tracking with leave management and HR-ready reports for payroll processing." },
+  ]
+  const industries = [
+    { title: "Commercial Buildings",     desc: "Track attendance of facility management, housekeeping, security, and technical staff across floors." },
+    { title: "Residential Communities",  desc: "Monitor guard, cleaning, and maintenance staff attendance per block with supervisor override." },
+    { title: "Manufacturing Plants",     desc: "Manage shift-based attendance for production, safety, and maintenance staff with overtime tracking." },
+    { title: "Hospitals and Healthcare", desc: "Track attendance of facility staff, housekeeping, and security across wards and departments." },
+    { title: "Educational Institutions", desc: "Monitor attendance of support staff, security, housekeeping, and maintenance across campuses." },
+    { title: "Hotels and Hospitality",   desc: "Manage shift rosters for front desk, housekeeping, kitchen, and maintenance staff across properties." },
+  ]
   return (
     <>
       <Navigation />
-      <main>
-        {/* Hero Section */}
-        <section className="bg-gradient-to-br from-primary/5 to-background py-16 md:py-24">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-3xl mx-auto text-center space-y-6">
-              <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full">
-                <Users className="text-primary" size={20} />
-                <span className="text-sm font-semibold text-primary">Facility Staff Attendance & Leave</span>
+      <main className="overflow-x-hidden">
+        <section style={{ background: "#0a1620" }} className="relative min-h-screen flex items-center">
+          <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 70% 60% at 20% 50%, rgba(56,189,248,0.07) 0%, transparent 70%)" }} />
+          <div className="relative max-w-7xl mx-auto w-full px-6 sm:px-10 lg:px-14 py-28 lg:py-32">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+              <div>
+                <Reveal>
+                  <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 mb-7" style={{ background: "rgba(56,189,248,0.1)", border: "1px solid rgba(56,189,248,0.2)" }}>
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#38bdf8]" />
+                    <span className="text-[11px] font-semibold tracking-widest uppercase" style={{ color: "#38bdf8" }}>Module 06 · Staff Attendance Management</span>
+                  </div>
+                </Reveal>
+                <Reveal delay={80}>
+                  <h1 className="font-serif font-light leading-[1.1] tracking-tight mb-6" style={{ fontSize: "clamp(2rem,5vw,3.4rem)", color: "#f0f9ff" }}>
+                    Know who is on-site.<br />When. Where.<br /><em className="not-italic" style={{ color: "#38bdf8" }}>In real time.</em>
+                  </h1>
+                </Reveal>
+                <Reveal delay={150}>
+                  <p className="text-[15px] leading-[1.75] mb-10 max-w-[480px]" style={{ color: "rgba(240,249,255,0.65)" }}>
+                    Firmity replaces paper registers and manual roll calls with a live attendance system — GPS-verified, mobile-first, and linked to shift rosters, leave management, and payroll exports.
+                  </p>
+                </Reveal>
+                <Reveal delay={200}>
+                  <div className="grid grid-cols-3 gap-5 mb-10 max-w-[440px]">
+                    {[{ val: "89%", label: "Average attendance compliance rate" }, { val: "Real-time", label: "Live staff visibility across sites" }, { val: "Zero", label: "Paper registers or manual rollcalls" }].map(function(s) {
+                      return (
+                        <div key={s.val}>
+                          <p className="font-serif font-light leading-none mb-1.5" style={{ fontSize: "clamp(1.3rem,3vw,1.9rem)", color: "#38bdf8" }}>{s.val}</p>
+                          <p className="text-[10.5px] leading-snug" style={{ color: "rgba(240,249,255,0.45)" }}>{s.label}</p>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </Reveal>
+                <Reveal delay={250}>
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <Link href="/contact" className="inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-[13px] font-semibold" style={{ background: "#38bdf8", color: "#0a1620" }}>Book a Demo <ArrowRight size={14} /></Link>
+                    <Link href="/features" className="inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-[13px] font-semibold" style={{ background: "rgba(56,189,248,0.08)", color: "#38bdf8", border: "1px solid rgba(56,189,248,0.2)" }}>Explore All Features</Link>
+                  </div>
+                </Reveal>
               </div>
-              <h1 className="text-4xl md:text-5xl font-bold text-foreground text-balance">
-                Digital Attendance Tracking & Leave Management
-              </h1>
-              <p className="text-lg text-foreground/80 text-balance">
-                Streamline HR operations with digital attendance tracking, automated leave approvals, and comprehensive
-                workforce analytics. Full transparency in one platform.
+              <Reveal direction="left" delay={180}><DashboardMockup /></Reveal>
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-white py-16 lg:py-20">
+          <div className="max-w-4xl mx-auto px-6 sm:px-10 text-center">
+            <Reveal>
+              <p className="text-[11px] font-semibold tracking-widest uppercase text-[#0369a1] mb-5">What Firmity Attendance delivers</p>
+              <h2 className="font-serif font-light leading-[1.15] tracking-tight text-[#1a202c] mb-6" style={{ fontSize: "clamp(1.7rem,4vw,2.8rem)" }}>
+                From paper registers<br className="hidden sm:block" />to real-time staff visibility.
+              </h2>
+              <p className="text-[15px] leading-[1.8] text-[#4a5568] max-w-2xl mx-auto">
+                Facility managers who rely on paper registers or WhatsApp confirmations have no real-time picture of who is on duty. Firmity gives you a live dashboard of every staff member — present, late, absent, or on leave — across every site you manage.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-                <a
-                  href="/contact"
-                  className="bg-primary text-primary-foreground px-8 py-3 rounded-lg hover:bg-primary/90 transition-colors font-semibold cursor-pointer"
-                >
-                  Start Free Trial
-                </a>
-                {/* <a
-                  href="/pricing"
-                  className="border-2 border-border text-foreground px-8 py-3 rounded-lg hover:bg-muted transition-colors font-semibold cursor-pointer"
-                >
-                  View Pricing
-                </a> */}
+            </Reveal>
+          </div>
+        </section>
+
+        <section className="py-16 lg:py-24" style={{ background: "#f0f9ff" }}>
+          <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-14">
+            <Reveal>
+              <div className="mb-12 lg:mb-16">
+                <p className="text-[11px] font-semibold tracking-widest uppercase text-[#0369a1] mb-3">Capabilities</p>
+                <h2 className="font-serif font-light leading-[1.15] tracking-tight text-[#1a202c]" style={{ fontSize: "clamp(1.5rem,3.5vw,2.4rem)" }}>Everything your HR and ops teams need.</h2>
               </div>
+            </Reveal>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {capabilities.map(function(cap, i) {
+                const Icon = cap.Icon
+                return (
+                  <Reveal key={cap.title} delay={i * 55}>
+                    <div className="rounded-2xl p-6 h-full" style={{ background: "#ffffff", border: "1px solid #e2e8f0" }}>
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-5" style={{ background: "rgba(56,189,248,0.1)" }}>
+                        <Icon size={18} style={{ color: "#0369a1" }} strokeWidth={1.75} />
+                      </div>
+                      <h3 className="text-[14px] font-semibold text-[#1a202c] mb-2 leading-snug">{cap.title}</h3>
+                      <p className="text-[12.5px] leading-[1.75] text-[#718096]">{cap.desc}</p>
+                    </div>
+                  </Reveal>
+                )
+              })}
             </div>
           </div>
         </section>
 
-        {/* Key Features */}
-        <section className="py-16 md:py-20 bg-background">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Complete HR Management Solution</h2>
-              <p className="text-lg text-foreground/80 max-w-2xl mx-auto">
-                From clock-in to payroll reports, manage your entire workforce digitally
-              </p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              <div className="bg-card border border-border rounded-lg p-6 space-y-4">
-                <div className="bg-primary/10 p-3 rounded-lg w-fit">
-                  <Clock className="text-primary" size={24} />
-                </div>
-                <h3 className="text-xl font-bold text-foreground">Digital Clock-In/Out</h3>
-                <p className="text-foreground/80">
-                  Staff mark attendance digitally using mobile apps, web portals, or biometric devices. Automatic
-                  timestamp recording eliminates manual registers.
-                </p>
+        <section style={{ background: "#0a1620" }} className="py-16 lg:py-24">
+          <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-14">
+            <Reveal>
+              <div className="mb-12 lg:mb-16 text-center">
+                <p className="text-[11px] font-semibold tracking-widest uppercase mb-3" style={{ color: "#38bdf8" }}>How it works</p>
+                <h2 className="font-serif font-light leading-[1.15] tracking-tight" style={{ fontSize: "clamp(1.5rem,3.5vw,2.4rem)", color: "#f0f9ff" }}>Set up once. Track every shift automatically.</h2>
               </div>
-              <div className="bg-card border border-border rounded-lg p-6 space-y-4">
-                <div className="bg-primary/10 p-3 rounded-lg w-fit">
-                  <Calendar className="text-primary" size={24} />
-                </div>
-                <h3 className="text-xl font-bold text-foreground">Leave Management</h3>
-                <p className="text-foreground/80">
-                  Staff submit leave requests digitally. Managers approve or reject with one click. Track leave
-                  balances, accruals, and history automatically.
-                </p>
-              </div>
-              <div className="bg-card border border-border rounded-lg p-6 space-y-4">
-                <div className="bg-primary/10 p-3 rounded-lg w-fit">
-                  <CheckCircle className="text-primary" size={24} />
-                </div>
-                <h3 className="text-xl font-bold text-foreground">Shift Scheduling</h3>
-                <p className="text-foreground/80">
-                  Create and manage work schedules digitally. Staff can view their shifts, swap shifts with approvals,
-                  and receive schedule notifications.
-                </p>
-              </div>
-              <div className="bg-card border border-border rounded-lg p-6 space-y-4">
-                <div className="bg-primary/10 p-3 rounded-lg w-fit">
-                  <BarChart className="text-primary" size={24} />
-                </div>
-                <h3 className="text-xl font-bold text-foreground">Attendance Reports</h3>
-                <p className="text-foreground/80">
-                  Generate comprehensive attendance reports by employee, department, or date range. Export data for
-                  payroll processing and analysis.
-                </p>
-              </div>
-              <div className="bg-card border border-border rounded-lg p-6 space-y-4">
-                <div className="bg-primary/10 p-3 rounded-lg w-fit">
-                  <Smartphone className="text-primary" size={24} />
-                </div>
-                <h3 className="text-xl font-bold text-foreground">Mobile Access</h3>
-                <p className="text-foreground/80">
-                  Staff and managers access the system from any mobile device. Mark attendance, submit leaves, and
-                  approve requests on the go.
-                </p>
-              </div>
-              <div className="bg-card border border-border rounded-lg p-6 space-y-4">
-                <div className="bg-primary/10 p-3 rounded-lg w-fit">
-                  <FileText className="text-primary" size={24} />
-                </div>
-                <h3 className="text-xl font-bold text-foreground">Payroll Integration</h3>
-                <p className="text-foreground/80">
-                  Attendance data feeds directly into payroll systems. Calculate work hours, overtime, and deductions
-                  automatically for accurate payroll.
-                </p>
-              </div>
+            </Reveal>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-4 relative">
+              <div className="hidden lg:block absolute top-[28px] left-[12.5%] right-[12.5%] h-px" style={{ background: "linear-gradient(to right, rgba(56,189,248,0.3), rgba(56,189,248,0.1))" }} />
+              {steps.map(function(step, i) {
+                const Icon = step.Icon
+                return (
+                  <Reveal key={step.num} delay={i * 90}>
+                    <div className="relative flex flex-col items-center text-center lg:items-start lg:text-left">
+                      <div className="w-14 h-14 rounded-full flex items-center justify-center mb-5 relative z-10" style={{ background: "#0c2030", border: "1px solid rgba(56,189,248,0.3)" }}>
+                        <Icon size={20} style={{ color: "#38bdf8" }} strokeWidth={1.5} />
+                      </div>
+                      <span className="text-[9px] font-bold tracking-widest mb-2" style={{ color: "rgba(56,189,248,0.5)" }}>{step.num}</span>
+                      <h4 className="text-[13.5px] font-semibold mb-2" style={{ color: "#f0f9ff" }}>{step.title}</h4>
+                      <p className="text-[12px] leading-[1.7]" style={{ color: "rgba(240,249,255,0.5)" }}>{step.desc}</p>
+                    </div>
+                  </Reveal>
+                )
+              })}
             </div>
           </div>
         </section>
 
-        {/* How It Works */}
-        <section className="py-16 md:py-20 bg-primary/5">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Simple Attendance Workflow</h2>
-              <p className="text-lg text-foreground/80 max-w-2xl mx-auto">
-                Streamlined processes for both staff and managers
-              </p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-              <div className="space-y-6">
-                <h3 className="text-2xl font-bold text-foreground">For Staff Members</h3>
-                <div className="space-y-4">
-                  <div className="flex gap-4">
-                    <div className="flex-shrink-0">
-                      <div className="bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">
-                        1
+        <section className="bg-white py-16 lg:py-24">
+          <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-14">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+              <Reveal direction="right">
+                <p className="text-[11px] font-semibold tracking-widest uppercase text-[#0369a1] mb-8">Business impact</p>
+                <div className="space-y-8">
+                  {[
+                    { val: "100%", label: "Staff visibility in real time",         sub: "live dashboard replaces manual roll calls" },
+                    { val: "Zero", label: "Proxy attendance with geo-fencing",      sub: "location verification prevents buddy punching" },
+                    { val: "2x",   label: "Faster payroll processing",             sub: "payroll-ready exports eliminate manual calculation" },
+                    { val: "50%",  label: "Reduction in HR administrative effort", sub: "leave approvals, reports, and overtime — automated" },
+                  ].map(function(m) {
+                    return (
+                      <div key={m.val} className="flex gap-5 items-start">
+                        <p className="font-serif font-light leading-none flex-shrink-0 w-[100px]" style={{ fontSize: "clamp(1.4rem,2.5vw,1.9rem)", color: "#0369a1" }}>{m.val}</p>
+                        <div>
+                          <p className="text-[13.5px] font-semibold text-[#1a202c] mb-0.5">{m.label}</p>
+                          <p className="text-[12px] text-[#718096] leading-snug">{m.sub}</p>
+                        </div>
                       </div>
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-foreground mb-1">Clock In</h4>
-                      <p className="text-foreground/80 text-sm">
-                        Mark attendance using mobile app, web portal, or biometric device when starting shift
-                      </p>
-                    </div>
+                    )
+                  })}
+                </div>
+              </Reveal>
+              <Reveal direction="left" delay={100}>
+                <div className="rounded-2xl p-8" style={{ background: "#f0f9ff", border: "1px solid #bae6fd" }}>
+                  <h3 className="font-serif font-light text-[1.35rem] text-[#1a202c] mb-7 leading-snug">Replace the register book<br />with live digital tracking.</h3>
+                  <div className="space-y-4">
+                    {[
+                      "Staff check in from mobile — no hardware installation required",
+                      "Geo-fence your facility to block remote or proxy check-ins",
+                      "Get notified instantly when staff are late or absent for their shift",
+                      "Handle leave requests, approvals, and balance tracking digitally",
+                      "Export payroll data in formats compatible with your HR software",
+                      "Track attendance across multiple sites from a single dashboard",
+                    ].map(function(b) {
+                      return (
+                        <div key={b} className="flex gap-3 items-start">
+                          <CheckCircle size={15} className="flex-shrink-0 mt-0.5" style={{ color: "#0369a1" }} />
+                          <p className="text-[12.5px] leading-[1.65] text-[#2d3748]">{b}</p>
+                        </div>
+                      )
+                    })}
                   </div>
-                  <div className="flex gap-4">
-                    <div className="flex-shrink-0">
-                      <div className="bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">
-                        2
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-foreground mb-1">Request Leave</h4>
-                      <p className="text-foreground/80 text-sm">
-                        Submit leave requests with dates, type, and reason. Check leave balance in real-time
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex gap-4">
-                    <div className="flex-shrink-0">
-                      <div className="bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">
-                        3
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-foreground mb-1">View Schedule</h4>
-                      <p className="text-foreground/80 text-sm">
-                        Access work schedule, shift timings, and upcoming assignments anytime
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex gap-4">
-                    <div className="flex-shrink-0">
-                      <div className="bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">
-                        4
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-foreground mb-1">Clock Out</h4>
-                      <p className="text-foreground/80 text-sm">
-                        Mark attendance when ending shift. System automatically calculates work hours
-                      </p>
-                    </div>
+                  <div className="mt-8">
+                    <Link href="/contact" className="inline-flex items-center gap-2 text-[12.5px] font-semibold hover:gap-3.5 transition-all" style={{ color: "#0369a1" }}>See it in action <ArrowRight size={14} /></Link>
                   </div>
                 </div>
-              </div>
-              <div className="space-y-6">
-                <h3 className="text-2xl font-bold text-foreground">For Managers</h3>
-                <div className="space-y-4">
-                  <div className="flex gap-4">
-                    <div className="flex-shrink-0">
-                      <div className="bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">
-                        1
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-foreground mb-1">Monitor Attendance</h4>
-                      <p className="text-foreground/80 text-sm">
-                        View real-time attendance dashboard showing who is present, absent, or on leave
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex gap-4">
-                    <div className="flex-shrink-0">
-                      <div className="bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">
-                        2
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-foreground mb-1">Approve Leave</h4>
-                      <p className="text-foreground/80 text-sm">
-                        Review leave requests and approve or reject with one click. Add comments if needed
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex gap-4">
-                    <div className="flex-shrink-0">
-                      <div className="bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">
-                        3
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-foreground mb-1">Create Schedules</h4>
-                      <p className="text-foreground/80 text-sm">
-                        Plan and publish work schedules. System checks for conflicts and adequate coverage
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex gap-4">
-                    <div className="flex-shrink-0">
-                      <div className="bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">
-                        4
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-foreground mb-1">Generate Reports</h4>
-                      <p className="text-foreground/80 text-sm">
-                        Export attendance reports for payroll, analyze patterns, and identify issues
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              </Reveal>
             </div>
           </div>
         </section>
 
-        {/* Benefits */}
-        <section className="py-16 md:py-20 bg-background">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <div className="space-y-6">
-                <h2 className="text-3xl md:text-4xl font-bold text-foreground">Transform HR Operations</h2>
-                <p className="text-lg text-foreground/80">
-                  Digital attendance systems save HR teams 10-15 hours per week on manual tracking, reduce payroll
-                  errors by 95%, and improve workforce productivity by 20% through better visibility.
-                </p>
-                <div className="space-y-4">
-                  <div className="flex gap-4">
-                    <div className="flex-shrink-0">
-                      <div className="bg-primary/10 p-2 rounded-lg">
-                        <CheckCircle className="text-primary" size={20} />
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-foreground mb-1">Eliminate Manual Registers</h4>
-                      <p className="text-foreground/80 text-sm">
-                        No more paper attendance sheets, manual calculations, or data entry errors
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex gap-4">
-                    <div className="flex-shrink-0">
-                      <div className="bg-primary/10 p-2 rounded-lg">
-                        <CheckCircle className="text-primary" size={20} />
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-foreground mb-1">Prevent Time Theft</h4>
-                      <p className="text-foreground/80 text-sm">
-                        Biometric authentication and GPS tracking prevent buddy punching and false attendance
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex gap-4">
-                    <div className="flex-shrink-0">
-                      <div className="bg-primary/10 p-2 rounded-lg">
-                        <CheckCircle className="text-primary" size={20} />
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-foreground mb-1">Streamline Leave Management</h4>
-                      <p className="text-foreground/80 text-sm">
-                        One-click leave approvals and automatic balance calculations save hours of administrative work
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex gap-4">
-                    <div className="flex-shrink-0">
-                      <div className="bg-primary/10 p-2 rounded-lg">
-                        <CheckCircle className="text-primary" size={20} />
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-foreground mb-1">Ensure Compliance</h4>
-                      <p className="text-foreground/80 text-sm">
-                        Maintain complete audit trails for labor law compliance and government reporting
-                      </p>
-                    </div>
-                  </div>
-                </div>
+        <section className="py-16 lg:py-24" style={{ background: "#f0f9ff" }}>
+          <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-14">
+            <Reveal>
+              <div className="mb-12 text-center">
+                <p className="text-[11px] font-semibold tracking-widest uppercase text-[#0369a1] mb-3">Staff categories</p>
+                <h2 className="font-serif font-light leading-[1.15] tracking-tight text-[#1a202c]" style={{ fontSize: "clamp(1.4rem,3vw,2.2rem)" }}>Attendance tracking for every team type.</h2>
               </div>
-              <div className="bg-card border border-border rounded-lg p-8">
-                <h3 className="text-2xl font-bold text-foreground mb-6">Leave Types Supported</h3>
-                <div className="space-y-4">
-                  <div className="border-l-4 border-primary pl-4">
-                    <h4 className="font-bold text-foreground">Paid Time Off (PTO)</h4>
-                    <p className="text-foreground/80 text-sm">
-                      Annual leave, vacation days, and earned leave with accrual tracking
-                    </p>
-                  </div>
-                  <div className="border-l-4 border-primary pl-4">
-                    <h4 className="font-bold text-foreground">Sick Leave</h4>
-                    <p className="text-foreground/80 text-sm">
-                      Medical leave with optional doctor note requirements and balance tracking
-                    </p>
-                  </div>
-                  <div className="border-l-4 border-primary pl-4">
-                    <h4 className="font-bold text-foreground">Casual Leave</h4>
-                    <p className="text-foreground/80 text-sm">
-                      Short-term personal leave for urgent matters with flexible approval rules
-                    </p>
-                  </div>
-                  <div className="border-l-4 border-primary pl-4">
-                    <h4 className="font-bold text-foreground">Compensatory Off</h4>
-                    <p className="text-foreground/80 text-sm">
-                      Comp off for overtime work, weekend shifts, or holiday work
-                    </p>
-                  </div>
-                  <div className="border-l-4 border-primary pl-4">
-                    <h4 className="font-bold text-foreground">Special Leave</h4>
-                    <p className="text-foreground/80 text-sm">
-                      Maternity, paternity, bereavement, and other special circumstance leaves
-                    </p>
-                  </div>
-                </div>
-              </div>
+            </Reveal>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              {useCases.map(function(uc, i) {
+                const Icon = uc.Icon
+                return (
+                  <Reveal key={uc.title} delay={i * 60}>
+                    <div className="rounded-2xl p-6 h-full" style={{ background: "#ffffff", border: "1px solid #bae6fd" }}>
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style={{ background: "rgba(56,189,248,0.1)" }}>
+                        <Icon size={18} style={{ color: "#0369a1" }} strokeWidth={1.75} />
+                      </div>
+                      <h4 className="text-[13.5px] font-semibold text-[#1a202c] mb-2">{uc.title}</h4>
+                      <p className="text-[12px] leading-[1.7] text-[#718096]">{uc.desc}</p>
+                    </div>
+                  </Reveal>
+                )
+              })}
             </div>
           </div>
         </section>
 
-        {/* Features Breakdown */}
-        <section className="py-16 md:py-20 bg-primary/5">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Advanced Attendance Features</h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="bg-background rounded-lg p-6 border border-border space-y-3">
-                <h4 className="font-bold text-foreground">Biometric Integration</h4>
-                <p className="text-foreground/80 text-sm">
-                  Integrate with fingerprint, face recognition, or card-based biometric devices for foolproof attendance
-                  tracking.
-                </p>
+        <section className="bg-white py-16 lg:py-24">
+          <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-14">
+            <Reveal>
+              <div className="mb-12">
+                <p className="text-[11px] font-semibold tracking-widest uppercase text-[#0369a1] mb-3">Who uses it</p>
+                <h2 className="font-serif font-light leading-[1.15] tracking-tight text-[#1a202c]" style={{ fontSize: "clamp(1.4rem,3vw,2.2rem)" }}>Attendance management for every sector.</h2>
               </div>
-              <div className="bg-background rounded-lg p-6 border border-border space-y-3">
-                <h4 className="font-bold text-foreground">GPS Verification</h4>
-                <p className="text-foreground/80 text-sm">
-                  Enable location-based attendance marking to ensure staff are at designated work sites when clocking
-                  in.
-                </p>
-              </div>
-              <div className="bg-background rounded-lg p-6 border border-border space-y-3">
-                <h4 className="font-bold text-foreground">Overtime Tracking</h4>
-                <p className="text-foreground/80 text-sm">
-                  Automatically calculate overtime hours based on configurable rules. Generate overtime reports for
-                  payroll.
-                </p>
-              </div>
-              <div className="bg-background rounded-lg p-6 border border-border space-y-3">
-                <h4 className="font-bold text-foreground">Late/Early Departure Alerts</h4>
-                <p className="text-foreground/80 text-sm">
-                  Set grace periods and receive alerts for late arrivals or early departures. Track patterns and take
-                  corrective action.
-                </p>
-              </div>
-              <div className="bg-background rounded-lg p-6 border border-border space-y-3">
-                <h4 className="font-bold text-foreground">Leave Accrual Rules</h4>
-                <p className="text-foreground/80 text-sm">
-                  Configure complex leave accrual rules, carry-forward policies, and encashment rules based on company
-                  policy.
-                </p>
-              </div>
-              <div className="bg-background rounded-lg p-6 border border-border space-y-3">
-                <h4 className="font-bold text-foreground">Shift Management</h4>
-                <p className="text-foreground/80 text-sm">
-                  Manage multiple shifts, rotations, and split shifts. Staff can view schedules and request shift swaps.
-                </p>
-              </div>
+            </Reveal>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {industries.map(function(ind, i) {
+                return (
+                  <Reveal key={ind.title} delay={i * 45}>
+                    <div className="rounded-xl p-5" style={{ background: "#f8fafc", border: "1px solid #e2e8f0" }}>
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#38bdf8]" />
+                        <h4 className="text-[13px] font-semibold text-[#1a202c]">{ind.title}</h4>
+                      </div>
+                      <p className="text-[12px] leading-[1.65] text-[#718096] pl-3.5">{ind.desc}</p>
+                    </div>
+                  </Reveal>
+                )
+              })}
             </div>
           </div>
         </section>
 
-        {/* Reports */}
-        <section className="py-16 md:py-20 bg-background">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Comprehensive HR Reports</h2>
-              <p className="text-lg text-foreground/80 max-w-2xl mx-auto">
-                Data-driven insights for better workforce management
-              </p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-card rounded-lg p-6 border border-border">
-                <BarChart className="text-primary mb-3" size={32} />
-                <h4 className="font-bold text-foreground mb-2">Attendance Summary</h4>
-                <p className="text-foreground/80 text-sm">
-                  Daily, weekly, or monthly attendance summaries by individual, department, or entire organization.
-                </p>
+        <section style={{ background: "#0a1620" }} className="py-16 lg:py-20 relative overflow-hidden">
+          <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 80% at 80% 50%, rgba(56,189,248,0.06) 0%, transparent 70%)" }} />
+          <div className="relative max-w-4xl mx-auto px-6 sm:px-10 text-center">
+            <Reveal>
+              <h2 className="font-serif font-light leading-[1.15] tracking-tight mb-4" style={{ fontSize: "clamp(1.6rem,4vw,2.6rem)", color: "#f0f9ff" }}>Ready to see who is on-site right now?</h2>
+              <p className="text-[14px] leading-[1.75] mb-8 max-w-xl mx-auto" style={{ color: "rgba(240,249,255,0.6)" }}>Facility managers using Firmity Attendance eliminate proxy check-ins, speed up payroll processing, and always know exactly who is on duty — across every site they manage.</p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Link href="/contact" className="inline-flex items-center justify-center gap-2 rounded-xl px-7 py-3 text-[13px] font-semibold" style={{ background: "#38bdf8", color: "#0a1620" }}>Book a Demo <ArrowRight size={14} /></Link>
+                <Link href="/features" className="inline-flex items-center justify-center gap-2 rounded-xl px-7 py-3 text-[13px] font-semibold" style={{ background: "rgba(56,189,248,0.08)", color: "#38bdf8", border: "1px solid rgba(56,189,248,0.2)" }}>Explore All Modules</Link>
               </div>
-              <div className="bg-card rounded-lg p-6 border border-border">
-                <BarChart className="text-primary mb-3" size={32} />
-                <h4 className="font-bold text-foreground mb-2">Leave Balance Report</h4>
-                <p className="text-foreground/80 text-sm">
-                  Current leave balances, accruals, leaves taken, and leaves pending for all staff members.
-                </p>
-              </div>
-              <div className="bg-card rounded-lg p-6 border border-border">
-                <BarChart className="text-primary mb-3" size={32} />
-                <h4 className="font-bold text-foreground mb-2">Absenteeism Analysis</h4>
-                <p className="text-foreground/80 text-sm">
-                  Identify patterns in absenteeism, frequent offenders, and departments with high absence rates.
-                </p>
-              </div>
-              <div className="bg-card rounded-lg p-6 border border-border">
-                <BarChart className="text-primary mb-3" size={32} />
-                <h4 className="font-bold text-foreground mb-2">Payroll Export</h4>
-                <p className="text-foreground/80 text-sm">
-                  Export attendance data in payroll-ready format with work hours, overtime, and deductions.
-                </p>
-              </div>
-              <div className="bg-card rounded-lg p-6 border border-border">
-                <BarChart className="text-primary mb-3" size={32} />
-                <h4 className="font-bold text-foreground mb-2">Punctuality Report</h4>
-                <p className="text-foreground/80 text-sm">
-                  Track late arrivals, early departures, and overall punctuality trends across the workforce.
-                </p>
-              </div>
-              <div className="bg-card rounded-lg p-6 border border-border">
-                <BarChart className="text-primary mb-3" size={32} />
-                <h4 className="font-bold text-foreground mb-2">Compliance Reports</h4>
-                <p className="text-foreground/80 text-sm">
-                  Generate reports for labor department, statutory compliance, and government audits.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* CTA */}
-        <section className="py-16 md:py-20 bg-primary text-primary-foreground">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
-            <h2 className="text-3xl md:text-4xl font-bold">Modernize Your HR Operations Today</h2>
-            <p className="text-lg opacity-90">
-              Join facilities saving 15 hours per week with digital attendance and leave management
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-              <a
-                href="/contact"
-                className="bg-primary-foreground text-primary px-8 py-3 rounded-lg hover:bg-background transition-colors font-semibold cursor-pointer"
-              >
-                Get Started Free
-              </a>
-              <a
-                href="/features"
-                className="border-2 border-primary-foreground text-primary-foreground px-8 py-3 rounded-lg hover:bg-primary-foreground/10 transition-colors font-semibold cursor-pointer"
-              >
-                Explore More Features
-              </a>
-            </div>
+            </Reveal>
           </div>
         </section>
       </main>

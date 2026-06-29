@@ -3,7 +3,8 @@ import type { Metadata } from "next"
 import { DM_Sans, Playfair_Display, DM_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
-import Script from "next/script";
+import Script from "next/script"
+import { ScrollToTop } from "@/src/components/scroll-to-top"
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -48,6 +49,7 @@ export default function RootLayout({
       className={`${dmSans.variable} ${playfairDisplay.variable} ${dmMono.variable}`}
     >
       <body className="font-sans antialiased bg-white text-[#1a202c]">
+        <ScrollToTop />
         {children}
         <Analytics />
       </body>

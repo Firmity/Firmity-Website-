@@ -89,99 +89,130 @@
 
 import Link from "next/link"
 import Image from "next/image"
+import { Linkedin, Instagram, Twitter, Facebook, Youtube } from "lucide-react"
+
+const SOCIALS = [
+  { Icon: Linkedin,  href: "#", label: "LinkedIn" },
+  { Icon: Instagram, href: "#", label: "Instagram" },
+  { Icon: Twitter,   href: "#", label: "X / Twitter" },
+  { Icon: Facebook,  href: "#", label: "Facebook" },
+  { Icon: Youtube,   href: "#", label: "YouTube" },
+]
 
 export function Footer() {
   return (
-    <footer className="bg-[#0d1525] text-white border-t border-white/[0.06]">
+    <footer className="bg-white border-t border-[#dbe5f0]">
       <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 py-14">
 
         {/* Main grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-[2fr_1fr_1fr_1fr] gap-10 mb-12">
 
           {/* Brand */}
-          <div className="col-span-2 sm:col-span-2 lg:col-span-1 flex flex-col gap-4">
+          <div className="col-span-2 sm:col-span-4 lg:col-span-1 flex flex-col gap-4">
             <Link href="/" className="inline-flex items-start">
               <Image
                 src="/firmity.png"
                 alt="Firmity Logo"
                 width={110}
                 height={36}
-                className="object-contain brightness-0 invert opacity-90"
+                className="object-contain"
               />
             </Link>
-            <p className="text-[12.5px] text-white/[0.45] font-light leading-relaxed max-w-[220px]">
+            <p className="text-[12.5px] text-[#1a4a8a] font-light leading-relaxed max-w-[220px]">
               Complete Facility Management Software Suite
             </p>
             {/* Pillar tagline */}
-            <div className="flex items-center gap-2 mt-1">
+            <div className="flex items-center gap-2">
               {["Productivity", "Longevity", "Sustainability"].map((tag, i, arr) => (
                 <span key={tag} className="flex items-center gap-2">
-                  <span className="text-[10px] text-white/[0.3] font-light tracking-wide">{tag}</span>
-                  {i < arr.length - 1 && <span className="text-white/[0.15] text-[10px]">·</span>}
+                  <span className="text-[10px] text-[#2b6cb0]/50 font-light tracking-wide">{tag}</span>
+                  {i < arr.length - 1 && <span className="text-[#2b6cb0]/30 text-[10px]">·</span>}
                 </span>
+              ))}
+            </div>
+            {/* Contact Us button */}
+            <Link
+              href="/contact"
+              className="inline-flex items-center justify-center w-fit px-5 py-2 rounded-lg bg-[#2b6cb0] text-white text-[12.5px] font-semibold hover:bg-[#1a56a0] transition-colors mt-1"
+            >
+              Contact Us
+            </Link>
+            {/* Social icons */}
+            <div className="flex items-center gap-3 mt-1">
+              {SOCIALS.map(({ Icon, href, label }) => (
+                <Link
+                  key={label}
+                  href={href}
+                  aria-label={label}
+                  className="w-7 h-7 rounded-lg border border-[#dbe5f0] flex items-center justify-center text-[#1a4a8a] hover:text-[#0d2d5e] hover:border-[#2b6cb0]/60 transition-colors"
+                >
+                  <Icon size={13} />
+                </Link>
               ))}
             </div>
           </div>
 
           {/* Product */}
           <div className="flex flex-col gap-3">
-            <h4 className="text-[11px] font-semibold text-white/[0.55] tracking-[0.18em] uppercase mb-1">
+            <h4 className="text-[11px] font-semibold text-[#111d35] tracking-[0.18em] uppercase mb-1">
               Product
             </h4>
-            <Link href="/features" className="text-[13px] text-white/[0.45] hover:text-white font-light transition-colors">
+            <Link href="/features" className="text-[13px] text-[#1a4a8a] hover:text-[#0d2d5e] font-light transition-colors">
               Features
             </Link>
-            <Link href="/resources" className="text-[13px] text-white/[0.45] hover:text-white font-light transition-colors">
+            <Link href="/resources" className="text-[13px] text-[#1a4a8a] hover:text-[#0d2d5e] font-light transition-colors">
               Resources
+            </Link>
+          </div>
+
+          {/* Industries */}
+          <div className="flex flex-col gap-3">
+            <h4 className="text-[11px] font-semibold text-[#111d35] tracking-[0.18em] uppercase mb-1">
+              Industries
+            </h4>
+            <Link href="/industries/manufacturing" className="text-[13px] text-[#1a4a8a] hover:text-[#0d2d5e] font-light transition-colors">
+              Manufacturing
+            </Link>
+            <Link href="/industries/educational" className="text-[13px] text-[#1a4a8a] hover:text-[#0d2d5e] font-light transition-colors">
+              Educational
+            </Link>
+            <Link href="/industries/residential" className="text-[13px] text-[#1a4a8a] hover:text-[#0d2d5e] font-light transition-colors">
+              Residential
             </Link>
           </div>
 
           {/* Company */}
           <div className="flex flex-col gap-3">
-            <h4 className="text-[11px] font-semibold text-white/[0.55] tracking-[0.18em] uppercase mb-1">
+            <h4 className="text-[11px] font-semibold text-[#111d35] tracking-[0.18em] uppercase mb-1">
               Company
             </h4>
-            <Link href="/contact" className="text-[13px] text-white/[0.45] hover:text-white font-light transition-colors">
+            <Link href="/contact" className="text-[13px] text-[#1a4a8a] hover:text-[#0d2d5e] font-light transition-colors">
               Contact
             </Link>
-            <Link href="/blog" className="text-[13px] text-white/[0.45] hover:text-white font-light transition-colors">
+            <Link href="/blog" className="text-[13px] text-[#1a4a8a] hover:text-[#0d2d5e] font-light transition-colors">
               Blog
             </Link>
-            <Link href="/login" className="text-[13px] text-white/[0.45] hover:text-white font-light transition-colors">
+            <Link href="/login" className="text-[13px] text-[#1a4a8a] hover:text-[#0d2d5e] font-light transition-colors">
               Login
-            </Link>
-          </div>
-
-          {/* Get Started */}
-          <div className="flex flex-col gap-3">
-            <h4 className="text-[11px] font-semibold text-white/[0.55] tracking-[0.18em] uppercase mb-1">
-              Get Started
-            </h4>
-            <p className="text-[13px] text-white/[0.45] font-light">2 Weeks Free Trial</p>
-            <Link
-              href="/contact"
-              className="inline-flex items-center gap-1.5 text-[13px] text-[#63b3ed] font-semibold hover:text-[#4299e1] transition-colors"
-            >
-              Book Demo →
             </Link>
           </div>
         </div>
 
         {/* Bottom rule + legal */}
-        <div className="border-t border-white/[0.07] pt-7 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-[11px] text-white/[0.22] font-light text-center sm:text-left">
+        <div className="border-t border-[#dbe5f0] pt-7 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-[11px] text-[#2b6cb0]/70 font-light text-center sm:text-left">
             Firmity is a registered software of UFIRM Technologies (P) Limited — Proudly Made in India
           </p>
           <div className="flex items-center gap-5">
-            <Link href="/privacy" className="text-[11px] text-white/[0.3] hover:text-white/[0.6] font-light transition-colors">
+            <Link href="/privacy" className="text-[11px] text-[#1a4a8a] hover:text-[#0d2d5e] font-light transition-colors">
               Privacy Policy
             </Link>
-            <span className="text-white/[0.12] text-[10px]">·</span>
-            <Link href="/terms" className="text-[11px] text-white/[0.3] hover:text-white/[0.6] font-light transition-colors">
+            <span className="text-[#2b6cb0]/20 text-[10px]">·</span>
+            <Link href="/terms" className="text-[11px] text-[#1a4a8a] hover:text-[#0d2d5e] font-light transition-colors">
               Terms &amp; Conditions
             </Link>
-            <span className="text-white/[0.12] text-[10px]">·</span>
-            <p className="text-[11px] text-white/[0.18] font-light">
+            <span className="text-[#2b6cb0]/20 text-[10px]">·</span>
+            <p className="text-[11px] text-[#2b6cb0]/60 font-light">
               © {new Date().getFullYear()} UFIRM Technologies (P) Limited
             </p>
           </div>

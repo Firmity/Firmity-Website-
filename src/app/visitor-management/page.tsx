@@ -1,475 +1,348 @@
 import { Navigation } from "@/src/components/navigation"
 import { Footer } from "@/src/components/footer"
-import { Shield, Camera, QrCode, Clock, FileText, Search, Bell, Smartphone } from "lucide-react"
+import { Reveal } from "@/src/components/reveal"
+import {
+  Eye, CheckCircle, ArrowRight, Bell, BarChart2,
+  Smartphone, FileText, Zap, Shield, Clock, QrCode, Users
+} from "lucide-react"
+import Link from "next/link"
+
+function DashboardMockup() {
+  const visitors = [
+    { name: "Rahul Sharma",   host: "Mr. Kapoor",   purpose: "Meeting",    time: "10:02 AM", status: "Inside"   },
+    { name: "Priya Mehta",    host: "Admin Office",  purpose: "Delivery",   time: "10:34 AM", status: "Inside"   },
+    { name: "Anil Verma",     host: "Mr. Iyer",      purpose: "Interview",  time: "11:00 AM", status: "Expected" },
+    { name: "Sunita Reddy",   host: "Mrs. Patil",    purpose: "Contractor", time: "09:45 AM", status: "Exited"   },
+  ]
+  return (
+    <div className="w-full rounded-2xl overflow-hidden shadow-2xl" style={{ background: "#0f1c2e", border: "1px solid rgba(244,114,182,0.15)" }}>
+      <div className="flex items-center justify-between px-4 py-3" style={{ background: "#0a1422", borderBottom: "1px solid rgba(244,114,182,0.1)" }}>
+        <div className="flex items-center gap-2">
+          <div className="w-2.5 h-2.5 rounded-full bg-[#f472b6]" />
+          <span className="text-[11px] font-medium text-white/70 tracking-wide">Firmity Visitors · Today</span>
+        </div>
+        <div className="flex gap-1.5">
+          <span className="text-[9px] px-2 py-0.5 rounded-full font-medium" style={{ background: "rgba(244,114,182,0.15)", color: "#f472b6" }}>Live</span>
+          <span className="text-[9px] px-2 py-0.5 rounded-full font-medium text-white/40 bg-white/5">Log</span>
+        </div>
+      </div>
+      <div className="grid grid-cols-4 px-4 py-3" style={{ background: "rgba(244,114,182,0.04)", borderBottom: "1px solid rgba(244,114,182,0.08)" }}>
+        {[
+          { val: "24",  sub: "Total Today", col: "#f472b6" },
+          { val: "8",   sub: "Inside Now",  col: "#4ade80" },
+          { val: "3",   sub: "Expected",    col: "#fbbf24" },
+          { val: "13",  sub: "Exited",      col: "rgba(255,255,255,0.3)" },
+        ].map(function(s) {
+          return (
+            <div key={s.sub} className="text-center">
+              <p className="text-[13px] font-bold" style={{ color: s.col }}>{s.val}</p>
+              <p className="text-[8.5px] text-white/35">{s.sub}</p>
+            </div>
+          )
+        })}
+      </div>
+      <div className="px-4 py-3 space-y-2">
+        <span className="text-[9.5px] font-semibold text-white/30 uppercase tracking-widest">Visitor Log</span>
+        {visitors.map(function(v) {
+          const col = v.status === "Inside" ? "#4ade80" : v.status === "Expected" ? "#fbbf24" : "rgba(255,255,255,0.3)"
+          return (
+            <div key={v.name} className="rounded-lg px-3 py-2" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(244,114,182,0.08)" }}>
+              <div className="flex items-center gap-2 mb-0.5">
+                <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "rgba(244,114,182,0.1)" }}>
+                  <span className="text-[8px] font-bold" style={{ color: "#f472b6" }}>{v.name.charAt(0)}</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] font-medium text-white/80 truncate">{v.name}</p>
+                  <p className="text-[8.5px] text-white/30">Host: {v.host} · {v.purpose}</p>
+                </div>
+                <span className="text-[8px] text-white/25 flex-shrink-0">{v.time}</span>
+                <span className="text-[8px] px-1.5 py-0.5 rounded font-semibold flex-shrink-0 ml-1" style={{ background: col + "20", color: col }}>{v.status}</span>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+      <div className="px-4 py-2.5" style={{ background: "#0a1422", borderTop: "1px solid rgba(244,114,182,0.08)" }}>
+        <div className="flex items-center justify-between">
+          <span className="text-[9px] text-white/35">3 pre-approved passes pending</span>
+          <span className="text-[9px] font-semibold" style={{ color: "#f472b6" }}>Approve all →</span>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export default function VisitorManagementPage() {
+  const capabilities = [
+    { Icon: QrCode,     title: "Digital Pre-Registration",         desc: "Hosts send a pre-registration link to expected visitors. QR pass is issued before arrival — no paperwork at the gate, zero queues." },
+    { Icon: Smartphone, title: "Mobile Check-In and Check-Out",    desc: "Visitors scan their QR pass on arrival. Guard verifies digitally and logs entry in real time. Exit recorded on departure." },
+    { Icon: Shield,     title: "Host Notification and Approval",   desc: "Hosts receive instant notifications when their visitor arrives. One-tap approval or rejection from mobile — no intercom hunting." },
+    { Icon: Eye,        title: "Live Visitor Dashboard",           desc: "Security and facility managers see every visitor currently inside — name, host, purpose, entry time, and expected exit." },
+    { Icon: Bell,       title: "Overstay and Blacklist Alerts",    desc: "Get notified when a visitor exceeds their permitted duration. Block-listed individuals are flagged automatically at check-in." },
+    { Icon: BarChart2,  title: "Visitor Analytics and Reports",    desc: "Track visitor volumes by day, zone, host, and purpose. Generate compliance reports and occupancy data for management." },
+  ]
+  const steps = [
+    { num: "01", Icon: QrCode,     title: "Pre-Register or Walk In",   desc: "Host pre-registers visitor online, or guard logs walk-in visitor at the gate with ID and purpose." },
+    { num: "02", Icon: Bell,       title: "Host Notified",             desc: "Host receives push notification and approves entry with one tap from their mobile." },
+    { num: "03", Icon: Smartphone, title: "QR Pass Issued",            desc: "Visitor receives digital pass. Guard scans at entry — no printed badges, no manual logbooks." },
+    { num: "04", Icon: BarChart2,  title: "Exit Logged and Reported",  desc: "Check-out is recorded digitally. Full visit log is stored for compliance and audit." },
+  ]
+  const visitorTypes = [
+    { Icon: Users,    title: "Business Visitors",   desc: "Meeting guests, clients, and partners — pre-registered by host with appointment details and permitted zones." },
+    { Icon: FileText, title: "Vendors and Contractors", desc: "Service providers and contractors with time-bound access permits, document verification, and work permit linkage." },
+    { Icon: Zap,      title: "Delivery Personnel",  desc: "Couriers and delivery staff with single-use passes, restricted to reception or goods entry zones only." },
+    { Icon: Clock,    title: "Interview Candidates",desc: "Pre-registered candidates with one-time passes linked to HR host — auto-expire after the appointment window." },
+  ]
+  const industries = [
+    { title: "Commercial Offices",       desc: "Professional visitor management for multi-tenant buildings — host-approved passes, floor-level access control." },
+    { title: "Residential Communities",  desc: "Guest, domestic help, and delivery tracking with resident approval and security log for every entry." },
+    { title: "Manufacturing Plants",     desc: "Contractor and vendor access with safety induction verification, permit-to-work linkage, and zone restrictions." },
+    { title: "Hospitals and Healthcare", desc: "Patient visitor management with ward-level access control, permitted hours, and infection control compliance." },
+    { title: "Educational Institutions", desc: "Parent, vendor, and contractor visits with student-linked approvals and campus security integration." },
+    { title: "Hotels and Hospitality",   desc: "Guest visitor tracking, contractor access, and supplier deliveries managed from a single security desk dashboard." },
+  ]
   return (
     <>
       <Navigation />
-      <main>
-        {/* Hero Section */}
-        <section className="bg-gradient-to-br from-primary/5 to-background py-16 md:py-24">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-3xl mx-auto text-center space-y-6">
-              <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full">
-                <Shield className="text-primary" size={20} />
-                <span className="text-sm font-semibold text-primary">Visitor Management & Records</span>
+      <main className="overflow-x-hidden">
+        <section style={{ background: "#0f1c2e" }} className="relative min-h-screen flex items-center">
+          <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 70% 60% at 20% 50%, rgba(244,114,182,0.07) 0%, transparent 70%)" }} />
+          <div className="relative max-w-7xl mx-auto w-full px-6 sm:px-10 lg:px-14 py-28 lg:py-32">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+              <div>
+                <Reveal>
+                  <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 mb-7" style={{ background: "rgba(244,114,182,0.1)", border: "1px solid rgba(244,114,182,0.2)" }}>
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#f472b6]" />
+                    <span className="text-[11px] font-semibold tracking-widest uppercase" style={{ color: "#f472b6" }}>Module 07 · Visitor Management</span>
+                  </div>
+                </Reveal>
+                <Reveal delay={80}>
+                  <h1 className="font-serif font-light leading-[1.1] tracking-tight mb-6" style={{ fontSize: "clamp(2rem,5vw,3.4rem)", color: "#fdf2f8" }}>
+                    Know every visitor.<br />Control every entry.<br /><em className="not-italic" style={{ color: "#f472b6" }}>Zero paper. Zero risk.</em>
+                  </h1>
+                </Reveal>
+                <Reveal delay={150}>
+                  <p className="text-[15px] leading-[1.75] mb-10 max-w-[480px]" style={{ color: "rgba(253,242,248,0.65)" }}>
+                    Firmity replaces paper logbooks and manual gate registers with a fully digital visitor system — pre-registration, QR-based check-in, host approval, real-time occupancy, and complete visit history for every person who enters your facility.
+                  </p>
+                </Reveal>
+                <Reveal delay={200}>
+                  <div className="grid grid-cols-3 gap-5 mb-10 max-w-[440px]">
+                    {[
+                      { val: "Zero",  label: "Paper logbooks or manual registers" },
+                      { val: "30s",   label: "Average check-in time with QR pass" },
+                      { val: "100%",  label: "Visitor audit trail for compliance" },
+                    ].map(function(s) {
+                      return (
+                        <div key={s.val}>
+                          <p className="font-serif font-light leading-none mb-1.5" style={{ fontSize: "clamp(1.6rem,3.5vw,2.2rem)", color: "#f472b6" }}>{s.val}</p>
+                          <p className="text-[10.5px] leading-snug" style={{ color: "rgba(253,242,248,0.45)" }}>{s.label}</p>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </Reveal>
+                <Reveal delay={250}>
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <Link href="/contact" className="inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-[13px] font-semibold" style={{ background: "#f472b6", color: "#0f1c2e" }}>Book a Demo <ArrowRight size={14} /></Link>
+                    <Link href="/features" className="inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-[13px] font-semibold" style={{ background: "rgba(244,114,182,0.08)", color: "#f472b6", border: "1px solid rgba(244,114,182,0.2)" }}>Explore All Features</Link>
+                  </div>
+                </Reveal>
               </div>
-              <h1 className="text-4xl md:text-5xl font-bold text-foreground text-balance">
-                Enhanced Security Through Advanced Digital Visitor Tracking
-              </h1>
-              <p className="text-lg text-foreground/80 text-balance">
-                Log, monitor, and manage all visitors digitally with photo capture, access control, and comprehensive
-                audit trails for compliance and security.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-                <a
-                  href="/contact"
-                  className="bg-primary text-primary-foreground px-8 py-3 rounded-lg hover:bg-primary/90 transition-colors font-semibold cursor-pointer"
-                >
-                  Start Free Trial
-                </a>
-                {/* <a
-                  href="/pricing"
-                  className="border-2 border-border text-foreground px-8 py-3 rounded-lg hover:bg-muted transition-colors font-semibold cursor-pointer"
-                >
-                  View Pricing
-                </a> */}
-              </div>
+              <Reveal direction="left" delay={180}><DashboardMockup /></Reveal>
             </div>
           </div>
         </section>
 
-        {/* Key Features */}
-        <section className="py-16 md:py-20 bg-background">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-                Complete Visitor Management System
+        <section className="bg-white py-16 lg:py-20">
+          <div className="max-w-4xl mx-auto px-6 sm:px-10 text-center">
+            <Reveal>
+              <p className="text-[11px] font-semibold tracking-widest uppercase text-[#be185d] mb-5">What Firmity Visitors delivers</p>
+              <h2 className="font-serif font-light leading-[1.15] tracking-tight text-[#1a202c] mb-6" style={{ fontSize: "clamp(1.7rem,4vw,2.8rem)" }}>
+                Replace the paper logbook<br className="hidden sm:block" />with a security-grade system.
               </h2>
-              <p className="text-lg text-foreground/80 max-w-2xl mx-auto">
-                From check-in to check-out, maintain complete records of everyone entering your premises
+              <p className="text-[15px] leading-[1.8] text-[#4a5568] max-w-2xl mx-auto">
+                Paper visitor registers are a compliance liability — illegible, unverified, and impossible to audit. Firmity gives every visitor a digital identity from the moment they are expected, through check-in, to the moment they leave.
               </p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              <div className="bg-card border border-border rounded-lg p-6 space-y-4">
-                <div className="bg-primary/10 p-3 rounded-lg w-fit">
-                  <Camera className="text-primary" size={24} />
-                </div>
-                <h3 className="text-xl font-bold text-foreground">Photo Capture & ID Verification</h3>
-                <p className="text-foreground/80">
-                  Capture visitor photos, scan ID cards, and verify identity digitally. Maintain visual records for
-                  security and compliance purposes.
-                </p>
+            </Reveal>
+          </div>
+        </section>
+
+        <section className="py-16 lg:py-24" style={{ background: "#fdf2f8" }}>
+          <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-14">
+            <Reveal>
+              <div className="mb-12 lg:mb-16">
+                <p className="text-[11px] font-semibold tracking-widest uppercase text-[#be185d] mb-3">Capabilities</p>
+                <h2 className="font-serif font-light leading-[1.15] tracking-tight text-[#1a202c]" style={{ fontSize: "clamp(1.5rem,3.5vw,2.4rem)" }}>Everything your security team needs.</h2>
               </div>
-              <div className="bg-card border border-border rounded-lg p-6 space-y-4">
-                <div className="bg-primary/10 p-3 rounded-lg w-fit">
-                  <QrCode className="text-primary" size={24} />
-                </div>
-                <h3 className="text-xl font-bold text-foreground">Digital Pass Generation</h3>
-                <p className="text-foreground/80">
-                  Generate digital visitor passes with QR codes. Visitors can show passes on mobile devices for
-                  touchless check-in and check-out.
-                </p>
-              </div>
-              <div className="bg-card border border-border rounded-lg p-6 space-y-4">
-                <div className="bg-primary/10 p-3 rounded-lg w-fit">
-                  <Clock className="text-primary" size={24} />
-                </div>
-                <h3 className="text-xl font-bold text-foreground">Real-Time Tracking</h3>
-                <p className="text-foreground/80">
-                  Monitor who is currently on-site in real-time. Know exactly who entered, when, and whether they've
-                  checked out yet.
-                </p>
-              </div>
-              <div className="bg-card border border-border rounded-lg p-6 space-y-4">
-                <div className="bg-primary/10 p-3 rounded-lg w-fit">
-                  <Bell className="text-primary" size={24} />
-                </div>
-                <h3 className="text-xl font-bold text-foreground">Host Notifications</h3>
-                <p className="text-foreground/80">
-                  Automatically notify hosts when their visitors arrive. Hosts can pre-approve visitors or grant access
-                  remotely.
-                </p>
-              </div>
-              <div className="bg-card border border-border rounded-lg p-6 space-y-4">
-                <div className="bg-primary/10 p-3 rounded-lg w-fit">
-                  <Search className="text-primary" size={24} />
-                </div>
-                <h3 className="text-xl font-bold text-foreground">Searchable Database</h3>
-                <p className="text-foreground/80">
-                  Maintain comprehensive visitor history with powerful search and filtering. Retrieve visitor records
-                  instantly for audits or investigations.
-                </p>
-              </div>
-              <div className="bg-card border border-border rounded-lg p-6 space-y-4">
-                <div className="bg-primary/10 p-3 rounded-lg w-fit">
-                  <FileText className="text-primary" size={24} />
-                </div>
-                <h3 className="text-xl font-bold text-foreground">Compliance Reports</h3>
-                <p className="text-foreground/80">
-                  Generate detailed visitor reports for security audits, compliance requirements, and incident
-                  investigations with complete audit trails.
-                </p>
-              </div>
+            </Reveal>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {capabilities.map(function(cap, i) {
+                const Icon = cap.Icon
+                return (
+                  <Reveal key={cap.title} delay={i * 55}>
+                    <div className="rounded-2xl p-6 h-full" style={{ background: "#ffffff", border: "1px solid #e2e8f0" }}>
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-5" style={{ background: "rgba(244,114,182,0.1)" }}>
+                        <Icon size={18} style={{ color: "#be185d" }} strokeWidth={1.75} />
+                      </div>
+                      <h3 className="text-[14px] font-semibold text-[#1a202c] mb-2 leading-snug">{cap.title}</h3>
+                      <p className="text-[12.5px] leading-[1.75] text-[#718096]">{cap.desc}</p>
+                    </div>
+                  </Reveal>
+                )
+              })}
             </div>
           </div>
         </section>
 
-        {/* How It Works */}
-        <section className="py-16 md:py-20 bg-primary/5">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-                Streamlined Visitor Check-In Process
-              </h2>
-              <p className="text-lg text-foreground/80 max-w-2xl mx-auto">
-                A secure, efficient workflow that enhances both security and visitor experience
+        <section style={{ background: "#0f1c2e" }} className="py-16 lg:py-24">
+          <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-14">
+            <Reveal>
+              <div className="mb-12 lg:mb-16 text-center">
+                <p className="text-[11px] font-semibold tracking-widest uppercase mb-3" style={{ color: "#f472b6" }}>How it works</p>
+                <h2 className="font-serif font-light leading-[1.15] tracking-tight" style={{ fontSize: "clamp(1.5rem,3.5vw,2.4rem)", color: "#fdf2f8" }}>From expected to exited. Fully tracked.</h2>
+              </div>
+            </Reveal>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-4 relative">
+              <div className="hidden lg:block absolute top-[28px] left-[12.5%] right-[12.5%] h-px" style={{ background: "linear-gradient(to right, rgba(244,114,182,0.3), rgba(244,114,182,0.1))" }} />
+              {steps.map(function(step, i) {
+                const Icon = step.Icon
+                return (
+                  <Reveal key={step.num} delay={i * 90}>
+                    <div className="relative flex flex-col items-center text-center lg:items-start lg:text-left">
+                      <div className="w-14 h-14 rounded-full flex items-center justify-center mb-5 relative z-10" style={{ background: "#1a2640", border: "1px solid rgba(244,114,182,0.3)" }}>
+                        <Icon size={20} style={{ color: "#f472b6" }} strokeWidth={1.5} />
+                      </div>
+                      <span className="text-[9px] font-bold tracking-widest mb-2" style={{ color: "rgba(244,114,182,0.5)" }}>{step.num}</span>
+                      <h4 className="text-[13.5px] font-semibold mb-2" style={{ color: "#fdf2f8" }}>{step.title}</h4>
+                      <p className="text-[12px] leading-[1.7]" style={{ color: "rgba(253,242,248,0.5)" }}>{step.desc}</p>
+                    </div>
+                  </Reveal>
+                )
+              })}
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-white py-16 lg:py-24">
+          <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-14">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+              <Reveal direction="right">
+                <p className="text-[11px] font-semibold tracking-widest uppercase text-[#be185d] mb-8">Business impact</p>
+                <div className="space-y-8">
+                  {[
+                    { val: "30s",   label: "Average check-in time",              sub: "vs 3-5 minutes with paper registers and phone calls" },
+                    { val: "100%",  label: "Visitor audit trail retained",       sub: "every visit timestamped and stored for compliance" },
+                    { val: "Zero",  label: "Unauthorised entries go undetected", sub: "host approval and blacklist checks on every visit" },
+                    { val: "Real-time", label: "Occupancy visibility",          sub: "know exactly who is inside your facility right now" },
+                  ].map(function(m) {
+                    return (
+                      <div key={m.val} className="flex gap-5 items-start">
+                        <p className="font-serif font-light leading-none flex-shrink-0 w-[110px]" style={{ fontSize: "clamp(1.3rem,2.5vw,1.8rem)", color: "#be185d" }}>{m.val}</p>
+                        <div>
+                          <p className="text-[13.5px] font-semibold text-[#1a202c] mb-0.5">{m.label}</p>
+                          <p className="text-[12px] text-[#718096] leading-snug">{m.sub}</p>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </Reveal>
+              <Reveal direction="left" delay={100}>
+                <div className="rounded-2xl p-8" style={{ background: "#fdf2f8", border: "1px solid #fbcfe8" }}>
+                  <h3 className="font-serif font-light text-[1.35rem] text-[#1a202c] mb-7 leading-snug">Close the gate on<br />security blind spots.</h3>
+                  <div className="space-y-4">
+                    {[
+                      "Send pre-registration links to visitors before they arrive — no surprises at the gate",
+                      "Host receives mobile notification and approves entry with one tap",
+                      "Visitor photo captured at check-in for identity verification",
+                      "Overstay alerts notify security when a visitor exceeds permitted time",
+                      "Block-listed individuals flagged automatically — no manual checking",
+                      "Generate visitor compliance reports for audits and insurance requirements",
+                    ].map(function(b) {
+                      return (
+                        <div key={b} className="flex gap-3 items-start">
+                          <CheckCircle size={15} className="flex-shrink-0 mt-0.5" style={{ color: "#be185d" }} />
+                          <p className="text-[12.5px] leading-[1.65] text-[#2d3748]">{b}</p>
+                        </div>
+                      )
+                    })}
+                  </div>
+                  <div className="mt-8">
+                    <Link href="/contact" className="inline-flex items-center gap-2 text-[12.5px] font-semibold hover:gap-3.5 transition-all" style={{ color: "#be185d" }}>See it in action <ArrowRight size={14} /></Link>
+                  </div>
+                </div>
+              </Reveal>
+            </div>
+          </div>
+        </section>
+
+        <section className="py-16 lg:py-24" style={{ background: "#fdf2f8" }}>
+          <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-14">
+            <Reveal>
+              <div className="mb-12 text-center">
+                <p className="text-[11px] font-semibold tracking-widest uppercase text-[#be185d] mb-3">Visitor types</p>
+                <h2 className="font-serif font-light leading-[1.15] tracking-tight text-[#1a202c]" style={{ fontSize: "clamp(1.4rem,3vw,2.2rem)" }}>One system. Every type of visitor.</h2>
+              </div>
+            </Reveal>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              {visitorTypes.map(function(vt, i) {
+                const Icon = vt.Icon
+                return (
+                  <Reveal key={vt.title} delay={i * 60}>
+                    <div className="rounded-2xl p-6 h-full" style={{ background: "#ffffff", border: "1px solid #fbcfe8" }}>
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style={{ background: "rgba(244,114,182,0.1)" }}>
+                        <Icon size={18} style={{ color: "#be185d" }} strokeWidth={1.75} />
+                      </div>
+                      <h4 className="text-[13.5px] font-semibold text-[#1a202c] mb-2">{vt.title}</h4>
+                      <p className="text-[12px] leading-[1.7] text-[#718096]">{vt.desc}</p>
+                    </div>
+                  </Reveal>
+                )
+              })}
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-white py-16 lg:py-24">
+          <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-14">
+            <Reveal>
+              <div className="mb-12">
+                <p className="text-[11px] font-semibold tracking-widest uppercase text-[#be185d] mb-3">Who uses it</p>
+                <h2 className="font-serif font-light leading-[1.15] tracking-tight text-[#1a202c]" style={{ fontSize: "clamp(1.4rem,3vw,2.2rem)" }}>Visitor management for every facility type.</h2>
+              </div>
+            </Reveal>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {industries.map(function(ind, i) {
+                return (
+                  <Reveal key={ind.title} delay={i * 45}>
+                    <div className="rounded-xl p-5" style={{ background: "#f8fafc", border: "1px solid #e2e8f0" }}>
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#f472b6]" />
+                        <h4 className="text-[13px] font-semibold text-[#1a202c]">{ind.title}</h4>
+                      </div>
+                      <p className="text-[12px] leading-[1.65] text-[#718096] pl-3.5">{ind.desc}</p>
+                    </div>
+                  </Reveal>
+                )
+              })}
+            </div>
+          </div>
+        </section>
+
+        <section style={{ background: "#0f1c2e" }} className="py-16 lg:py-20 relative overflow-hidden">
+          <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 80% at 80% 50%, rgba(244,114,182,0.06) 0%, transparent 70%)" }} />
+          <div className="relative max-w-4xl mx-auto px-6 sm:px-10 text-center">
+            <Reveal>
+              <h2 className="font-serif font-light leading-[1.15] tracking-tight mb-4" style={{ fontSize: "clamp(1.6rem,4vw,2.6rem)", color: "#fdf2f8" }}>Ready to make your facility entrance secure and paperless?</h2>
+              <p className="text-[14px] leading-[1.75] mb-8 max-w-xl mx-auto" style={{ color: "rgba(253,242,248,0.6)" }}>
+                Facilities using Firmity Visitors eliminate paper logbooks, reduce check-in time to under 30 seconds, and maintain a complete compliance-ready visitor audit trail — automatically.
               </p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-              <div className="text-center space-y-4">
-                <div className="bg-primary text-primary-foreground w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mx-auto">
-                  1
-                </div>
-                <h4 className="font-bold text-foreground">Pre-Registration</h4>
-                <p className="text-foreground/80 text-sm">
-                  Optional: Hosts can pre-register expected visitors with details, reducing check-in time.
-                </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Link href="/contact" className="inline-flex items-center justify-center gap-2 rounded-xl px-7 py-3 text-[13px] font-semibold" style={{ background: "#f472b6", color: "#0f1c2e" }}>Book a Demo <ArrowRight size={14} /></Link>
+                <Link href="/features" className="inline-flex items-center justify-center gap-2 rounded-xl px-7 py-3 text-[13px] font-semibold" style={{ background: "rgba(244,114,182,0.08)", color: "#f472b6", border: "1px solid rgba(244,114,182,0.2)" }}>Explore All Modules</Link>
               </div>
-              <div className="text-center space-y-4">
-                <div className="bg-primary text-primary-foreground w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mx-auto">
-                  2
-                </div>
-                <h4 className="font-bold text-foreground">Visitor Arrives</h4>
-                <p className="text-foreground/80 text-sm">
-                  Security captures visitor details, photo, ID scan, and purpose of visit at reception.
-                </p>
-              </div>
-              <div className="text-center space-y-4">
-                <div className="bg-primary text-primary-foreground w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mx-auto">
-                  3
-                </div>
-                <h4 className="font-bold text-foreground">Host Approval</h4>
-                <p className="text-foreground/80 text-sm">
-                  System notifies host. Host approves visitor entry via mobile app or web portal.
-                </p>
-              </div>
-              <div className="text-center space-y-4">
-                <div className="bg-primary text-primary-foreground w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mx-auto">
-                  4
-                </div>
-                <h4 className="font-bold text-foreground">Issue Pass</h4>
-                <p className="text-foreground/80 text-sm">
-                  Generate digital or physical visitor pass with QR code for the approved duration.
-                </p>
-              </div>
-              <div className="text-center space-y-4">
-                <div className="bg-primary text-primary-foreground w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mx-auto">
-                  5
-                </div>
-                <h4 className="font-bold text-foreground">Check-Out</h4>
-                <p className="text-foreground/80 text-sm">
-                  Visitor scans pass or checks out at reception. System records exit time automatically.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Benefits */}
-        <section className="py-16 md:py-20 bg-background">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <div className="space-y-6">
-                <h2 className="text-3xl md:text-4xl font-bold text-foreground">Why Digital Visitor Management?</h2>
-                <p className="text-lg text-foreground/80">
-                  Digital visitor systems improve security by 85%, reduce check-in time by 70%, and provide complete
-                  audit trails that paper logbooks simply cannot match.
-                </p>
-                <div className="space-y-4">
-                  <div className="flex gap-4">
-                    <div className="flex-shrink-0">
-                      <div className="bg-primary/10 p-2 rounded-lg">
-                        <Shield className="text-primary" size={20} />
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-foreground mb-1">Enhanced Security</h4>
-                      <p className="text-foreground/80 text-sm">
-                        Photo verification, ID scanning, and host approval prevent unauthorized access
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex gap-4">
-                    <div className="flex-shrink-0">
-                      <div className="bg-primary/10 p-2 rounded-lg">
-                        <Shield className="text-primary" size={20} />
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-foreground mb-1">Complete Audit Trail</h4>
-                      <p className="text-foreground/80 text-sm">
-                        Every visitor entry and exit is timestamped and documented for compliance
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex gap-4">
-                    <div className="flex-shrink-0">
-                      <div className="bg-primary/10 p-2 rounded-lg">
-                        <Shield className="text-primary" size={20} />
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-foreground mb-1">Faster Check-In</h4>
-                      <p className="text-foreground/80 text-sm">
-                        Pre-registration and digital forms reduce check-in time from 5 minutes to under 30 seconds
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex gap-4">
-                    <div className="flex-shrink-0">
-                      <div className="bg-primary/10 p-2 rounded-lg">
-                        <Shield className="text-primary" size={20} />
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-foreground mb-1">Emergency Readiness</h4>
-                      <p className="text-foreground/80 text-sm">
-                        Know exactly who is on-site during emergencies for evacuation and accountability
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-card border border-border rounded-lg p-8">
-                <h3 className="text-2xl font-bold text-foreground mb-6">Visitor Types Managed</h3>
-                <div className="space-y-4">
-                  <div className="border-l-4 border-primary pl-4">
-                    <h4 className="font-bold text-foreground">Business Visitors</h4>
-                    <p className="text-foreground/80 text-sm">
-                      Clients, vendors, consultants, and business partners visiting for meetings
-                    </p>
-                  </div>
-                  <div className="border-l-4 border-primary pl-4">
-                    <h4 className="font-bold text-foreground">Contractors & Vendors</h4>
-                    <p className="text-foreground/80 text-sm">
-                      Maintenance staff, delivery personnel, and service providers requiring site access
-                    </p>
-                  </div>
-                  <div className="border-l-4 border-primary pl-4">
-                    <h4 className="font-bold text-foreground">Guests & Invitees</h4>
-                    <p className="text-foreground/80 text-sm">
-                      Personal guests, family members, and social visitors in residential facilities
-                    </p>
-                  </div>
-                  <div className="border-l-4 border-primary pl-4">
-                    <h4 className="font-bold text-foreground">Job Applicants</h4>
-                    <p className="text-foreground/80 text-sm">
-                      Interview candidates and prospective employees visiting for recruitment
-                    </p>
-                  </div>
-                  <div className="border-l-4 border-primary pl-4">
-                    <h4 className="font-bold text-foreground">VIP Visitors</h4>
-                    <p className="text-foreground/80 text-sm">
-                      High-profile guests requiring special access protocols and privacy
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Features Breakdown */}
-        <section className="py-16 md:py-20 bg-primary/5">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-                Advanced Visitor Management Features
-              </h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="bg-background rounded-lg p-6 border border-border space-y-3">
-                <h4 className="font-bold text-foreground">Watchlist & Blacklist</h4>
-                <p className="text-foreground/80 text-sm">
-                  Maintain watchlists of unwanted visitors. System alerts security if blacklisted individuals attempt to
-                  check in.
-                </p>
-              </div>
-              <div className="bg-background rounded-lg p-6 border border-border space-y-3">
-                <h4 className="font-bold text-foreground">Visitor Pre-Registration</h4>
-                <p className="text-foreground/80 text-sm">
-                  Hosts can pre-register expected visitors with meeting details. Walk-in check-in becomes instant with
-                  pre-approval.
-                </p>
-              </div>
-              <div className="bg-background rounded-lg p-6 border border-border space-y-3">
-                <h4 className="font-bold text-foreground">Multi-Location Support</h4>
-                <p className="text-foreground/80 text-sm">
-                  Manage visitor access across multiple buildings, campuses, or locations from a single centralized
-                  system.
-                </p>
-              </div>
-              <div className="bg-background rounded-lg p-6 border border-border space-y-3">
-                <h4 className="font-bold text-foreground">Access Control Integration</h4>
-                <p className="text-foreground/80 text-sm">
-                  Integrate with door access systems, turnstiles, and electronic gates for automated visitor access
-                  control.
-                </p>
-              </div>
-              <div className="bg-background rounded-lg p-6 border border-border space-y-3">
-                <h4 className="font-bold text-foreground">NDA & Document Signing</h4>
-                <p className="text-foreground/80 text-sm">
-                  Require visitors to sign NDAs, safety waivers, or other documents digitally before granting access.
-                </p>
-              </div>
-              <div className="bg-background rounded-lg p-6 border border-border space-y-3">
-                <h4 className="font-bold text-foreground">Recurring Visitor Passes</h4>
-                <p className="text-foreground/80 text-sm">
-                  Issue long-term passes for regular visitors, contractors, or vendors with scheduled validity periods.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Use Cases */}
-        <section className="py-16 md:py-20 bg-background">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Perfect For Every Facility Type</h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-card rounded-lg p-6 border border-border">
-                <Smartphone className="text-primary mb-3" size={32} />
-                <h4 className="font-bold text-foreground mb-2">Corporate Offices</h4>
-                <p className="text-foreground/80 text-sm">
-                  Manage business visitors, clients, and job candidates with professional check-in experience and
-                  security protocols.
-                </p>
-              </div>
-              <div className="bg-card rounded-lg p-6 border border-border">
-                <Smartphone className="text-primary mb-3" size={32} />
-                <h4 className="font-bold text-foreground mb-2">Residential Communities</h4>
-                <p className="text-foreground/80 text-sm">
-                  Track guest entries, delivery personnel, and service providers to enhance resident security and
-                  privacy.
-                </p>
-              </div>
-              <div className="bg-card rounded-lg p-6 border border-border">
-                <Smartphone className="text-primary mb-3" size={32} />
-                <h4 className="font-bold text-foreground mb-2">Educational Institutions</h4>
-                <p className="text-foreground/80 text-sm">
-                  Control campus access for parents, vendors, and visitors while ensuring student safety and compliance.
-                </p>
-              </div>
-              <div className="bg-card rounded-lg p-6 border border-border">
-                <Smartphone className="text-primary mb-3" size={32} />
-                <h4 className="font-bold text-foreground mb-2">Healthcare Facilities</h4>
-                <p className="text-foreground/80 text-sm">
-                  Manage patient visitors, vendors, and medical representatives while maintaining HIPAA compliance and
-                  security.
-                </p>
-              </div>
-              <div className="bg-card rounded-lg p-6 border border-border">
-                <Smartphone className="text-primary mb-3" size={32} />
-                <h4 className="font-bold text-foreground mb-2">Manufacturing Plants</h4>
-                <p className="text-foreground/80 text-sm">
-                  Track contractors, auditors, and visitors with safety induction requirements and restricted area
-                  access.
-                </p>
-              </div>
-              <div className="bg-card rounded-lg p-6 border border-border">
-                <Smartphone className="text-primary mb-3" size={32} />
-                <h4 className="font-bold text-foreground mb-2">Government Buildings</h4>
-                <p className="text-foreground/80 text-sm">
-                  Implement high-security protocols with thorough screening, photo verification, and comprehensive audit
-                  trails.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Reports */}
-        <section className="py-16 md:py-20 bg-primary/5">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Comprehensive Visitor Reports</h2>
-              <p className="text-lg text-foreground/80 max-w-2xl mx-auto">
-                Detailed analytics and reports for security, compliance, and facility management
-              </p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-background rounded-lg p-6 border border-border">
-                <FileText className="text-primary mb-3" size={32} />
-                <h4 className="font-bold text-foreground mb-2">Daily Visitor Log</h4>
-                <p className="text-foreground/80 text-sm">
-                  Complete list of all visitors with check-in/out times, host details, and purpose of visit.
-                </p>
-              </div>
-              <div className="bg-background rounded-lg p-6 border border-border">
-                <FileText className="text-primary mb-3" size={32} />
-                <h4 className="font-bold text-foreground mb-2">On-Site Visitors Report</h4>
-                <p className="text-foreground/80 text-sm">
-                  Real-time list of visitors currently on premises for emergency evacuations and security monitoring.
-                </p>
-              </div>
-              <div className="bg-background rounded-lg p-6 border border-border">
-                <FileText className="text-primary mb-3" size={32} />
-                <h4 className="font-bold text-foreground mb-2">Visitor History</h4>
-                <p className="text-foreground/80 text-sm">
-                  Search and retrieve historical visitor records by name, date, host, or purpose for investigations.
-                </p>
-              </div>
-              <div className="bg-background rounded-lg p-6 border border-border">
-                <FileText className="text-primary mb-3" size={32} />
-                <h4 className="font-bold text-foreground mb-2">Frequent Visitor Analysis</h4>
-                <p className="text-foreground/80 text-sm">
-                  Identify frequent visitors and consider issuing long-term passes for improved efficiency.
-                </p>
-              </div>
-              <div className="bg-background rounded-lg p-6 border border-border">
-                <FileText className="text-primary mb-3" size={32} />
-                <h4 className="font-bold text-foreground mb-2">Compliance Reports</h4>
-                <p className="text-foreground/80 text-sm">
-                  Generate audit-ready reports with photos, timestamps, and digital signatures for regulatory
-                  compliance.
-                </p>
-              </div>
-              <div className="bg-background rounded-lg p-6 border border-border">
-                <FileText className="text-primary mb-3" size={32} />
-                <h4 className="font-bold text-foreground mb-2">Host Activity Report</h4>
-                <p className="text-foreground/80 text-sm">
-                  Track which employees are hosting the most visitors and analyze visitor patterns by department.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* CTA */}
-        <section className="py-16 md:py-20 bg-primary text-primary-foreground">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
-            <h2 className="text-3xl md:text-4xl font-bold">Upgrade Your Facility Security Today</h2>
-            <p className="text-lg opacity-90">
-              Join organizations improving security by 85% with digital visitor management systems
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-              <a
-                href="/contact"
-                className="bg-primary-foreground text-primary px-8 py-3 rounded-lg hover:bg-background transition-colors font-semibold cursor-pointer"
-              >
-                Get Started Free
-              </a>
-              <a
-                href="/features"
-                className="border-2 border-primary-foreground text-primary-foreground px-8 py-3 rounded-lg hover:bg-primary-foreground/10 transition-colors font-semibold cursor-pointer"
-              >
-                Explore More Features
-              </a>
-            </div>
+            </Reveal>
           </div>
         </section>
       </main>
