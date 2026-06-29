@@ -37,12 +37,12 @@ const RESOURCES: { Icon: FC<LucideProps>; title: string; desc: string; link: str
 ]
 
 const FAQS: { question: string; answer: string }[] = [
-  { question: "How do I get started with Firmity?",                    answer: "You can start with a free 2-week trial by filling out our demo request form. We'll set up your account, import your data, and provide comprehensive training to your team." },
+  { question: "How do I get started with Firmity?",                    answer: "Fill out our demo request form and our team will reach out within 24 hours. We'll set up your account, import your data, and provide comprehensive training to your team." },
   { question: "Is there a learning curve for my team?",                answer: "Firmity is designed to be user-friendly with an intuitive interface. We provide unlimited training and our support team is available to help your team adapt smoothly." },
   { question: "Can I integrate Firmity with my existing systems?",     answer: "Yes, Firmity supports integrations with various systems. Contact our team to discuss your specific integration requirements." },
   { question: "What kind of data can I import?",                       answer: "We can help import your facility records, asset lists, maintenance history, staff data, and more. Our team provides bulk data entry support twice yearly." },
   { question: "Is my data secure in the cloud?",                       answer: "Yes, we use enterprise-grade security with encrypted connections, role-based access controls, and regular security audits to protect your data." },
-  { question: "What happens after my free trial ends?",                answer: "After your trial, you can choose to subscribe to a plan that fits your needs, or you can stop using the software. No auto-charges or hidden fees." },
+  { question: "Is there a minimum contract period?",                   answer: "No long-term commitment required. Firmity runs on a monthly subscription with no auto-charges and no hidden fees. Cancel anytime." },
 ]
 
 // ─── FAQ accordion item — controlled, animated height ─────────────────────────
@@ -214,13 +214,13 @@ export default function ResourcesPage() {
                 Start learning & growing <em className="not-italic text-[#63b3ed]">with Firmity</em>
               </h2>
               <p className="text-[13px] font-light text-white/[0.45] mb-6">
-                Access all resources and documentation with your free 2-week trial.
+                Access all resources and documentation — book a demo to get started.
               </p>
               <Link
                 href="/contact"
                 className="group inline-flex items-center gap-2 bg-[#2b6cb0] hover:bg-[#2563a8] text-white text-[12.5px] font-semibold px-7 py-3 rounded-xl transition-all hover:shadow-[0_8px_24px_rgba(43,108,176,0.4)]"
               >
-                Start Free Trial
+                Book a Demo
                 <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
               </Link>
             </Reveal>

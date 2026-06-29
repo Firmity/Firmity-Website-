@@ -307,6 +307,7 @@
 
   html {
     scroll-behavior: smooth;
+    scroll-padding-top: 64px; /* height of sticky navbar */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -333,8 +334,18 @@
     0%   { transform: translateX(-33.333%); }
     100% { transform: translateX(0); }
   }
-  .animate-scroll-left  { animation: scroll-left  80s linear infinite; }
-  .animate-scroll-right { animation: scroll-right 80s linear infinite; }
+  .animate-scroll-left {
+    animation: scroll-left 80s linear infinite;
+    will-change: transform;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+  }
+  .animate-scroll-right {
+    animation: scroll-right 80s linear infinite;
+    will-change: transform;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+  }
 
   /* ── Fade-up entry animation ── */
   @keyframes fade-up {
@@ -352,4 +363,8 @@
       repeating-linear-gradient(90deg, rgba(43,108,176,0.04) 0, rgba(43,108,176,0.04) 1px, transparent 0, transparent 60px),
       repeating-linear-gradient(0deg,  rgba(43,108,176,0.04) 0, rgba(43,108,176,0.04) 1px, transparent 0, transparent 60px);
   }
+
+  /* ── Hide scrollbars while keeping scroll functionality ── */
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
 }

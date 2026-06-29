@@ -144,7 +144,7 @@ export default function LoginPage() {
           <p className="text-gray-600 mb-4">
             New to Firmity?{" "}
             <Link href="/contact" className="font-semibold text-blue-600 hover:text-blue-700 transition-colors">
-              Request a Free Trial
+              Book a Demo
             </Link>
           </p>
           <div className="flex items-center justify-center gap-6 text-sm text-gray-500">

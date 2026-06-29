@@ -255,7 +255,7 @@ export default function AboutPage() {
                 href="/contact"
                 className="bg-primary-foreground text-primary px-8 py-3 rounded-lg hover:bg-background transition-colors font-semibold"
               >
-                Start Free Trial
+                Book a Demo
               </Link>
               <Link
                 href="/features"
