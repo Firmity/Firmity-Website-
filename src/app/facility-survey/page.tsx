@@ -1,663 +1,946 @@
 "use client"
 
-import { useState, useCallback, useMemo } from "react"
+import React, { useState } from "react"
 import Link from "next/link"
 import { Navigation } from "@/src/components/navigation"
 import { Footer } from "@/src/components/footer"
 import {
-  Factory, GraduationCap, Building2, Briefcase, Heart, Hotel, LayoutGrid,
-  Shield, Flame, Wind, Zap, Droplets, HardHat, Leaf, Sparkles, CheckCircle,
-  Plus, X, ArrowLeft, ArrowRight, Loader2, ChevronLeft, ChevronRight,
-  MapPin, type LucideIcon,
+  ArrowRight, CheckCircle, Shield, Flame, Wind, Zap, Droplets, HardHat,
+  Leaf, Sparkles, ChevronDown, Lock, FileText, Star, Download,
+  TrendingUp, AlertTriangle, Building2, BarChart3, Eye, ShieldCheck,
+  Cpu, Recycle, ClipboardList,
 } from "lucide-react"
 
-// ─── Data ─────────────────────────────────────────────────────────────────────
+// ─── Theme tokens ──────────────────────────────────────────────────────────────
+// Green/white theme matching the residential page
 
-const FACILITY_TYPES: { id: string; label: string; Icon: LucideIcon }[] = [
-  { id: "manufacturing", label: "Manufacturing Plant", Icon: Factory },
-  { id: "educational", label: "Educational Institution", Icon: GraduationCap },
-  { id: "residential", label: "Residential Society", Icon: Building2 },
-  { id: "commercial", label: "Commercial Office", Icon: Briefcase },
-  { id: "healthcare", label: "Healthcare / Hospital", Icon: Heart },
-  { id: "hospitality", label: "Hotel", Icon: Hotel },
-  { id: "mixed", label: "Mixed Use", Icon: LayoutGrid },
-]
+// ─── Sub-components ───────────────────────────────────────────────────────────
 
-const SURVEY_TYPES: { id: string; label: string; Icon: LucideIcon; desc: string }[] = [
-  { id: "security",     label: "Security Assessment",       Icon: Shield,    desc: "Guards, CCTV, access control" },
-  { id: "fire",         label: "Fire Safety Audit",         Icon: Flame,     desc: "Extinguishers, systems, exits" },
-  { id: "hvac",         label: "HVAC & Mechanical",         Icon: Wind,      desc: "Cooling, ventilation, AHUs" },
-  { id: "electrical",   label: "Electrical Systems",        Icon: Zap,       desc: "Panels, wiring, DG sets" },
-  { id: "plumbing",     label: "Plumbing & Sanitation",     Icon: Droplets,  desc: "Water, drainage, washrooms" },
-  { id: "civil",        label: "Civil & Structural",        Icon: HardHat,   desc: "Structure, façade, waterproofing" },
-  { id: "horticulture", label: "Horticulture / Landscaping",Icon: Leaf,      desc: "Gardens, plants, grounds" },
-  { id: "housekeeping", label: "Housekeeping & Sanitation", Icon: Sparkles,  desc: "Cleanliness, pest control" },
-  { id: "green",        label: "Green Building Survey",     Icon: Leaf,        desc: "STP + Rainwater Harvesting + Genset" },
-]
-
-const TIME_SLOTS = [
-  "9:00 AM – 11:00 AM",
-  "11:00 AM – 1:00 PM",
-  "2:00 PM – 4:00 PM",
-  "4:00 PM – 6:00 PM",
-]
-
-const MONTH_NAMES = [
-  "January","February","March","April","May","June",
-  "July","August","September","October","November","December",
-]
-
-const STEPS = [
-  { num: 1, label: "Facility" },
-  { num: 2, label: "Scope" },
-  { num: 3, label: "Details" },
-  { num: 4, label: "Dates" },
-  { num: 5, label: "Contact" },
-]
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-interface Building { id: string; name: string }
-interface Slot     { date: string; time: string }
-interface ContactFull {
-  firstName: string; lastName: string; designation: string
-  email: string; phone: string; altPhone: string
-  facilityName: string; facilityAddress: string
-}
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function Field({ label, name, type = "text", value, onChange, placeholder, required }: {
-  label: string; name: string; type?: string; value: string
-  onChange: (v: string) => void; placeholder?: string; required?: boolean
-}) {
+function SectionLabel({ children, light = false }: { children: React.ReactNode; light?: boolean }) {
+  const color = light ? "bg-emerald-400" : "bg-emerald-600"
+  const text  = light ? "text-emerald-300" : "text-emerald-700"
   return (
-    <div>
-      <label className="block text-[11px] font-semibold text-[#4a5568] mb-1 tracking-wide uppercase">
-        {label}{required && <span className="text-[#2b6cb0] ml-0.5">*</span>}
-      </label>
-      <input
-        type={type} name={name} value={value} placeholder={placeholder} required={required}
-        onChange={(e) => onChange(e.target.value)}
-        className="cursor-text w-full px-3 py-2 rounded-xl border border-[#dbe5f0] bg-white text-[13px] text-[#1a202c] placeholder:text-[#a0aec0] focus:outline-none focus:ring-2 focus:ring-[#2b6cb0]/30 focus:border-[#2b6cb0] transition-all"
-      />
+    <div className="flex items-center gap-3 mb-4">
+      <div className={"w-6 h-px flex-shrink-0 " + color} />
+      <p className={"text-[10px] font-semibold tracking-[0.2em] uppercase " + text}>{children}</p>
     </div>
   )
 }
 
-// ─── Calendar ─────────────────────────────────────────────────────────────────
-
-function Calendar({ slots, onAddSlot, onRemoveSlot }: {
-  slots: Slot[]
-  onAddSlot: (s: Slot) => void
-  onRemoveSlot: (date: string) => void
-}) {
-  const today    = useMemo(() => { const d = new Date(); d.setHours(0,0,0,0); return d }, [])
-  const tomorrow = useMemo(() => { const d = new Date(today); d.setDate(d.getDate()+1); return d }, [today])
-
-  const [viewYear,  setViewYear]  = useState(today.getFullYear())
-  const [viewMonth, setViewMonth] = useState(today.getMonth())
-  const [pending,   setPending]   = useState<string | null>(null)
-
-  const prevMonth = () => setViewMonth(m => { if (m === 0) { setViewYear(y => y-1); return 11 } return m-1 })
-  const nextMonth = () => setViewMonth(m => { if (m === 11) { setViewYear(y => y+1); return 0 } return m+1 })
-
-  const cells = useMemo(() => {
-    const first = new Date(viewYear, viewMonth, 1)
-    const total = new Date(viewYear, viewMonth+1, 0).getDate()
-    const offset = (first.getDay() + 6) % 7   // Mon=0 … Sun=6
-    const arr: (number|null)[] = Array(offset).fill(null)
-    for (let d = 1; d <= total; d++) arr.push(d)
-    return arr
-  }, [viewYear, viewMonth])
-
-  const fmt = (d: number) =>
-    `${viewYear}-${String(viewMonth+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`
-
-  const disabled = (d: number) => {
-    const dt = new Date(viewYear, viewMonth, d); dt.setHours(0,0,0,0)
-    return dt < tomorrow || dt.getDay() === 0
-  }
-
-  const selectedDates = slots.map(s => s.date)
-
-  const handleDay = (d: number) => {
-    if (disabled(d)) return
-    const ds = fmt(d)
-    if (selectedDates.includes(ds)) { onRemoveSlot(ds); if (pending === ds) setPending(null); return }
-    if (slots.length < 2) setPending(ds)
-  }
-
-  const confirmTime = (time: string) => {
-    if (!pending) return
-    onAddSlot({ date: pending, time })
-    setPending(null)
-  }
-
-  const label = (ds: string) =>
-    new Date(ds + "T00:00:00").toLocaleDateString("en-IN", { weekday:"short", day:"numeric", month:"short" })
-
+function Check({ children }: { children: React.ReactNode }) {
   return (
-    <div>
-      {/* ── 2-slot tracker ─── */}
-      <div className="flex gap-2 mb-3">
-        {[0, 1].map(i => {
-          const slot = slots[i]
-          return (
-            <div key={i} className={`flex-1 flex items-center gap-2 px-2.5 py-2 rounded-xl border transition-all ${
-              slot ? "bg-[#111d35] border-[#111d35]" : "border-dashed border-[#b0c4d8] bg-[#f4f8fb]"
-            }`}>
-              <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-[9px] font-bold ${
-                slot ? "bg-white text-[#111d35]" : "border-2 border-[#b0c4d8] text-[#8ba5be]"
-              }`}>{i + 1}</div>
-              {slot ? (
-                <div className="flex-1 min-w-0">
-                  <p className="text-[11px] font-bold text-white leading-none truncate">{label(slot.date)}</p>
-                  <p className="text-[9.5px] text-white/60 leading-none mt-0.5 truncate">{slot.time}</p>
+    <li className="flex items-start gap-2.5">
+      <CheckCircle size={14} className="text-emerald-500 mt-0.5 flex-shrink-0" />
+      <span className="text-[13.5px] text-[#374151] font-light leading-relaxed">{children}</span>
+    </li>
+  )
+}
+
+// ─── Donut chart for ScoreCard ─────────────────────────────────────────────────
+
+function DonutScore({ score }: { score: number }) {
+  const r = 52
+  const circ = 2 * Math.PI * r
+  const filled = (score / 100) * circ
+  const color = score >= 80 ? "#34d399" : score >= 60 ? "#f59e0b" : "#f87171"
+  return (
+    <div className="relative flex items-center justify-center" style={{ width: 140, height: 140 }}>
+      <svg width="140" height="140" style={{ transform: "rotate(-90deg)" }}>
+        <circle cx="70" cy="70" r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="12" />
+        <circle
+          cx="70" cy="70" r={r}
+          fill="none"
+          stroke={color}
+          strokeWidth="12"
+          strokeLinecap="round"
+          strokeDasharray={circ + " " + circ}
+          strokeDashoffset={circ - filled}
+          style={{ transition: "stroke-dashoffset 1s ease" }}
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="font-serif text-[2.4rem] font-light text-white leading-none">{score}</span>
+        <span className="text-[11px] text-white/40">/100</span>
+      </div>
+    </div>
+  )
+}
+
+// ─── Score Card ───────────────────────────────────────────────────────────────
+
+function ScoreCard() {
+  const domains = [
+    { label: "Infrastructure", score: 68, color: "#f59e0b" },
+    { label: "Fire Safety",    score: 74, color: "#34d399" },
+    { label: "Security",       score: 81, color: "#34d399" },
+    { label: "Maintenance",    score: 65, color: "#f59e0b" },
+    { label: "Sustainability", score: 70, color: "#34d399" },
+    { label: "Housekeeping",   score: 88, color: "#34d399" },
+  ]
+  return (
+    <div className="bg-white rounded-[24px] border border-emerald-100 shadow-[0_12px_40px_rgba(5,46,22,0.12)] overflow-hidden">
+      <div className="bg-[#052e16] px-6 py-6">
+        <p className="text-[10px] font-semibold text-white/40 tracking-[0.22em] uppercase mb-4 text-center">Facility Health Score</p>
+        <div className="flex items-center justify-center mb-4">
+          <DonutScore score={72} />
+        </div>
+        <p className="text-[11px] text-white/50 text-center">Moderate — Attention Required</p>
+        {/* Mini bar charts */}
+        <div className="mt-4 grid grid-cols-3 gap-2">
+          {domains.slice(0, 3).map(function(d, i) {
+            return (
+              <div key={i} className="text-center">
+                <div className="h-12 bg-white/5 rounded-lg flex flex-col-reverse overflow-hidden">
+                  <div className="rounded-lg" style={{ height: d.score + "%", backgroundColor: d.color, opacity: 0.8 }} />
                 </div>
-              ) : (
-                <p className="text-[11px] text-[#7a9ab8] flex-1 leading-tight">
-                  {i === 0 ? "Slot 1 — click a date" : "Slot 2 — click a date"}
-                </p>
-              )}
-              {slot && (
-                <button type="button" onClick={() => onRemoveSlot(slot.date)}
-                  className="cursor-pointer flex-shrink-0 w-4 h-4 rounded-full hover:bg-white/20 flex items-center justify-center transition-colors">
-                  <X size={9} className="text-white/70" />
-                </button>
-              )}
+                <p className="text-[8.5px] text-white/40 mt-1 truncate">{d.label}</p>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+      <div className="p-5 space-y-3">
+        {domains.map(function(d, i) {
+          return (
+            <div key={i}>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[11.5px] text-[#374151] font-medium">{d.label}</span>
+                <span className="text-[11.5px] font-bold text-[#052e16]">{d.score}</span>
+              </div>
+              <div className="w-full bg-[#f0f4f8] rounded-full h-1.5">
+                <div className="h-1.5 rounded-full" style={{ width: d.score + "%", backgroundColor: d.color }} />
+              </div>
             </div>
           )
         })}
       </div>
-
-      {/* Dynamic instruction */}
-      {!pending && slots.length < 2 && (
-        <p className="text-[11.5px] font-semibold text-[#2b6cb0] text-center mb-2.5">
-          {slots.length === 0
-            ? "↓ Click any working day to select Slot 1"
-            : "↓ Click another date to select Slot 2"}
-        </p>
-      )}
-
-      {/* Month nav */}
-      <div className="flex items-center justify-between mb-2">
-        <button type="button" onClick={prevMonth} className="cursor-pointer p-1 hover:bg-[#eef3f9] rounded-lg transition-colors">
-          <ChevronLeft size={15} className="text-[#4a5568]" />
-        </button>
-        <span className="text-[13px] font-semibold text-[#111d35]">{MONTH_NAMES[viewMonth]} {viewYear}</span>
-        <button type="button" onClick={nextMonth} className="cursor-pointer p-1 hover:bg-[#eef3f9] rounded-lg transition-colors">
-          <ChevronRight size={15} className="text-[#4a5568]" />
-        </button>
+      <div className="px-5 pb-4">
+        <p className="text-[10.5px] text-[#a0aec0] text-center italic">Sample score — your facility&apos;s score may differ</p>
       </div>
+    </div>
+  )
+}
 
-      {/* Headers */}
-      <div className="grid grid-cols-7 mb-1">
-        {["M","T","W","T","F","S","S"].map((h, i) => (
-          <div key={i} className={`text-center text-[10px] font-bold py-0.5 ${i===6?"text-[#c8d4e0]":"text-[#4a5568]"}`}>{h}</div>
-        ))}
+// ─── Report Mockup ────────────────────────────────────────────────────────────
+
+function ReportMockup() {
+  const sections = [
+    { label: "Executive Summary",      icon: FileText,      color: "#f0fdf4" },
+    { label: "Facility Health Score",  icon: BarChart3,     color: "#f0fdf4" },
+    { label: "Domain-wise Findings",   icon: Eye,           color: "#f0fdf4" },
+    { label: "Risk Classification",    icon: AlertTriangle, color: "#fff5f5" },
+    { label: "Priority Action Matrix", icon: TrendingUp,    color: "#f0fdf4" },
+    { label: "Photo Evidence",         icon: Building2,     color: "#f0fdf4" },
+    { label: "Expert Recommendations", icon: CheckCircle,   color: "#f0fdf4" },
+    { label: "Compliance Snapshot",    icon: Shield,        color: "#f0fdf4" },
+  ]
+  return (
+    <div className="bg-white rounded-[24px] border border-emerald-100 shadow-[0_12px_40px_rgba(5,46,22,0.1)] overflow-hidden">
+      <div className="bg-[#15803d] px-5 py-4 flex items-center gap-3">
+        <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
+          <FileText size={15} className="text-white" />
+        </div>
+        <div>
+          <p className="text-[11px] text-white/60 leading-none mb-0.5">FACILITY HEALTH ASSESSMENT</p>
+          <p className="text-[13px] font-semibold text-white leading-none">Your Property Report</p>
+        </div>
+        <div className="ml-auto text-right">
+          <p className="text-[10px] text-white/50 leading-none mb-0.5">Prepared by</p>
+          <p className="text-[12px] font-bold text-white leading-none">Firmity AI</p>
+        </div>
       </div>
-
-      {/* Days */}
-      <div className="grid grid-cols-7 gap-0.5">
-        {cells.map((day, i) => {
-          if (!day) return <div key={`e${i}`} />
-          const ds = fmt(day)
-          const dis = disabled(day)
-          const sun = new Date(viewYear, viewMonth, day).getDay() === 0
-          const isToday = new Date(viewYear, viewMonth, day).getTime() === today.getTime()
-          const sel = selectedDates.includes(ds)
-          const pend = pending === ds
+      <div className="p-4 space-y-1.5">
+        {sections.map(function(s, i) {
+          const Icon = s.icon
           return (
-            <button
-              key={day} type="button" onClick={() => handleDay(day)} disabled={dis}
-              className={[
-                "aspect-square flex items-center justify-center text-[12px] rounded-lg transition-all font-medium",
-                dis || sun ? "text-[#c4d2de] cursor-not-allowed" : "cursor-pointer",
-                sel  ? "bg-[#111d35] text-white font-bold" : "",
-                pend ? "bg-[#dceeff] text-[#1a56a0] font-bold ring-2 ring-[#2b6cb0] ring-offset-1" : "",
-                !dis && !sel && !pend && !sun ? "text-[#1a2744] hover:bg-[#eef3f9]" : "",
-                isToday && !sel && !pend ? "ring-2 ring-[#2b6cb0] ring-offset-1 font-bold" : "",
-              ].filter(Boolean).join(" ")}
-            >{day}</button>
+            <div key={i} className="flex items-center gap-3 px-3 py-2 rounded-xl" style={{ backgroundColor: s.color }}>
+              <Icon size={13} className="text-emerald-600 flex-shrink-0" />
+              <span className="text-[12px] font-medium text-[#1a202c]">{s.label}</span>
+              <div className="ml-auto w-16 h-1.5 bg-[#d1fae5] rounded-full overflow-hidden">
+                <div className="h-full bg-emerald-500 rounded-full" style={{ width: (60 + i * 5) + "%" }} />
+              </div>
+            </div>
           )
         })}
       </div>
-
-      {/* Time picker — dark + prominent */}
-      {pending && (
-        <div className="mt-3 bg-[#111d35] rounded-xl p-3.5">
-          <div className="flex items-center gap-1.5 mb-2.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-[#63b3ed] flex-shrink-0" />
-            <p className="text-[10.5px] font-semibold text-white/70 uppercase tracking-wide">
-              Choose time for {label(pending)} · Slot {slots.length + 1} of 2 (IST)
-            </p>
-          </div>
-          <div className="grid grid-cols-2 gap-1.5">
-            {TIME_SLOTS.map(t => (
-              <button key={t} type="button" onClick={() => confirmTime(t)}
-                className="cursor-pointer px-2.5 py-2 text-[11.5px] font-medium text-white bg-white/10 border border-white/20 rounded-lg hover:bg-white hover:text-[#111d35] transition-all">
-                {t}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {slots.length === 2 && (
-        <p className="text-[11.5px] font-semibold text-emerald-600 text-center mt-2.5">✓ Both slots selected — you&apos;re all set!</p>
-      )}
+      <div className="px-5 py-3 border-t border-[#f0fdf4] flex items-center justify-between">
+        <span className="text-[10.5px] text-[#a0aec0]">AI-generated · Ready in 10 minutes</span>
+        <span className="text-[10.5px] font-semibold text-emerald-600">Confidential</span>
+      </div>
     </div>
+  )
+}
+
+// ─── FAQ ──────────────────────────────────────────────────────────────────────
+
+const FAQ_ITEMS = [
+  {
+    q: "Is the facility assessment really free?",
+    a: "Yes, completely. There are no hidden charges, consultation fees, or follow-up costs. The assessment is our way of helping facility managers and property owners understand their facility health — with no strings attached.",
+  },
+  {
+    q: "Is there any obligation to purchase Firmity after the assessment?",
+    a: "None whatsoever. You receive the full report regardless of whether you choose to use Firmity. We believe the report speaks for itself.",
+  },
+  {
+    q: "How long does the on-site survey take?",
+    a: "Most assessments take between half a day to a full day, depending on the size and complexity of your facility. Multi-building campuses may require 1–2 days.",
+  },
+  {
+    q: "What types of properties do you assess?",
+    a: "We assess residential societies, commercial offices, manufacturing plants, hospitals, educational campuses, hotels, mixed-use developments, and industrial facilities.",
+  },
+  {
+    q: "Who receives the assessment report?",
+    a: "The report is shared exclusively with the authorised contact you designate at the time of booking.",
+  },
+  {
+    q: "Is my facility information kept confidential?",
+    a: "Absolutely. All observations, photographs, and data collected during the assessment are treated as strictly confidential. We do not share, sell, or disclose any information to third parties.",
+  },
+  {
+    q: "When will I receive the report after the survey?",
+    a: "After the on-site assessment, our AI generates your Facility Health Report in 10 minutes. You receive it shortly after the surveyor completes data collection.",
+  },
+  {
+    q: "Do you cover multi-building or multi-block campuses?",
+    a: "Yes. During the booking process, you can specify each building, tower, or block you want assessed. Our team plans the survey accordingly.",
+  },
+]
+
+function FaqSection() {
+  const [openIdx, setOpenIdx] = useState<number | null>(null)
+  return (
+    <section className="bg-white py-16 lg:py-20 px-6">
+      <div className="max-w-3xl mx-auto">
+        <div className="mb-10">
+          <SectionLabel>Common Questions</SectionLabel>
+          <h2 className="font-serif text-[clamp(1.8rem,3.5vw,2.5rem)] font-light text-[#052e16]">
+            Frequently asked questions
+          </h2>
+        </div>
+        <div>
+          {FAQ_ITEMS.map(function(item, i) {
+            const isOpen = openIdx === i
+            return (
+              <div key={i} style={{ borderTop: "1px solid #d1fae5" }}>
+                <button
+                  onClick={function() { setOpenIdx(isOpen ? null : i) }}
+                  className="w-full flex items-center gap-3 py-4 text-left cursor-pointer hover:text-emerald-700 transition-colors"
+                >
+                  <ChevronDown
+                    size={16}
+                    className="text-emerald-500 flex-shrink-0 transition-transform duration-200"
+                    style={{ transform: isOpen ? "rotate(0deg)" : "rotate(-90deg)" }}
+                  />
+                  <span className="text-[14px] font-medium text-[#1a202c]">{item.q}</span>
+                </button>
+                {isOpen && (
+                  <div className="pb-5 pl-[28px]">
+                    <p className="text-[13.5px] text-[#6b7280] font-light leading-relaxed">{item.a}</p>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+          <div style={{ borderTop: "1px solid #d1fae5" }} />
+        </div>
+      </div>
+    </section>
   )
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-export default function FacilitySurveyPage() {
-  const [step, setStep]           = useState(1)
-  const [direction, setDirection] = useState<"forward" | "back">("forward")
-
-  // Step 1
-  const [facilityType, setFacilityType] = useState("")
-  // Step 2
-  const [surveyTypes, setSurveyTypes] = useState<string[]>([])
-  // Step 3
-  const [facilityArea, setFacilityArea]     = useState("")
-  const [facilityAreaUnit, setFacilityAreaUnit] = useState<"sqft"|"acres">("sqft")
-  const [buildings, setBuildings]           = useState<Building[]>([])
-  const [buildingInput, setBuildingInput]   = useState("")
-  // Step 4
-  const [preferredSlots, setPreferredSlots] = useState<Slot[]>([])
-  // Step 5
-  const [contact, setContact] = useState<ContactFull>({
-    firstName:"", lastName:"", designation:"", email:"", phone:"",
-    altPhone:"", facilityName:"", facilityAddress:"",
-  })
-  const [gpsLoading, setGpsLoading] = useState(false)
-  const [mapCoords,  setMapCoords]  = useState<{lat:number; lon:number}|null>(null)
-
-  // Submit
-  const [submitting, setSubmitting] = useState(false)
-  const [submitted,  setSubmitted]  = useState(false)
-  const [bookingId,  setBookingId]  = useState("")
-  const [error, setError] = useState("")
-
-  // ── Handlers ────────────────────────────────────────────────────────────────
-
-  const toggleSurvey = useCallback((id: string) => {
-    setSurveyTypes(prev =>
-      id === "all"
-        ? prev.length === SURVEY_TYPES.length ? [] : SURVEY_TYPES.map(s => s.id)
-        : prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
-    )
-  }, [])
-
-  const addBuilding = useCallback(() => {
-    const name = buildingInput.trim(); if (!name) return
-    setBuildings(prev => [...prev, { id:`b_${Date.now()}`, name }])
-    setBuildingInput("")
-  }, [buildingInput])
-
-  const addSlot    = useCallback((s: Slot) => setPreferredSlots(prev => prev.length < 2 ? [...prev, s] : prev), [])
-  const removeSlot = useCallback((date: string) => setPreferredSlots(prev => prev.filter(s => s.date !== date)), [])
-
-  const handleGps = useCallback(async () => {
-    if (!navigator.geolocation) { setError("GPS not available in your browser."); return }
-    setGpsLoading(true); setError("")
-    navigator.geolocation.getCurrentPosition(
-      async ({ coords: { latitude: lat, longitude: lon } }) => {
-        try {
-          const r = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`,
-            { headers: { "Accept-Language": "en" } }
-          )
-          const d = await r.json()
-          setContact(c => ({ ...c, facilityAddress: d.display_name || "" }))
-          setMapCoords({ lat, lon })
-        } catch {
-          setError("Could not fetch address. Please enter it manually.")
-        } finally { setGpsLoading(false) }
-      },
-      () => { setError("Location denied. Please enter address manually."); setGpsLoading(false) }
-    )
-  }, [])
-
-  const goNext = useCallback(() => {
-    setError("")
-    if (step === 1 && !facilityType)     { setError("Please select a facility type."); return }
-    if (step === 2 && !surveyTypes.length){ setError("Please select at least one survey type."); return }
-    if (step === 3 && !facilityArea)     { setError("Please enter the total facility area."); return }
-    if (step === 4 && !preferredSlots.length){ setError("Please select at least one preferred date."); return }
-    setDirection("forward"); setStep(s => s + 1)
-  }, [step, facilityType, surveyTypes, facilityArea, preferredSlots])
-
-  const goBack = useCallback(() => { setError(""); setDirection("back"); setStep(s => s - 1) }, [])
-
-  const handleSubmit = useCallback(async () => {
-    setError("")
-    if (!contact.firstName || !contact.lastName || !contact.email || !contact.phone) {
-      setError("Please fill in first name, last name, email, and phone."); return
-    }
-    setSubmitting(true)
-    try {
-      const res = await fetch("/api/facility-survey", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ facilityType, surveyTypes, facilityArea, facilityAreaUnit, buildings, preferredSlots, contact }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || "Submission failed")
-      setBookingId(data.bookingId)
-      setSubmitted(true)
-    } catch {
-      setError("Something went wrong. Please try again.")
-    } finally { setSubmitting(false) }
-  }, [facilityType, surveyTypes, facilityArea, facilityAreaUnit, buildings, preferredSlots, contact])
-
-  // ── Success ──────────────────────────────────────────────────────────────────
-
-  if (submitted) {
-    return (
-      <>
-        <Navigation />
-        <main className="min-h-screen bg-[#f8fafc] flex items-center justify-center px-6 py-16">
-          <div className="max-w-sm w-full text-center">
-            <div className="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4">
-              <CheckCircle size={28} className="text-emerald-600" />
-            </div>
-            <div className="inline-block bg-[#eef3f9] border border-[#dbe5f0] px-5 py-2.5 rounded-xl mb-4">
-              <p className="text-[10px] font-semibold text-[#4a5568] uppercase tracking-widest mb-0.5">Booking ID</p>
-              <p className="text-[18px] font-bold text-[#111d35] font-mono tracking-widest">{bookingId}</p>
-            </div>
-            <h1 className="font-serif text-[1.7rem] font-light text-[#111d35] mb-2">Survey Booked!</h1>
-            <p className="text-[13px] text-[#718096] font-light leading-relaxed mb-1.5">
-              Our team will connect within 24 hours to confirm your
-              <strong className="text-[#2b6cb0] font-semibold"> Free AI Facility Health Survey</strong>.
-            </p>
-            <p className="text-[11.5px] text-[#a0aec0] mb-7">
-              Acknowledgement sent to <strong className="text-[#4a5568]">{contact.email}</strong>
-            </p>
-            <Link href="/"
-              className="cursor-pointer inline-flex items-center justify-center gap-2 bg-[#111d35] text-white px-6 py-2.5 rounded-xl text-[13px] font-medium hover:bg-[#1a2744] transition-colors">
-              <ArrowLeft size={13} /> Back to Home
-            </Link>
-          </div>
-        </main>
-        <Footer />
-      </>
-    )
-  }
-
-  // ── Wizard ───────────────────────────────────────────────────────────────────
-
+export default function FacilitySurveyLandingPage() {
   return (
     <>
       <Navigation />
+      <style>{`
+        @keyframes heroGradient {
+          0%, 100% { background-position: 0% 50%; }
+          50%       { background-position: 100% 50%; }
+        }
+        .hero-animated {
+          background: linear-gradient(135deg, #052e16 0%, #064e3b 20%, #065f46 40%, #052e16 60%, #14532d 80%, #052e16 100%);
+          background-size: 400% 400%;
+          animation: heroGradient 22s ease infinite;
+        }
+      `}</style>
       <main>
-        {/* Hero — compact */}
-        <section className="bg-[#111d35] py-6 px-6 relative overflow-hidden">
-          <div className="absolute inset-0 pointer-events-none opacity-[0.03]"
-            style={{ backgroundImage:`radial-gradient(circle at 1px 1px, white 1px, transparent 0)`, backgroundSize:"40px 40px" }} />
-          <div className="max-w-lg mx-auto text-center relative">
-            <h1 className="font-serif text-[1.55rem] font-light text-white leading-tight mb-1">
-              Free AI Facility <span className="italic text-[#63b3ed]">Health Survey</span>
-            </h1>
-            <p className="text-[12px] text-white/50 font-light">100% free · No obligation · Team responds within 24 hrs</p>
+
+        {/* ── 1. HERO ──────────────────────────────────────────────────── */}
+        <section className="hero-animated relative overflow-hidden">
+          <div className="absolute inset-0 pointer-events-none opacity-[0.025]"
+            style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "36px 36px" }} />
+          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-emerald-300/5 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative max-w-5xl mx-auto px-6 pt-20 pb-0">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-12 lg:gap-16 items-center pb-14">
+              {/* Left */}
+              <div>
+                <p className="text-[11px] font-semibold text-emerald-300 tracking-[0.22em] uppercase mb-5">
+                  Free AI Facility Health Assessment
+                </p>
+                <h1 className="font-serif text-[clamp(2rem,5vw,3.25rem)] font-light text-white leading-[1.15] mb-4">
+                  Know the True Health<br />
+                  <span className="italic text-emerald-300">of Your Facility.</span>
+                </h1>
+                <p className="text-[16.5px] font-semibold text-white mb-3 leading-snug">
+                  Our surveyor visits your property. Our AI generates a comprehensive facility health report in 10 minutes.
+                </p>
+                <p className="text-[14.5px] text-white/[0.62] font-light max-w-lg leading-relaxed mb-8">
+                  A certified expert conducts an on-site inspection across every safety, infrastructure, and operational dimension — and AI compiles it into a detailed report with findings, risk scores, and a priority action plan.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Link
+                    href="/facility-survey/book"
+                    className="inline-flex items-center justify-center gap-2 bg-white text-[#052e16] px-7 py-3.5 rounded-xl font-semibold text-[14px] hover:bg-emerald-50 transition-colors shadow-[0_4px_24px_rgba(0,0,0,0.2)]"
+                  >
+                    Get My Free Assessment <ArrowRight size={15} />
+                  </Link>
+                  <a
+                    href="#sample-report"
+                    className="inline-flex items-center justify-center gap-2 border border-white/25 hover:border-white/50 text-white/80 hover:text-white px-7 py-3.5 rounded-xl font-light text-[14px] transition-colors"
+                  >
+                    <Download size={14} /> View Sample Report
+                  </a>
+                </div>
+              </div>
+              {/* Right — Score Card */}
+              <div className="hidden lg:block">
+                <ScoreCard />
+              </div>
+            </div>
+          </div>
+
+          {/* ── Trust Banner ──────────────────────────────────────── */}
+          <div className="relative border-t border-white/[0.08] bg-white/[0.04] backdrop-blur-sm">
+            <div className="max-w-5xl mx-auto px-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3">
+                {[
+                  {
+                    icon: <CheckCircle size={22} className="text-emerald-400" />,
+                    title: "100% Free",
+                    desc: "No hidden costs, ever",
+                  },
+                  {
+                    icon: <Lock size={22} className="text-emerald-400" />,
+                    title: "Fully Confidential",
+                    desc: "Your data stays private",
+                  },
+                  {
+                    icon: <Cpu size={22} className="text-emerald-400" />,
+                    title: "AI Report in 10 Minutes",
+                    desc: "Instant, comprehensive output",
+                  },
+                ].map(function(item, i) {
+                  return (
+                    <div key={i} className="flex items-center gap-4 py-5 px-4 border-b sm:border-b-0 sm:border-r border-white/[0.08] last:border-0">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-400/20 flex items-center justify-center flex-shrink-0">
+                        {item.icon}
+                      </div>
+                      <div>
+                        <p className="text-[13.5px] font-semibold text-white">{item.title}</p>
+                        <p className="text-[11.5px] text-white/45 font-light">{item.desc}</p>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* ── Stats strip ──────────────────────────────────────── */}
+          <div className="relative border-t border-white/[0.05] bg-[#041f10]/60">
+            <div className="max-w-5xl mx-auto px-6 grid grid-cols-3">
+              {[
+                { label: "Facility Types Assessed", value: "7+" },
+                { label: "Inspection Domains",      value: "14" },
+                { label: "AI Report Generation",    value: "10 min" },
+              ].map(function(s, i) {
+                return (
+                  <div key={i} className="flex flex-col items-center justify-center py-7 border-r border-white/[0.06] last:border-0">
+                    <span className="font-serif text-[2.2rem] font-light text-emerald-300 leading-none mb-1">{s.value}</span>
+                    <span className="text-[11px] text-white/35 font-light tracking-wide text-center px-2">{s.label}</span>
+                  </div>
+                )
+              })}
+            </div>
           </div>
         </section>
 
-        <style>{`
-          @keyframes stepFwd { from { opacity:0; transform:translateX(20px) } to { opacity:1; transform:translateX(0) } }
-          @keyframes stepBck { from { opacity:0; transform:translateX(-20px) } to { opacity:1; transform:translateX(0) } }
-          .step-fwd { animation: stepFwd 0.23s cubic-bezier(0.22,1,0.36,1) both }
-          .step-bck { animation: stepBck 0.23s cubic-bezier(0.22,1,0.36,1) both }
-        `}</style>
-        <div className="bg-[#f8fafc] border-t border-[#eef3f9]">
-          <div className="max-w-lg mx-auto px-4 sm:px-5 py-5">
+        {/* ── 2. Trusted by ────────────────────────────────────────────── */}
+        <section className="bg-[#f0fdf4] border-b border-emerald-100 py-7 px-6">
+          <div className="max-w-5xl mx-auto text-center">
+            <p className="text-[11px] text-emerald-600/60 font-light tracking-widest uppercase mb-4">
+              Trusted by facility managers across
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2">
+              {[
+                "Residential Societies",
+                "Commercial Offices",
+                "Manufacturing Plants",
+                "Hospitals & Clinics",
+                "Educational Campuses",
+                "Hotels & Hospitality",
+              ].map(function(t) {
+                return (
+                  <span key={t} className="text-[12.5px] text-[#374151] font-light">{t}</span>
+                )
+              })}
+            </div>
+          </div>
+        </section>
 
-            {/* Step bar */}
-            <div className="flex items-center mb-4">
-              {STEPS.map(({ num, label }, i) => (
-                <div key={num} className="flex items-center flex-1">
-                  <div className="flex flex-col items-center gap-0.5 flex-shrink-0">
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-colors ${
-                      step > num ? "bg-[#111d35] text-white" : step === num ? "bg-[#2b6cb0] text-white" : "bg-[#eef3f9] text-[#a0aec0]"
-                    }`}>
-                      {step > num ? <CheckCircle size={11} /> : num}
-                    </div>
-                    <span className={`text-[9.5px] font-medium hidden sm:block whitespace-nowrap ${
-                      step === num ? "text-[#2b6cb0]" : step > num ? "text-[#4a5568]" : "text-[#c0ccd8]"
-                    }`}>{label}</span>
-                  </div>
-                  {i < STEPS.length - 1 && (
-                    <div className={`flex-1 h-0.5 mx-1.5 mb-3 sm:mb-0 rounded-full transition-colors ${step > num ? "bg-[#111d35]" : "bg-[#dbe5f0]"}`} />
-                  )}
-                </div>
-              ))}
+        {/* ── 3. Why Assess — editorial with real images ───────────────── */}
+        <section className="bg-white py-20 px-6">
+          <div className="max-w-5xl mx-auto">
+
+            {/* Section heading + intro image */}
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-10 lg:gap-16 items-center mb-20">
+              <div>
+                <SectionLabel>Why Get a Free Assessment?</SectionLabel>
+                <h2 className="font-serif text-[clamp(2rem,4.5vw,3rem)] font-light text-[#052e16] max-w-2xl leading-tight mb-5">
+                  Most facilities are healthier on paper
+                  <span className="italic text-emerald-600"> than in reality.</span>
+                </h2>
+                <p className="text-[15px] text-[#374151] font-light leading-relaxed">
+                  Day-to-day operations mask problems that compound quietly — until they surface as costly failures, compliance violations, or safety incidents. A Firmity assessment gives you the full picture, fast.
+                </p>
+              </div>
+              <div className="rounded-[20px] overflow-hidden shadow-[0_12px_40px_rgba(5,46,22,0.12)]">
+                <img
+                  src="https://images.unsplash.com/photo-1486325212027-8081e485255e?auto=format&fit=crop&w=800&q=80"
+                  alt="Modern facility building exterior"
+                  className="w-full h-[280px] object-cover"
+                />
+              </div>
             </div>
 
-            {/* Card */}
-            <div key={step} className={`bg-white rounded-[18px] border border-[#dbe5f0] shadow-[0_4px_20px_rgba(17,29,53,0.05)] p-5 ${direction === "forward" ? "step-fwd" : "step-bck"}`}>
-
-              {/* ── Step 1 ── */}
-              {step === 1 && (
-                <div>
-                  <h2 className="text-[14.5px] font-semibold text-[#111d35] mb-0.5">What type of facility?</h2>
-                  <p className="text-[11.5px] text-[#718096] mb-3">Select the option that best describes your property.</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                    {FACILITY_TYPES.map(({ id, label, Icon }) => {
-                      const sel = facilityType === id
-                      return (
-                        <button key={id} type="button" onClick={() => setFacilityType(id)}
-                          className={`cursor-pointer flex items-center gap-2.5 px-3 py-2.5 rounded-xl border text-left transition-all ${
-                            sel ? "border-[#2b6cb0] bg-[#eef3f9]" : "border-[#dbe5f0] bg-white text-[#4a5568] hover:border-[#b2c9e0] hover:bg-[#f8fafc]"
-                          }`}
-                        >
-                          <div className={`w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 ${sel?"bg-[#2b6cb0]":"bg-[#eef3f9]"}`}>
-                            <Icon size={12} className={sel?"text-white":"text-[#2b6cb0]"} />
-                          </div>
-                          <span className={`text-[12.5px] font-medium ${sel?"text-[#111d35]":""}`}>{label}</span>
-                          {sel && <CheckCircle size={12} className="text-[#2b6cb0] ml-auto flex-shrink-0" />}
-                        </button>
-                      )
-                    })}
-                  </div>
+            {/* Story 1 — Water */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center mb-16">
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <Droplets size={16} className="text-emerald-600" />
+                  <span className="text-[11px] font-semibold text-emerald-700 tracking-[0.18em] uppercase">Leakages & Water</span>
                 </div>
-              )}
-
-              {/* ── Step 2 ── */}
-              {step === 2 && (
-                <div>
-                  <h2 className="text-[14.5px] font-semibold text-[#111d35] mb-0.5">What would you like surveyed?</h2>
-                  <p className="text-[11.5px] text-[#718096] mb-3">Select all that apply.</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 mb-2">
-                    {SURVEY_TYPES.map(({ id, label, Icon, desc }) => {
-                      const sel = surveyTypes.includes(id)
-                      return (
-                        <button key={id} type="button" onClick={() => toggleSurvey(id)}
-                          className={`cursor-pointer flex items-center gap-2.5 px-3 py-2.5 rounded-xl border text-left transition-all ${
-                            sel ? "border-[#2b6cb0] bg-[#eef3f9]" : "border-[#dbe5f0] bg-white hover:border-[#b2c9e0] hover:bg-[#f8fafc]"
-                          }`}
-                        >
-                          <div className={`w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 ${sel?"bg-[#2b6cb0]":"bg-[#eef3f9]"}`}>
-                            <Icon size={12} className={sel?"text-white":"text-[#2b6cb0]"} />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className={`text-[12px] font-medium leading-tight ${sel?"text-[#111d35]":"text-[#2d3748]"}`}>{label}</p>
-                            <p className="text-[10.5px] text-[#4a5568]">{desc}</p>
-                          </div>
-                          <div className={`w-3.5 h-3.5 rounded border flex-shrink-0 flex items-center justify-center ${sel?"bg-[#2b6cb0] border-[#2b6cb0]":"border-[#cbd5e0]"}`}>
-                            {sel && <CheckCircle size={9} className="text-white" />}
-                          </div>
-                        </button>
-                      )
-                    })}
-                  </div>
-                  {/* Select all — bottom */}
-                  <button type="button" onClick={() => toggleSurvey("all")}
-                    className={`cursor-pointer w-full flex items-center justify-center px-3 py-2.5 rounded-xl border transition-all ${
-                      surveyTypes.length === SURVEY_TYPES.length
-                        ? "border-[#111d35] bg-[#111d35] text-white"
-                        : "border-[#dbe5f0] bg-white text-[#4a5568] hover:bg-[#f8fafc]"
-                    }`}
-                  >
-                    <span className="text-[12.5px] font-semibold">
-                      {surveyTypes.length === SURVEY_TYPES.length ? "✓ All Selected — Deselect All" : "Select All Domains"}
-                    </span>
-                  </button>
-                </div>
-              )}
-
-              {/* ── Step 3 ── */}
-              {step === 3 && (
-                <div className="space-y-5">
-                  <div>
-                    <h2 className="text-[14.5px] font-semibold text-[#111d35] mb-0.5">Facility details</h2>
-                    <p className="text-[11.5px] text-[#718096]">Tell us about the size and layout of your facility.</p>
-                  </div>
-                  {/* Area */}
-                  <div>
-                    <label className="block text-[11px] font-semibold text-[#4a5568] mb-1 tracking-wide uppercase">
-                      Total Facility Area <span className="text-[#2b6cb0]">*</span>
-                    </label>
-                    <div className="flex gap-2">
-                      <input
-                        type="number" value={facilityArea} onChange={e => setFacilityArea(e.target.value)}
-                        placeholder="e.g. 25000"
-                        className="cursor-text flex-1 px-3 py-2 rounded-xl border border-[#dbe5f0] bg-white text-[13px] placeholder:text-[#a0aec0] focus:outline-none focus:ring-2 focus:ring-[#2b6cb0]/30 focus:border-[#2b6cb0] transition-all"
-                      />
-                      <select
-                        value={facilityAreaUnit} onChange={e => setFacilityAreaUnit(e.target.value as "sqft"|"acres")}
-                        className="cursor-pointer px-3 py-2 rounded-xl border border-[#dbe5f0] bg-white text-[13px] text-[#1a202c] focus:outline-none focus:ring-2 focus:ring-[#2b6cb0]/30 focus:border-[#2b6cb0] transition-all"
-                      >
-                        <option value="sqft">sq ft</option>
-                        <option value="acres">acres</option>
-                      </select>
-                    </div>
-                  </div>
-                  {/* Buildings */}
-                  <div>
-                    <label className="block text-[11px] font-semibold text-[#4a5568] mb-1 tracking-wide uppercase">
-                      Buildings / Towers / Blocks
-                    </label>
-                    <p className="text-[11px] text-[#718096] mb-2">Add each block or building to be surveyed (optional).</p>
-                    <div className="flex gap-2 mb-2">
-                      <input
-                        type="text" value={buildingInput} onChange={e => setBuildingInput(e.target.value)}
-                        onKeyDown={e => e.key === "Enter" && (e.preventDefault(), addBuilding())}
-                        placeholder="e.g. Tower A, Block 1, Main Wing"
-                        className="cursor-text flex-1 px-3 py-2 rounded-xl border border-[#dbe5f0] bg-white text-[13px] placeholder:text-[#a0aec0] focus:outline-none focus:ring-2 focus:ring-[#2b6cb0]/30 focus:border-[#2b6cb0] transition-all"
-                      />
-                      <button type="button" onClick={addBuilding} disabled={!buildingInput.trim()}
-                        className="cursor-pointer flex items-center gap-1 px-3 py-2 bg-[#111d35] hover:bg-[#1a2744] disabled:opacity-40 text-white rounded-xl text-[12px] font-medium transition-colors flex-shrink-0">
-                        <Plus size={12} /> Add
-                      </button>
-                    </div>
-                    {buildings.length > 0 ? (
-                      <div className="flex flex-wrap gap-1.5">
-                        {buildings.map(b => (
-                          <div key={b.id} className="cursor-default flex items-center gap-1.5 px-2.5 py-1 bg-[#eef3f9] border border-[#dbe5f0] rounded-lg">
-                            <span className="text-[11.5px] font-medium text-[#111d35]">{b.name}</span>
-                            <button type="button" onClick={() => setBuildings(p => p.filter(x => x.id !== b.id))}
-                              className="cursor-pointer w-3.5 h-3.5 rounded-full hover:bg-[#cbd5e0] flex items-center justify-center transition-colors">
-                              <X size={9} className="text-[#718096]" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-[11px] text-[#a0aec0] italic">None added — you can skip this.</p>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* ── Step 4 ── */}
-              {step === 4 && (
-                <div>
-                  <h2 className="text-[14.5px] font-semibold text-[#111d35] mb-0.5">Preferred survey dates</h2>
-                  <p className="text-[11.5px] text-[#4a5568] font-medium mb-3">
-                    Select <span className="text-[#111d35] font-bold">2 preferred dates</span> + time windows (Mon–Sat, IST).
-                    Our team will confirm one with you.
-                  </p>
-                  <Calendar slots={preferredSlots} onAddSlot={addSlot} onRemoveSlot={removeSlot} />
-                </div>
-              )}
-
-              {/* ── Step 5 ── */}
-              {step === 5 && (
-                <div>
-                  <h2 className="text-[14.5px] font-semibold text-[#111d35] mb-0.5">Your contact details</h2>
-                  <p className="text-[11.5px] text-[#718096] mb-3">We'll use this to confirm and schedule your survey.</p>
-                  <div className="space-y-2.5">
-                    <div className="grid grid-cols-2 gap-2">
-                      <Field label="First Name" name="firstName" value={contact.firstName} onChange={v => setContact(c=>({...c,firstName:v}))} placeholder="Rahul" required />
-                      <Field label="Last Name"  name="lastName"  value={contact.lastName}  onChange={v => setContact(c=>({...c,lastName:v}))}  placeholder="Sharma" required />
-                    </div>
-                    <Field label="Designation" name="designation" value={contact.designation} onChange={v => setContact(c=>({...c,designation:v}))} placeholder="Facility Manager" />
-                    <div className="grid grid-cols-2 gap-2">
-                      <Field label="Email ID"     name="email" type="email" value={contact.email} onChange={v => setContact(c=>({...c,email:v}))} placeholder="rahul@company.com" required />
-                      <Field label="Phone Number" name="phone" type="tel"   value={contact.phone} onChange={v => setContact(c=>({...c,phone:v}))} placeholder="+91 98765 43210" required />
-                    </div>
-                    <Field label="Alternate Number" name="altPhone" type="tel" value={contact.altPhone} onChange={v => setContact(c=>({...c,altPhone:v}))} placeholder="+91 98765 00000" />
-                    <Field label="Facility Name" name="facilityName" value={contact.facilityName} onChange={v => setContact(c=>({...c,facilityName:v}))} placeholder="Greenwood Heights" />
-                    {/* Address + GPS */}
-                    <div>
-                      <label className="block text-[11px] font-semibold text-[#4a5568] mb-1 tracking-wide uppercase">Facility Address</label>
-                      <textarea
-                        value={contact.facilityAddress}
-                        onChange={e => setContact(c=>({...c,facilityAddress:e.target.value}))}
-                        placeholder="Enter full address..."
-                        rows={2}
-                        className="cursor-text w-full px-3 py-2 rounded-xl border border-[#dbe5f0] bg-white text-[13px] placeholder:text-[#a0aec0] focus:outline-none focus:ring-2 focus:ring-[#2b6cb0]/30 focus:border-[#2b6cb0] transition-all resize-none"
-                      />
-                      <button type="button" onClick={handleGps} disabled={gpsLoading}
-                        className="cursor-pointer mt-1.5 flex items-center gap-1.5 text-[11.5px] font-medium text-[#2b6cb0] hover:text-[#1a56a0] transition-colors disabled:opacity-50">
-                        {gpsLoading ? <Loader2 size={12} className="animate-spin" /> : <MapPin size={12} />}
-                        {gpsLoading ? "Getting location…" : "Use my current location"}
-                      </button>
-                    </div>
-                    {/* OSM Map */}
-                    {mapCoords && (
-                      <iframe
-                        src={`https://www.openstreetmap.org/export/embed.html?bbox=${mapCoords.lon-0.005},${mapCoords.lat-0.005},${mapCoords.lon+0.005},${mapCoords.lat+0.005}&layer=mapnik&marker=${mapCoords.lat},${mapCoords.lon}`}
-                        className="w-full h-[140px] rounded-xl border border-[#dbe5f0]"
-                        title="Facility Location"
-                      />
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Error */}
-              {error && (
-                <div className="mt-3 bg-red-50 border border-red-200 rounded-xl px-3.5 py-2.5 text-[12px] text-red-700">{error}</div>
-              )}
+                <h3 className="font-serif text-[clamp(1.3rem,2.5vw,1.7rem)] font-light text-[#052e16] leading-snug mb-4">
+                  Water silently erodes your building — and your budget.
+                </h3>
+                <p className="text-[14px] text-[#374151] font-light leading-relaxed mb-4">
+                  Leakages in terrace waterproofing, plumbing lines, and wet areas routinely go undetected for months. By the time they are visible, structural damage and remediation cost far exceed what an early fix would have required.
+                </p>
+                <p className="text-[14px] text-[#374151] font-light leading-relaxed">
+                  Our assessment maps every active and latent leakage with photographic evidence and location tags — giving you a precise picture of where water is getting in, and what it will cost if ignored.
+                </p>
+              </div>
+              <div className="rounded-[20px] overflow-hidden shadow-[0_12px_40px_rgba(5,46,22,0.10)]">
+                <img
+                  src="https://images.unsplash.com/photo-1621905251918-48416bd8575a?auto=format&fit=crop&w=800&q=80"
+                  alt="Facility water pipes and plumbing inspection"
+                  className="w-full h-[280px] object-cover"
+                />
+              </div>
             </div>
 
-            {/* Nav buttons */}
-            <div className="flex gap-2.5 mt-3.5">
-              {step > 1 && (
-                <button type="button" onClick={goBack}
-                  className="cursor-pointer flex items-center justify-center gap-1.5 border border-[#dbe5f0] text-[#4a5568] px-4 py-2.5 rounded-xl text-[12.5px] font-medium hover:bg-[#f0f4f8] transition-colors">
-                  <ArrowLeft size={13} /> Back
-                </button>
-              )}
-              {step < 5 ? (
-                <button type="button" onClick={goNext}
-                  className="cursor-pointer flex-1 flex items-center justify-center gap-1.5 bg-[#111d35] hover:bg-[#1a2744] text-white py-2.5 rounded-xl text-[13px] font-semibold transition-colors shadow-[0_4px_12px_rgba(17,29,53,0.15)]">
-                  Next <ArrowRight size={13} />
-                </button>
-              ) : (
-                <button type="button" onClick={handleSubmit} disabled={submitting}
-                  className="cursor-pointer flex-1 flex items-center justify-center gap-1.5 bg-[#111d35] hover:bg-[#1a2744] disabled:opacity-60 text-white py-2.5 rounded-xl text-[13px] font-semibold transition-colors shadow-[0_4px_12px_rgba(17,29,53,0.15)]">
-                  {submitting ? <><Loader2 size={13} className="animate-spin" /> Submitting…</> : "Submit Survey Request"}
-                </button>
-              )}
+            {/* Story 2 — Fire + Security */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center mb-16">
+              <div className="order-2 lg:order-1">
+                <div className="rounded-[20px] overflow-hidden shadow-[0_12px_40px_rgba(5,46,22,0.10)]">
+                  <img
+                    src="https://images.unsplash.com/photo-1586771107445-d3ca888129ff?auto=format&fit=crop&w=800&q=80"
+                    alt="Fire safety equipment in a facility"
+                    className="w-full h-[280px] object-cover"
+                  />
+                </div>
+              </div>
+              <div className="order-1 lg:order-2">
+                <div className="flex items-center gap-2 mb-4">
+                  <Flame size={16} className="text-emerald-600" />
+                  <span className="text-[11px] font-semibold text-emerald-700 tracking-[0.18em] uppercase">Fire Safety & Security</span>
+                </div>
+                <h3 className="font-serif text-[clamp(1.3rem,2.5vw,1.7rem)] font-light text-[#052e16] leading-snug mb-4">
+                  A blocked exit or a CCTV blind spot is not a minor issue.
+                </h3>
+                <p className="text-[14px] text-[#374151] font-light leading-relaxed mb-4">
+                  Non-functional extinguishers, expired service records, unmarked evacuation routes, and access control gaps only surface during audits or incidents — neither of which you want to be caught unprepared for.
+                </p>
+                <p className="text-[14px] text-[#374151] font-light leading-relaxed">
+                  An independent assessment identifies compliance gaps before they become liabilities — and gives you documented evidence of due diligence.
+                </p>
+              </div>
+            </div>
+
+            {/* Story 3 — Assets + Sustainability */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <Leaf size={16} className="text-emerald-600" />
+                  <span className="text-[11px] font-semibold text-emerald-700 tracking-[0.18em] uppercase">Assets & Sustainability</span>
+                </div>
+                <h3 className="font-serif text-[clamp(1.3rem,2.5vw,1.7rem)] font-light text-[#052e16] leading-snug mb-4">
+                  Equipment that is not maintained deteriorates — and does not announce it.
+                </h3>
+                <p className="text-[14px] text-[#374151] font-light leading-relaxed mb-4">
+                  HVAC units running past service intervals, STP systems underperforming, and horticulture neglect quietly reduce both the functionality and value of your facility.
+                </p>
+                <p className="text-[14px] text-[#374151] font-light leading-relaxed">
+                  The assessment covers every asset category — mechanical, civil, electrical, and landscape — with condition ratings, maintenance history gaps, and prioritised action recommendations.
+                </p>
+              </div>
+              <div className="rounded-[20px] overflow-hidden shadow-[0_12px_40px_rgba(5,46,22,0.10)]">
+                <img
+                  src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80"
+                  alt="Facility assets and maintenance inspection"
+                  className="w-full h-[280px] object-cover"
+                />
+              </div>
             </div>
 
           </div>
-        </div>
+        </section>
+
+        {/* ── 4. Urgency — full background image ───────────────────────── */}
+        <section
+          className="relative py-24 px-6 overflow-hidden"
+          style={{
+            backgroundImage: "url(https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&w=1600&q=80)",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        >
+          <div className="absolute inset-0 bg-[#052e16]/82" />
+          <div className="relative max-w-4xl mx-auto">
+            <SectionLabel light>Why Act Now</SectionLabel>
+            <h2 className="font-serif text-[clamp(1.8rem,4.5vw,3rem)] font-light text-white leading-snug mb-8 max-w-3xl">
+              Small issues today compound into costly problems tomorrow.
+            </h2>
+
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-12 items-start">
+              <div className="space-y-5">
+                <p className="text-[15.5px] text-white/70 font-light leading-relaxed">
+                  Most facilities operate under the assumption that if nothing has broken yet, nothing is wrong. But facility health degrades incrementally — and the gap between functioning and failing is exactly where the most expensive problems live.
+                </p>
+                <p className="text-[15.5px] text-white/70 font-light leading-relaxed">
+                  Undetected water leakages increase operational costs by 15–25%. Fire extinguishers that miss their annual service date become compliance liabilities. Assets without preventive maintenance schedules fail earlier and cost significantly more to replace. Security gaps remain invisible until a breach makes them obvious.
+                </p>
+                <p className="text-[15.5px] text-white/70 font-light leading-relaxed">
+                  An independent assessment surfaces these issues and gives you documented evidence to prioritise maintenance spend, address compliance gaps, and make capital decisions based on actual facility condition — not assumption.
+                </p>
+                <div className="pt-2">
+                  <Link
+                    href="/facility-survey/book"
+                    className="inline-flex items-center gap-2 bg-white text-[#052e16] px-7 py-3.5 rounded-xl font-semibold text-[14px] hover:bg-emerald-50 transition-colors shadow-[0_4px_16px_rgba(0,0,0,0.25)]"
+                  >
+                    Schedule My Free Assessment <ArrowRight size={15} />
+                  </Link>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {[
+                  { stat: "15–25%", desc: "Increase in costs from undetected leakages" },
+                  { stat: "3–5x",   desc: "Higher repair costs: reactive vs. preventive" },
+                  { stat: "14",     desc: "Domains inspected in a single on-site visit" },
+                ].map(function(item, i) {
+                  return (
+                    <div key={i} className="bg-white/[0.08] border border-white/[0.12] rounded-[16px] p-5 backdrop-blur-sm">
+                      <p className="font-serif text-[2.2rem] font-light text-emerald-300 leading-none mb-1">{item.stat}</p>
+                      <p className="text-[12.5px] text-white/55 font-light leading-relaxed">{item.desc}</p>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── 5. Inspection Coverage — Apple grid ──────────────────────── */}
+        <section className="bg-[#f0fdf4] py-20 px-6">
+          <div className="max-w-5xl mx-auto">
+            <div className="mb-12">
+              <SectionLabel>What We Inspect</SectionLabel>
+              <h2 className="font-serif text-[clamp(1.8rem,4vw,2.8rem)] font-light text-[#052e16]">
+                14 domains. Every corner of your facility.
+              </h2>
+              <p className="text-[15px] text-[#374151] font-light mt-4 max-w-xl leading-relaxed">
+                Your assessment covers a comprehensive range of operational and infrastructure parameters — not just the obvious ones.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {[
+                { Icon: HardHat,       label: "Building Exterior & Structure",  bg: "bg-slate-50",    ic: "text-slate-500",   dot: "#94a3b8" },
+                { Icon: Droplets,      label: "Leakages & Water Management",    bg: "bg-blue-50",     ic: "text-blue-500",    dot: "#3b82f6" },
+                { Icon: Flame,         label: "Fire Safety Readiness",          bg: "bg-red-50",      ic: "text-red-500",     dot: "#ef4444" },
+                { Icon: Shield,        label: "Security Infrastructure",        bg: "bg-purple-50",   ic: "text-purple-500",  dot: "#a855f7" },
+                { Icon: Zap,           label: "Electrical Systems",             bg: "bg-amber-50",    ic: "text-amber-500",   dot: "#f59e0b" },
+                { Icon: Wind,          label: "HVAC & Mechanical",             bg: "bg-sky-50",      ic: "text-sky-500",     dot: "#0ea5e9" },
+                { Icon: Sparkles,      label: "Common Areas & Housekeeping",    bg: "bg-pink-50",     ic: "text-pink-500",    dot: "#ec4899" },
+                { Icon: Building2,     label: "Asset Condition",                bg: "bg-orange-50",   ic: "text-orange-500",  dot: "#f97316" },
+                { Icon: ClipboardList, label: "Preventive Maintenance",         bg: "bg-teal-50",     ic: "text-teal-600",    dot: "#0d9488" },
+                { Icon: Leaf,          label: "Landscape & Horticulture",       bg: "bg-lime-50",     ic: "text-lime-600",    dot: "#65a30d" },
+                { Icon: Recycle,       label: "Waste Management",               bg: "bg-stone-50",    ic: "text-stone-500",   dot: "#78716c" },
+                { Icon: BarChart3,     label: "Sustainability (STP / RWH)",     bg: "bg-emerald-50",  ic: "text-emerald-600", dot: "#10b981" },
+                { Icon: ShieldCheck,   label: "Compliance Snapshot",            bg: "bg-indigo-50",   ic: "text-indigo-500",  dot: "#6366f1" },
+                { Icon: Eye,           label: "Vendor & Contract Review",       bg: "bg-violet-50",   ic: "text-violet-500",  dot: "#8b5cf6" },
+              ].map(function(item, i) {
+                const Icon = item.Icon
+                return (
+                  <div key={i} className="flex items-center gap-4 bg-white rounded-[16px] border border-emerald-100 px-4 py-3.5 shadow-[0_1px_6px_rgba(5,46,22,0.06)] hover:shadow-[0_4px_16px_rgba(5,46,22,0.10)] transition-shadow">
+                    <div className={"w-10 h-10 rounded-[12px] flex items-center justify-center flex-shrink-0 " + item.bg}>
+                      <Icon size={19} className={item.ic} />
+                    </div>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: item.dot }} />
+                      <span className="text-[13px] font-medium text-[#1a202c] leading-snug">{item.label}</span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* ── 6. Facility Health Score ──────────────────────────────────── */}
+        <section className="bg-white py-20 px-6">
+          <div className="max-w-5xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              <div>
+                <SectionLabel>Facility Health Score</SectionLabel>
+                <h2 className="font-serif text-[clamp(1.8rem,4vw,2.5rem)] font-light text-[#052e16] leading-snug mb-4">
+                  Know your score across every critical parameter.
+                </h2>
+                <p className="text-[14.5px] text-[#374151] font-light leading-relaxed mb-6">
+                  Your Facility Health Report includes an overall score and individual domain scores — giving you a clear, structured view of where your facility excels and where it needs attention.
+                </p>
+                <ul className="space-y-2.5 mb-8">
+                  {[
+                    "Scored out of 100 across 6 operational domains",
+                    "Green / Amber / Red risk classification per finding",
+                    "Priority matrix to guide your maintenance budget",
+                    "Benchmarked against industry best practices",
+                  ].map(function(b, i) {
+                    return <Check key={i}>{b}</Check>
+                  })}
+                </ul>
+                <Link
+                  href="/facility-survey/book"
+                  className="inline-flex items-center gap-2 bg-[#15803d] hover:bg-[#166534] text-white px-7 py-3.5 rounded-xl font-semibold text-[14px] transition-colors shadow-[0_4px_20px_rgba(21,128,61,0.25)]"
+                >
+                  Get My Facility Score <ArrowRight size={15} />
+                </Link>
+              </div>
+              <ScoreCard />
+            </div>
+          </div>
+        </section>
+
+        {/* ── 7. Your Deliverable ───────────────────────────────────────── */}
+        <section className="bg-[#f0fdf4] py-20 px-6 border-t border-emerald-100">
+          <div className="max-w-5xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              <div className="order-2 lg:order-1">
+                <ReportMockup />
+              </div>
+              <div className="order-1 lg:order-2">
+                <SectionLabel>Your Deliverable</SectionLabel>
+                <h2 className="font-serif text-[clamp(1.8rem,4vw,2.5rem)] font-light text-[#052e16] leading-snug mb-4">
+                  A professional report you can actually act on.
+                </h2>
+                <p className="text-[14.5px] text-[#374151] font-light leading-relaxed mb-6">
+                  After the on-site survey, AI compiles all findings into a complete Facility Health Report in 10 minutes — with photographic evidence, risk ratings, and a prioritised action plan.
+                </p>
+                <ul className="space-y-2.5">
+                  {[
+                    "Executive summary for senior management",
+                    "Facility Health Score with domain breakdown",
+                    "Photographic findings with location tags",
+                    "Risk classification — High / Medium / Low",
+                    "Priority action matrix with cost guidance",
+                    "Expert recommendations per domain",
+                    "Compliance snapshot across key parameters",
+                    "Shared exclusively with your authorised contact",
+                  ].map(function(b, i) {
+                    return <Check key={i}>{b}</Check>
+                  })}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── 8. Process — Gemini gradient ─────────────────────────────── */}
+        <section
+          className="relative py-20 px-6"
+          style={{ background: "linear-gradient(135deg, #0d1f3c 0%, #1e0a3c 30%, #2a0a1c 60%, #0a1a1a 100%)" }}
+        >
+          <div className="absolute inset-0 pointer-events-none opacity-[0.04]"
+            style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "32px 32px" }} />
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-violet-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative max-w-5xl mx-auto">
+            <div className="text-center mb-14">
+              <p className="text-[10px] font-semibold text-violet-300/70 tracking-[0.2em] uppercase mb-4">Powered by AI</p>
+              <h2 className="font-serif text-[clamp(1.8rem,4vw,2.8rem)] font-light text-white leading-snug">
+                Simple. Structured.
+                <span className="italic text-violet-300"> AI-powered.</span>
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[
+                {
+                  num: "01",
+                  title: "Schedule Your Assessment",
+                  desc: "Choose a convenient date, describe your property, and pick the domains you want assessed. Takes less than 5 minutes.",
+                  color: "#818cf8",
+                },
+                {
+                  num: "02",
+                  title: "On-site Facility Survey",
+                  desc: "Our certified experts inspect the property across all selected domains with photographic documentation and structured observations.",
+                  color: "#a78bfa",
+                },
+                {
+                  num: "03",
+                  title: "AI Generates Your Report",
+                  desc: "After data collection, AI compiles a comprehensive Facility Health Report in 10 minutes — complete with scores, risk ratings, and recommendations.",
+                  color: "#f472b6",
+                },
+                {
+                  num: "04",
+                  title: "Improve with Confidence",
+                  desc: "Use the report to prioritise maintenance spend, address compliance gaps, and plan long-term capital improvements.",
+                  color: "#34d399",
+                },
+              ].map(function(step, i) {
+                return (
+                  <div key={i} className="relative">
+                    <div className="mb-4">
+                      <span className="font-serif text-[2.4rem] font-light leading-none" style={{ color: step.color, opacity: 0.3 }}>{step.num}</span>
+                    </div>
+                    <div className="w-8 h-0.5 mb-4" style={{ backgroundColor: step.color }} />
+                    <h3 className="text-[14px] font-semibold text-white mb-2">{step.title}</h3>
+                    <p className="text-[13px] text-white/45 font-light leading-relaxed">{step.desc}</p>
+                    {i < 3 && (
+                      <div className="hidden lg:block absolute top-8 right-0 translate-x-1/2 text-white/20">
+                        <ArrowRight size={18} />
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+            <div className="mt-14 text-center">
+              <Link
+                href="/facility-survey/book"
+                className="inline-flex items-center gap-2 bg-white text-[#0d1f3c] px-8 py-4 rounded-xl font-semibold text-[14px] hover:bg-violet-50 transition-colors shadow-[0_4px_24px_rgba(0,0,0,0.3)]"
+              >
+                Start Step 1 — Schedule Now <ArrowRight size={15} />
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* ── 9. Sample Report Download ─────────────────────────────────── */}
+        <section id="sample-report" className="bg-white py-20 px-6">
+          <div className="max-w-5xl mx-auto">
+            <div className="bg-[#f0fdf4] rounded-[24px] border border-emerald-100 overflow-hidden">
+              <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px]">
+                <div className="p-10 lg:p-14">
+                  <SectionLabel>Sample Report</SectionLabel>
+                  <h2 className="font-serif text-[clamp(1.5rem,2.5vw,2rem)] font-light text-[#052e16] leading-snug mb-4">
+                    See exactly what you will receive.
+                  </h2>
+                  <p className="text-[14px] text-[#374151] font-light leading-relaxed mb-6">
+                    Download a sample Facility Health Report to understand the level of detail, structure, and professional quality you can expect.
+                  </p>
+                  <ul className="space-y-2.5 mb-8">
+                    {[
+                      "20–40 page professional PDF",
+                      "Photographic evidence with location labels",
+                      "Risk-rated findings per domain",
+                      "Executive summary and priority action plan",
+                    ].map(function(b, i) {
+                      return <Check key={i}>{b}</Check>
+                    })}
+                  </ul>
+                  <a
+                    href="/sample-facility-report.pdf"
+                    className="inline-flex items-center gap-2 bg-[#15803d] hover:bg-[#166534] text-white px-7 py-3.5 rounded-xl font-semibold text-[14px] transition-colors"
+                    download
+                  >
+                    <Download size={15} /> Download Sample Report
+                  </a>
+                </div>
+                <div className="bg-[#052e16] flex flex-col items-center justify-center p-10 gap-5">
+                  <div className="w-16 h-20 rounded-xl bg-white/[0.08] border border-white/[0.1] flex items-center justify-center">
+                    <FileText size={28} className="text-emerald-300" />
+                  </div>
+                  <div className="text-center">
+                    <p className="text-[13px] font-semibold text-white mb-1">Sample_FHA_Report.pdf</p>
+                    <p className="text-[11px] text-white/40">PDF · Approx. 25 pages</p>
+                  </div>
+                  <div className="space-y-1.5 w-full">
+                    {["Executive Summary", "Domain Scores", "Photo Findings", "Action Plan"].map(function(s) {
+                      return (
+                        <div key={s} className="flex items-center gap-2 text-[11px] text-white/50">
+                          <CheckCircle size={10} className="text-emerald-400 flex-shrink-0" />
+                          {s}
+                        </div>
+                      )
+                    })}
+                  </div>
+                  <span className="inline-block bg-emerald-500/20 text-emerald-300 text-[10px] font-semibold tracking-wider uppercase px-3 py-1 rounded-full border border-emerald-500/30">
+                    Free Download
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── 10. Testimonial ──────────────────────────────────────────── */}
+        <section className="bg-[#f0fdf4] py-16 px-6 border-t border-emerald-100">
+          <div className="max-w-3xl mx-auto">
+            <div className="mb-8">
+              <SectionLabel>What Facility Managers Say</SectionLabel>
+            </div>
+            <div className="bg-white rounded-[24px] border border-emerald-100 shadow-[0_8px_32px_rgba(5,46,22,0.07)] p-8 lg:p-10">
+              <div className="flex gap-1 mb-5">
+                {[0,1,2,3,4].map(function(i) {
+                  return <Star key={i} size={14} className="text-amber-400 fill-amber-400" />
+                })}
+              </div>
+              <blockquote className="font-serif text-[1.05rem] font-light text-[#1a202c] leading-relaxed mb-6 italic">
+                &ldquo;The Firmity team assessed our entire residential campus in a single day. The report was incredibly detailed — they found three active leakages we had no idea about, flagged two fire extinguishers that were past service date, and gave us a clear priority list for the next six months. It helped us allocate our maintenance budget with confidence.&rdquo;
+              </blockquote>
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-[#052e16] flex items-center justify-center flex-shrink-0">
+                  <span className="text-[13px] font-bold text-white">A</span>
+                </div>
+                <div>
+                  <p className="text-[13.5px] font-semibold text-[#052e16]">Ankit Sharma</p>
+                  <p className="text-[12px] text-[#6b7280] font-light">Facility Head · Greenfield Housing Society, Pune</p>
+                </div>
+                <div className="ml-auto">
+                  <span className="text-[10px] font-semibold text-[#a0aec0] tracking-wider uppercase">Verified Review</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── 11. Confidentiality — compact with image ─────────────────── */}
+        <section className="bg-white py-20 px-6 border-t border-emerald-100">
+          <div className="max-w-5xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-12 items-center">
+              <div>
+                <div className="w-12 h-12 rounded-[16px] bg-[#f0fdf4] border border-emerald-200 flex items-center justify-center mb-6">
+                  <Lock size={22} className="text-emerald-600" />
+                </div>
+                <SectionLabel>Privacy Commitment</SectionLabel>
+                <h2 className="font-serif text-[clamp(1.8rem,3.5vw,2.5rem)] font-light text-[#052e16] leading-snug mb-5">
+                  Your facility data stays private.
+                </h2>
+                <div className="space-y-5">
+                  {[
+                    {
+                      title: "Authorised contacts only",
+                      body: "The report is delivered exclusively to the contact you designate at the time of booking — no exceptions.",
+                    },
+                    {
+                      title: "No third-party disclosure",
+                      body: "Your data, observations, and findings are never sold, shared, or disclosed to any third party.",
+                    },
+                    {
+                      title: "No operational data used elsewhere",
+                      body: "Information about your facility operations is used only to prepare your report — nothing retained beyond it.",
+                    },
+                    {
+                      title: "No obligation after assessment",
+                      body: "Receiving the report does not commit you to purchasing Firmity or any other service.",
+                    },
+                  ].map(function(item, i) {
+                    return (
+                      <div key={i} className="flex items-start gap-3">
+                        <div className="w-5 h-5 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <CheckCircle size={11} className="text-emerald-600" />
+                        </div>
+                        <div>
+                          <p className="text-[13.5px] font-semibold text-[#052e16] mb-0.5">{item.title}</p>
+                          <p className="text-[13px] text-[#6b7280] font-light leading-relaxed">{item.body}</p>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+                <div className="mt-7">
+                  <span className="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-700 text-[12px] font-semibold tracking-wide px-5 py-2.5 rounded-full">
+                    <CheckCircle size={14} />
+                    100% Confidential · Independent · No Obligation
+                  </span>
+                </div>
+              </div>
+
+              <div className="rounded-[20px] overflow-hidden shadow-[0_16px_48px_rgba(5,46,22,0.12)]">
+                <img
+                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80"
+                  alt="Professional confidential document handling"
+                  className="w-full h-full object-cover"
+                  style={{ minHeight: "420px" }}
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── 12. FAQ ──────────────────────────────────────────────────── */}
+        <FaqSection />
+
+        {/* ── 13. Final CTA ────────────────────────────────────────────── */}
+        <section className="relative overflow-hidden" style={{ background: "linear-gradient(135deg, #052e16 0%, #064e3b 50%, #052e16 100%)" }}>
+          <div className="absolute inset-0 pointer-events-none opacity-[0.025]"
+            style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "36px 36px" }} />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-400/5 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative max-w-3xl mx-auto px-6 py-24 text-center">
+            <p className="text-[11px] font-semibold text-emerald-300/70 tracking-[0.22em] uppercase mb-5">Get Started Today</p>
+            <h2 className="font-serif text-[clamp(1.8rem,5vw,3.25rem)] font-light text-white leading-tight mb-5">
+              Your facility deserves<br />
+              <span className="italic text-emerald-300">a health check.</span>
+            </h2>
+            <p className="text-[15px] text-white/55 font-light mb-10 leading-relaxed max-w-xl mx-auto">
+              Whether you manage a residential community, commercial property, hospital, educational campus, or industrial facility — a clearer picture of your property health enables better planning, safer operations, and more confident decisions.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
+              <Link
+                href="/facility-survey/book"
+                className="inline-flex items-center gap-2 bg-white text-[#052e16] px-8 py-4 rounded-xl font-semibold text-[15px] hover:bg-emerald-50 transition-colors shadow-[0_8px_32px_rgba(0,0,0,0.25)]"
+              >
+                Get My Free Facility Health Assessment <ArrowRight size={16} />
+              </Link>
+            </div>
+            <div className="flex items-center justify-center gap-7 flex-wrap">
+              {[
+                "100% Free",
+                "Confidential",
+                "AI report in 10 minutes",
+                "No obligation",
+              ].map(function(text, i) {
+                return (
+                  <div key={i} className="flex items-center gap-1.5">
+                    <CheckCircle size={13} className="text-emerald-400" />
+                    <span className="text-[12.5px] font-light text-white/50">{text}</span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </section>
+
       </main>
       <Footer />
     </>
