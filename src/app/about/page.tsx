@@ -8,7 +8,7 @@ export default function AboutPage() {
     {
       icon: Lightbulb,
       title: "Innovation",
-      description: "We continuously evolve our software to meet the changing needs of modern facility management.",
+      description: "We continuously eovlve our software to meet the changing needs of modern facility management.",
     },
     {
       icon: Users,
