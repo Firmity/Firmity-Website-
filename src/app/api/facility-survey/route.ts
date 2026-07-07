@@ -3,6 +3,8 @@ import { writeFile, readFile, mkdir } from "fs/promises"
 import { existsSync } from "fs"
 import path from "path"
 import nodemailer from "nodemailer"
+import { getSupabaseAdmin } from "@/src/lib/supabase-admin"
+import { mapFacilityType, mapDomains } from "@/src/lib/survey-mapping"
 
 // ─── ID generators ────────────────────────────────────────────────────────────
 
@@ -45,6 +47,46 @@ interface SurveyRecord {
   facilityArea: string; facilityAreaUnit: string
   buildings: Building[]; preferredSlots: Slot[]
   contact: ContactFull
+  surveyId?: string   // Supabase surveys.id (UUID) — the key the surveyor app uses
+}
+
+// ─── Supabase persistence ───────────────────────────────────────────────────
+// Writes the booking to the shared `surveys` table and returns its UUID.
+// Best-effort: a DB failure is logged loudly but never blocks the booking/email.
+async function persistSurvey(record: SurveyRecord): Promise<string | null> {
+  try {
+    const area = Number(record.facilityArea)
+    const row = {
+      facility_type: mapFacilityType(record.facilityType),
+      domain_slugs: mapDomains(record.surveyTypes),
+      facility_name: record.contact.facilityName || null,
+      facility_address: record.contact.facilityAddress || null,
+      total_area: Number.isFinite(area) ? area : null,
+      area_unit: record.facilityAreaUnit, // 'sqft' | 'acres'
+      blocks: record.buildings ?? [],
+      preferred_dates: (record.preferredSlots ?? []).map((s) => ({ date: s.date, window: s.time })),
+      contact: {
+        first_name: record.contact.firstName,
+        last_name: record.contact.lastName,
+        designation: record.contact.designation || null,
+        email: record.contact.email,
+        phone: record.contact.phone,
+        alternate_phone: record.contact.altPhone || null,
+      },
+      form_payload: { ...record }, // full original for cross-reference (bookingId, surveyCode)
+      status: "submitted",
+    }
+    const { data, error } = await getSupabaseAdmin()
+      .from("surveys")
+      .insert(row)
+      .select("id")
+      .single()
+    if (error) throw error
+    return data?.id ?? null
+  } catch (e) {
+    console.error("[SUPABASE_SAVE_ERR]", e)
+    return null
+  }
 }
 
 // ─── Email HTML ───────────────────────────────────────────────────────────────
@@ -138,6 +180,7 @@ NEW SURVEY BOOKING
 ══════════════════════════════════════════
 BOOKING ID  : ${r.bookingId}
 SURVEY CODE : ${r.surveyCode}
+SURVEY ID   : ${r.surveyId || "[NOT SAVED — check [SUPABASE_SAVE_ERR] logs]"}
 SUBMITTED   : ${new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })} IST
 
 ─── FACILITY ─────────────────────────────
@@ -185,6 +228,9 @@ export async function POST(req: NextRequest) {
       contact,
     }
 
+    // 0. Persist to Supabase (shared DB the surveyor app reads) ─────────────────
+    record.surveyId = (await persistSurvey(record)) ?? undefined
+
     // 1. Local JSON ────────────────────────────────────────────────────────────
     try {
       const dataDir  = path.join(process.cwd(), "data")
@@ -222,7 +268,7 @@ export async function POST(req: NextRequest) {
       ])
     }
 
-    return NextResponse.json({ success: true, bookingId, surveyCode })
+    return NextResponse.json({ success: true, bookingId, surveyCode, surveyId: record.surveyId })
 
   } catch (err) {
     console.error("[SURVEY_ERR]", err)

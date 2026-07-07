@@ -9,7 +9,7 @@ const industryItems = [
   {
     label: "Manufacturing",
     href: "/industries/manufacturing",
-    accent: "#d97706",
+    accent: "#2b6cb0",
     subItems: [
       { label: "PPM Scheduling", href: "/preventive-maintenance" },
       { label: "Asset Tracking", href: "/asset-management" },
@@ -20,7 +20,7 @@ const industryItems = [
   {
     label: "Educational",
     href: "/industries/educational",
-    accent: "#2b6cb0",
+    accent: "#d97706",
     subItems: [
       { label: "Campus Help Desk", href: "/complaint-management" },
       { label: "Hostel & Block Records", href: "/facility-records" },
