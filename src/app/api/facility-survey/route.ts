@@ -63,6 +63,10 @@ async function persistSurvey(record: SurveyRecord): Promise<string | null> {
       facility_address: record.contact.facilityAddress || null,
       total_area: Number.isFinite(area) ? area : null,
       area_unit: record.facilityAreaUnit, // 'sqft' | 'acres'
+      // Persist the on-site code to its own column (not just form_payload) so the
+      // admin board shows it and the surveyor verify-code check has something to
+      // match. Without this, every website booking had survey_code = null → "—".
+      survey_code: record.surveyCode,
       blocks: record.buildings ?? [],
       preferred_dates: (record.preferredSlots ?? []).map((s) => ({ date: s.date, window: s.time })),
       contact: {

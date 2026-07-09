@@ -317,10 +317,10 @@ export default function AdminQuestions() {
       )}
       {err && <p className="mb-4 text-sm text-red-600">{err}</p>}
 
-      <div className="flex gap-6">
-        {/* Category sidebar */}
-        <aside className="w-56 shrink-0">
-          <div className="sticky top-4 max-h-[calc(100vh-6rem)] overflow-y-auto pr-1">
+      <div className="flex flex-col gap-4 md:flex-row md:gap-6">
+        {/* Category sidebar — stacks above content on mobile */}
+        <aside className="w-full shrink-0 md:w-56">
+          <div className="max-h-64 overflow-y-auto pr-1 md:sticky md:top-4 md:max-h-[calc(100vh-6rem)]">
             <div className="mb-2 flex items-center justify-between px-1">
               <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Categories</span>
               <button type="button" onClick={() => setAddingCat((a) => !a)} aria-label="Add category" className="text-slate-500 hover:text-slate-800">

@@ -17,6 +17,11 @@ import SurveyGate from "@/src/components/survey/SurveyGate";
 import SurveyCodeCard from "@/src/components/survey/SurveyCodeCard";
 import OfflineBanner from "@/src/components/survey/OfflineBanner";
 import HealthPanel from "@/src/components/survey/HealthPanel";
+import LoadingScreen from "@/src/components/LoadingScreen";
+import LanguageSelect from "@/src/components/LanguageSelect";
+import TranslatingBar from "@/src/components/TranslatingBar";
+import { getLang } from "@/src/lib/i18n";
+import { SurveyLangContext } from "@/src/components/survey/SurveyLangContext";
 import { recordAward } from "@/src/lib/awards";
 import { getSupabaseBrowser } from "@/src/lib/supabase-browser";
 import { cacheGet, cacheSet } from "@/src/lib/offline";
@@ -58,6 +63,15 @@ export default function SurveyPage() {
   const [leaveTo, setLeaveTo] = useState("/surveys");
   const [savedToast, setSavedToast] = useState(false);
   const [saveMsg, setSaveMsg] = useState("Progress saved");
+  // Staff-profile deployment plan lifted to the page: StaffProfile re-mounts when you
+  // switch sections, so the page must hold the latest data or edits appear to vanish.
+  const [deployPlan, setDeployPlan] = useState<Record<string, unknown>>({});
+  const deployInitRef = useRef(false);
+  // Keep the loading animation on screen for at least ~1.4s so it doesn't flash.
+  const [minLoadDone, setMinLoadDone] = useState(false);
+  // Survey-scoped language: seeded from the saved default but LOCAL to this survey,
+  // so changing it here never leaks to the home screen, other surveys, or roles.
+  const [lang, setLang] = useState<string>(() => getLang());
   const topRef = useRef<HTMLDivElement | null>(null);
   const leavingRef = useRef(false);
   // Two-phase on-site gate for SURVEYORS (admins skip both):
@@ -68,14 +82,63 @@ export default function SurveyPage() {
   const [started, setStarted] = useState(false);
   const [gateReady, setGateReady] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false); // admins see the on-site map; surveyors don't
+  // Minimum on-screen time for the loading animation (~1.4s) so it never flashes.
+  useEffect(() => {
+    const t = setTimeout(() => setMinLoadDone(true), 1400);
+    return () => clearTimeout(t);
+  }, []);
+
+  // Seed the lifted deployment plan once the survey loads.
+  useEffect(() => {
+    if (survey && !deployInitRef.current) {
+      deployInitRef.current = true;
+      setDeployPlan((survey.deployment_plan as Record<string, unknown>) || {});
+    }
+  }, [survey]);
+
+  // While a report is generating, trap the user on this screen (block back button,
+  // reload, and tab close) so the request isn't interrupted mid-flight.
+  useEffect(() => {
+    if (!reporting) return;
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    const onPop = () => window.history.pushState(null, "", window.location.href);
+    window.history.pushState(null, "", window.location.href);
+    window.addEventListener("popstate", onPop);
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => {
+      window.removeEventListener("popstate", onPop);
+      window.removeEventListener("beforeunload", onBeforeUnload);
+    };
+  }, [reporting]);
+
+  // Record that this user has opened the survey (clears the "new" badge). Fire-and-forget.
   useEffect(() => {
     (async () => {
       try {
-        if (sessionStorage.getItem(`survey_started_${id}`) === "1") {
+        const sb = getSupabaseBrowser();
+        const { data: { user } } = await sb.auth.getUser();
+        if (!user) return;
+        await sb.from("survey_views").upsert(
+          { survey_id: id, user_id: user.id },
+          { onConflict: "survey_id,user_id", ignoreDuplicates: true }
+        );
+      } catch {
+        /* survey_views not migrated yet — badge simply won't clear */
+      }
+    })();
+  }, [id]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        if (localStorage.getItem(`survey_started_${id}`) === "1") {
           setLocOk(true); setStarted(true); setGateReady(true); return;
         }
-        if (sessionStorage.getItem(`survey_loc_${id}`) === "1") setLocOk(true);
-      } catch { /* sessionStorage unavailable */ }
+        if (localStorage.getItem(`survey_loc_${id}`) === "1") setLocOk(true);
+      } catch { /* localStorage unavailable */ }
       try {
         const sb = getSupabaseBrowser();
         const { data: { user } } = await sb.auth.getUser();
@@ -149,6 +212,7 @@ export default function SurveyPage() {
     [areas]
   );
 
+
   const sectionComplete = (area: string, prog: Progress): boolean => {
     if (area === FACILITY) return false;
     const ds = domainsByArea[area] ?? [];
@@ -199,8 +263,9 @@ export default function SurveyPage() {
     if (next) { setActive(next); scrollTop(); }
   }
 
-  function completeCurrent() {
+  async function completeCurrent() {
     if (active === FACILITY) return;
+    await flush(); // persist any pending answer edits before marking the section complete
     const ds = domainsByArea[active] ?? [];
     const dk = ds.length === 0 ? "__self" : activeDomain;
     const areaProg = { ...(progress[active] || {}), [dk]: true };
@@ -295,20 +360,22 @@ export default function SurveyPage() {
     doLeave();
   }
 
-  if (loading) return <Centered>Loading survey…</Centered>;
+  if (loading || !minLoadDone) return <LoadingScreen label="Loading survey…" />;
   if (error && !survey) return <Centered tone="error">Could not load survey: {error}</Centered>;
   if (!survey) return <Centered tone="error">Survey not found.</Centered>;
 
   const isFacility = active === FACILITY;
 
   return (
+    <SurveyLangContext.Provider value={{ lang, setLang }}>
     <main className="mx-auto max-w-6xl px-4 py-6">
+      <TranslatingBar />
       {gateReady && !locOk && (
         <SurveyGate
           surveyId={id}
           facilityName={survey?.facility_name}
           onLocated={() => {
-            try { sessionStorage.setItem(`survey_loc_${id}`, "1"); } catch { /* ignore */ }
+            try { localStorage.setItem(`survey_loc_${id}`, "1"); } catch { /* ignore */ }
             setLocOk(true);
             setActive(FACILITY); // land on Facility Details to read contacts + enter the code
           }}
@@ -370,6 +437,7 @@ export default function SurveyPage() {
                   </div>
                 )}
               </div>
+              <LanguageSelect value={lang} onChange={setLang} compact />
               <ProfileMenu />
             </div>
             {completedSections.size > 0 && (
@@ -393,6 +461,8 @@ export default function SurveyPage() {
         error={reportErr}
         onClose={() => { setReport(null); setReportErr(null); }}
         onRegenerate={() => handleGenerate(lastViewRef.current)}
+        recipientEmail={typeof survey?.contact?.email === "string" ? survey.contact.email : undefined}
+        facilityName={survey?.facility_name ?? undefined}
       />
 
       <div className="flex flex-col gap-4 md:flex-row md:gap-6">
@@ -413,7 +483,7 @@ export default function SurveyPage() {
                 <SurveyCodeCard
                   surveyId={id}
                   onVerified={() => {
-                    try { sessionStorage.setItem(`survey_started_${id}`, "1"); } catch { /* ignore */ }
+                    try { localStorage.setItem(`survey_started_${id}`, "1"); } catch { /* ignore */ }
                     setStarted(true);
                   }}
                 />
@@ -435,7 +505,7 @@ export default function SurveyPage() {
               onField={setField}
               onPhoto={addPhoto}
               staffArea={STAFF_AREA}
-              staffNode={<StaffProfile surveyId={id} initial={survey.deployment_plan} />}
+              staffNode={<StaffProfile surveyId={id} initial={deployPlan} buildings={[...buildingSet]} onChange={setDeployPlan} />}
               naKeys={naSections}
               onToggleNa={toggleNa}
             />
@@ -522,6 +592,7 @@ export default function SurveyPage() {
         />
       )}
     </main>
+    </SurveyLangContext.Provider>
   );
 }
 

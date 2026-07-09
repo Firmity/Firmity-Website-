@@ -49,6 +49,10 @@ export default function RootLayout({
       className={`${dmSans.variable} ${playfairDisplay.variable} ${dmMono.variable}`}
     >
       <head>
+        {/* Apply saved theme before paint to avoid a flash of the default palette */}
+        <Script id="theme-init" strategy="beforeInteractive">
+          {`try{var t=localStorage.getItem('firmity_theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}`}
+        </Script>
         {/* Google Tag Manager */}
         <Script id="gtm-base" strategy="afterInteractive">
           {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':

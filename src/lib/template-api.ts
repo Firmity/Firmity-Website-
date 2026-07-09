@@ -46,6 +46,18 @@ export interface Overlay {
   iconName?: string;                                // lucide icon key, so icons can be re-coloured
 }
 
+// AI content controls — mirrors backend ContentConfig. Drives the report's system
+// prompt + which graphs/sections appear. Absent -> backend Default (current output).
+export interface ContentConfig {
+  focus: string[];
+  length: "concise" | "standard" | "detailed";
+  tone: "formal" | "plain";
+  audience: "client" | "internal" | "regulator";
+  graphs: Record<string, boolean>;      // gauge|domain_bars|donut|heatmap|priority_matrix|cost_impact|trend
+  sections_on: Record<string, boolean>; // exec_summary|buildings|corrective|key_recs|photos
+  system_prompt?: string | null;        // free-form override; blank = assemble from the fields above
+}
+
 export interface ReportTemplate {
   name: string;
   palette: Palette;
@@ -56,6 +68,7 @@ export interface ReportTemplate {
   spacing: number;                                 // 0.6..2.0 response spacing multiplier
   category_labels: Record<string, string>;
   overlays: Overlay[];
+  content?: ContentConfig;                         // AI prompt + graph/section toggles (optional)
 }
 
 export const PAGE_W_MM = 297;

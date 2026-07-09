@@ -4,9 +4,11 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Award as AwardIcon, ChevronLeft } from "lucide-react";
+import { Award as AwardIcon, ChevronLeft, Palette } from "lucide-react";
 import { getSupabaseBrowser } from "@/src/lib/supabase-browser";
 import { myAwards, type Award } from "@/src/lib/awards";
+import ThemePicker from "@/src/components/ThemePicker";
+import BottomNav from "@/src/components/BottomNav";
 
 export default function ProfilePage() {
   const [info, setInfo] = useState<{ email?: string; name?: string; role?: string }>({});
@@ -30,7 +32,7 @@ export default function ProfilePage() {
   }, []);
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-8">
+    <main className="mx-auto max-w-2xl px-4 py-8 pb-24 md:pb-8">
       <Link href="/my-surveys" className="inline-flex items-center gap-1 text-sm text-slate-500 hover:underline">
         <ChevronLeft className="h-4 w-4" /> My Surveys
       </Link>
@@ -41,7 +43,13 @@ export default function ProfilePage() {
         {info.role && <> · <span className="capitalize">{info.role}</span></>}
       </p>
 
-      <h2 className="mb-3 mt-8 text-lg font-semibold text-slate-900">My Awards ({awards.length})</h2>
+      {/* Settings — theme picker */}
+      <h2 className="mb-3 mt-8 flex items-center gap-2 text-lg font-semibold text-slate-900">
+        <Palette className="h-5 w-5 text-slate-400" /> Appearance
+      </h2>
+      <ThemePicker />
+
+      <h2 id="awards" className="mb-3 mt-8 scroll-mt-20 text-lg font-semibold text-slate-900">My Awards ({awards.length})</h2>
       {loading ? (
         <p className="text-sm text-slate-500">Loading…</p>
       ) : awards.length === 0 ? (
@@ -61,6 +69,8 @@ export default function ProfilePage() {
           ))}
         </ul>
       )}
+
+      <BottomNav />
     </main>
   );
 }

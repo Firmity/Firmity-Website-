@@ -2,9 +2,8 @@
 // Server Component -> queries Supabase with the service key (server-side).
 // Admin-gated by middleware (/surveys).
 
-import Link from "next/link";
 import { getSupabaseAdmin } from "@/src/lib/supabase-admin";
-import SignOutButton from "@/src/components/SignOutButton";
+import AdminNav from "@/src/components/AdminNav";
 import SurveysBoard, { type BoardRow, type Staff } from "@/src/components/SurveysBoard";
 
 export const dynamic = "force-dynamic"; // always fresh; never statically cached
@@ -49,18 +48,7 @@ export default async function SurveysDashboard() {
           <h1 className="text-2xl font-bold text-slate-900">Surveys</h1>
           <p className="text-sm text-slate-500">{rows.length} booking(s)</p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Link href="/admin/users" className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100">
-            Staff &amp; Roles
-          </Link>
-          <Link href="/admin/questions" className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100">
-            Question Bank
-          </Link>
-          <Link href="/admin/pdf-editor" className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100">
-            PDF Report Editor
-          </Link>
-          <SignOutButton />
-        </div>
+        <AdminNav />
       </div>
 
       {error && (
