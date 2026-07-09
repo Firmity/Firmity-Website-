@@ -18,14 +18,21 @@ export default function StaffLoginPage() {
     setError(null);
     try {
       const supabase = getSupabaseBrowser();
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data: signIn, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
         setError(error.message);
         return;
       }
+      // Role-based landing: admins -> ops dashboard, surveyors -> home dashboard.
+      // An explicit ?next= (e.g. a deep link the user was bounced from) wins.
+      let dest = "/home";
+      const uid = signIn.user?.id;
+      if (uid) {
+        const { data: prof } = await supabase.from("profiles").select("role").eq("id", uid).single();
+        if (prof?.role === "admin") dest = "/surveys";
+      }
       const next =
-        (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("next")) ||
-        "/surveys";
+        (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("next")) || dest;
       window.location.href = next;
     } catch (err) {
       setError((err as Error).message);

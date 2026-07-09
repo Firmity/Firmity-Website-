@@ -8,7 +8,7 @@ import {
   Factory, GraduationCap, Building2, Briefcase, Heart, Hotel, LayoutGrid,
   Shield, Flame, Zap, Droplets, Leaf, Sparkles, CheckCircle,
   Plus, X, ArrowLeft, ArrowRight, Loader2, ChevronLeft, ChevronRight,
-  MapPin, type LucideIcon,
+  MapPin, Cpu, type LucideIcon,
 } from "lucide-react"
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
@@ -30,6 +30,7 @@ const SURVEY_TYPES: { id: string; label: string; Icon: LucideIcon; desc: string 
   { id: "horticulture", label: "Horticulture / Landscaping Audit", Icon: Leaf,  desc: "Gardens, plants, grounds" },
   { id: "security",     label: "Security Services Audit",      Icon: Shield,    desc: "Guards, CCTV, access control" },
   { id: "housekeeping", label: "Housekeeping & Sanitation",    Icon: Sparkles,  desc: "Cleanliness, pest control" },
+  { id: "technology",   label: "Technology Readiness",         Icon: Cpu,       desc: "BMS, IoT, CCTV, automation" },
 ]
 
 const TIME_SLOTS = [

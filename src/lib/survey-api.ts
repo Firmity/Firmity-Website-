@@ -16,6 +16,49 @@ async function authHeader(): Promise<Record<string, string>> {
   }
 }
 
+/**
+ * Translate a batch of strings to `lang` via the backend (Gemini + DB cache).
+ * English / unknown languages return identity. Never throws — on error the caller
+ * keeps the English source.
+ */
+// Combine an optional caller signal with a hard timeout so a slow/hung provider
+// (e.g. Google rate-limiting deep-translator) can never leave the UI "Translating…"
+// forever. Falls back to a manual combiner where AbortSignal.any is unavailable.
+function combineSignals(signals: AbortSignal[]): AbortSignal {
+  const anyFn = (AbortSignal as unknown as { any?: (s: AbortSignal[]) => AbortSignal }).any;
+  if (typeof anyFn === "function") return anyFn(signals);
+  const ctrl = new AbortController();
+  for (const s of signals) {
+    if (s.aborted) {
+      ctrl.abort();
+      break;
+    }
+    s.addEventListener("abort", () => ctrl.abort(), { once: true });
+  }
+  return ctrl.signal;
+}
+
+const TRANSLATE_TIMEOUT_MS = 20000;
+
+export async function apiTranslate(
+  texts: string[],
+  lang: string,
+  signal?: AbortSignal
+): Promise<Record<string, string>> {
+  if (lang === "en" || texts.length === 0) return Object.fromEntries(texts.map((t) => [t, t]));
+  const signals: AbortSignal[] = [AbortSignal.timeout(TRANSLATE_TIMEOUT_MS)];
+  if (signal) signals.push(signal);
+  const res = await fetch(`${API}/translate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...(await authHeader()) },
+    body: JSON.stringify({ texts, lang }),
+    signal: combineSignals(signals),
+  });
+  if (!res.ok) throw new Error(`[TRANSLATE_HTTP_${res.status}]`);
+  const data = (await res.json()) as { translations: Record<string, string> };
+  return data.translations ?? {};
+}
+
 export type AnswerType = "choice" | "text" | "number" | "yes_no" | "rating" | "remarks" | "checklist";
 
 // Sub-question answer types are the standard input set (no nested checklists).

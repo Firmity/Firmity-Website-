@@ -1,9 +1,18 @@
-// Protects the internal survey app. Unauthenticated requests to /surveys,
-// /survey/* and the photo route are redirected to /staff-login.
+// Protects the internal survey app.
+//  - Unauthenticated requests to any matched route -> redirected to /staff-login.
+//  - Admin-only areas (/surveys dashboard, /admin/*) additionally require role=admin;
+//    non-admins are bounced to /home. This is defense-in-depth on top of the
+//    per-endpoint 403 checks and Supabase RLS.
 // The public booking form (/facility-survey) and its API stay open.
 
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+
+// /surveys (plural, admin dashboard) and /admin/* are admin-only.
+// /survey/* (singular, the form) is used by BOTH roles, so it is NOT gated here.
+function isAdminPath(pathname: string): boolean {
+  return pathname === "/surveys" || pathname.startsWith("/surveys/") || pathname.startsWith("/admin");
+}
 
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next({ request });
@@ -35,9 +44,34 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // Role gate for admin-only areas.
+  if (isAdminPath(request.nextUrl.pathname)) {
+    const { data: prof } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    if (prof?.role !== "admin") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/home";
+      url.search = "";
+      return NextResponse.redirect(url);
+    }
+  }
+
   return response;
 }
 
 export const config = {
-  matcher: ["/surveys/:path*", "/survey/:path*", "/api/survey-photo"],
+  matcher: [
+    "/home/:path*",
+    "/my-surveys/:path*",
+    "/awards/:path*",
+    "/settings/:path*",
+    "/profile/:path*",
+    "/surveys/:path*",
+    "/survey/:path*",
+    "/admin/:path*",
+    "/api/survey-photo",
+  ],
 };

@@ -23,6 +23,7 @@ const DOMAIN_MAP: Record<string, string> = {
   horticulture: "horticulture",
   housekeeping: "housekeeping",
   green: "green_building",
+  technology: "technology",
 };
 
 /** Website facility id -> backend slug. Falls back to the raw id if unmapped. */

@@ -8,11 +8,16 @@
 // its own control, remark, and photo. Sub-answers are serialised into the answer
 // row as JSON maps: value = {subId: value}, remark = {subId: remark}.
 
-import { memo, useCallback, useRef, useState } from "react";
-import { Camera, Image as ImageIcon } from "lucide-react";
-import { RotateCcw } from "lucide-react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Camera, Image as ImageIcon, Languages, Loader2, RotateCcw } from "lucide-react";
 import type { Question, SubAnswerType } from "@/src/lib/survey-api";
 import { PHOTO_SUB_SEP } from "@/src/hooks/useSurveyAnswers";
+import { translateNow, useTranslator } from "@/src/lib/i18n";
+import { useSurveyLang } from "@/src/components/survey/SurveyLangContext";
+
+// identity translator default so sub-components work without i18n wiring.
+type TFn = (s: string) => string;
+const IDENT: TFn = (s) => s;
 
 interface AnswerState {
   value: string;
@@ -66,7 +71,7 @@ function parseMap(raw: string): Record<string, string> {
   }
 }
 
-function ChoiceInput({ value, setValue }: { value: string; setValue: (v: string) => void }) {
+function ChoiceInput({ value, setValue, t = IDENT }: { value: string; setValue: (v: string) => void; t?: TFn }) {
   const [numActive, setNumActive] = useState(() => isNumberValue(value));
   return (
     <>
@@ -78,7 +83,7 @@ function ChoiceInput({ value, setValue }: { value: string; setValue: (v: string)
             onClick={() => { setNumActive(false); setValue(value === c ? "" : c); }}
             className={btn(CHOICE_COLOR[c], !numActive && value === c)}
           >
-            {c === "N/A" ? "Not Applicable" : c}
+            {c === "N/A" ? t("Not Applicable") : t(c)}
           </button>
         ))}
         <button
@@ -86,7 +91,7 @@ function ChoiceInput({ value, setValue }: { value: string; setValue: (v: string)
           onClick={() => { setNumActive(true); if (CHOICES.includes(value as (typeof CHOICES)[number])) setValue(""); }}
           className={btn("sky", numActive)}
         >
-          Numbered
+          {t("Numbered")}
         </button>
       </div>
       {numActive && (
@@ -95,7 +100,7 @@ function ChoiceInput({ value, setValue }: { value: string; setValue: (v: string)
           inputMode="decimal"
           value={isNumberValue(value) ? value : ""}
           onChange={(e) => setValue(e.target.value)}
-          placeholder="Enter a number"
+          placeholder={t("Enter a number")}
           className={FIELD}
         />
       )}
@@ -105,25 +110,29 @@ function ChoiceInput({ value, setValue }: { value: string; setValue: (v: string)
 
 // Renders the right control for a given answer type (used for sub-questions and
 // the yes_no/rating/text/number top-level cases).
-function TypedControl({ type, value, setValue }: { type: SubAnswerType | "choice"; value: string; setValue: (v: string) => void }) {
+function TypedControl({ type, value, setValue, t = IDENT }: { type: SubAnswerType | "choice"; value: string; setValue: (v: string) => void; t?: TFn }) {
   if (type === "rating") {
     return (
       <div className="flex flex-wrap gap-2">
         {RATINGS.map((r) => (
           <button key={r} type="button" onClick={() => setValue(value === r ? "" : r)} className={btn(RATING_COLOR[r], value === r)}>
-            {r}
+            {t(r)}
           </button>
         ))}
+        {/* Not Applicable — excluded from the health score and AI report */}
+        <button type="button" onClick={() => setValue(value === "N/A" ? "" : "N/A")} className={btn("slate", value === "N/A")}>
+          {t("Not Applicable")}
+        </button>
       </div>
     );
   }
   if (type === "text") {
-    return <input type="text" value={value} onChange={(e) => setValue(e.target.value)} placeholder="Enter details" className={FIELD} />;
+    return <input type="text" value={value} onChange={(e) => setValue(e.target.value)} placeholder={t("Enter details")} className={FIELD} />;
   }
   if (type === "number") {
-    return <input type="number" inputMode="decimal" value={value} onChange={(e) => setValue(e.target.value)} placeholder="Enter a number" className={FIELD} />;
+    return <input type="number" inputMode="decimal" value={value} onChange={(e) => setValue(e.target.value)} placeholder={t("Enter a number")} className={FIELD} />;
   }
-  return <ChoiceInput value={value} setValue={setValue} />; // yes_no | choice
+  return <ChoiceInput value={value} setValue={setValue} t={t} />; // yes_no | choice
 }
 
 function PhotoButton({ photos, onFile }: { photos: string[]; onFile: (f: File) => void }) {
@@ -180,7 +189,104 @@ function QuestionCard({ question, area, answer, photos, photoBaseKey, onField, o
     </button>
   );
 
+  // Per-question Not Applicable: value "N/A" is excluded from the health score AND the
+  // AI report. A universal toggle so rating/text/number questions get N/A too.
+  const isNaSelf = a.value === "N/A";
+  const toggleNaSelf = useCallback(() => setValue(isNaSelf ? "" : "N/A"), [isNaSelf, setValue]);
+  const NaBtn = (
+    <button
+      type="button"
+      onClick={toggleNaSelf}
+      title={isNaSelf ? "Mark applicable" : "Not applicable (excluded from score & report)"}
+      className={`shrink-0 rounded-md border px-1.5 py-1 text-[10px] font-semibold transition ${
+        isNaSelf ? "border-slate-700 bg-slate-700 text-white" : "border-slate-200 bg-slate-100 text-slate-500 hover:bg-slate-200"
+      }`}
+    >
+      N/A
+    </button>
+  );
+  const NaNote = (
+    <p className="rounded-lg border border-dashed border-slate-300 bg-white p-3 text-sm text-slate-500">
+      Marked Not Applicable — excluded from the health score and report.
+    </p>
+  );
+
   const t = question.answer_type;
+
+  // ---- i18n: PER-QUESTION, on-demand translation (with cancel) ----
+  // Nothing is translated until the surveyor taps this card's translate icon; the
+  // request covers only this question + its sub-questions + option labels, and can
+  // be cancelled (or is auto-cancelled when the survey language changes).
+  const { lang } = useSurveyLang();
+  const tx = useTranslator(lang);
+  const [translated, setTranslated] = useState(false);
+  const [translating, setTranslating] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
+
+  const cardStrings = useMemo(
+    () => [
+      question.text,
+      ...(question.checklist ?? []).map((s) => s.text),
+      "Yes", "No", "Not Applicable", "Numbered",
+      "Good", "Satisfactory", "Unsatisfactory",
+      "Enter details", "Enter a number",
+    ],
+    [question]
+  );
+
+  // Show translations only after the user opts in for THIS card.
+  const T = useCallback((s: string) => (translated ? tx(s) : s), [translated, tx]);
+
+  const onTranslate = useCallback(async () => {
+    if (translating) {                 // running -> cancel
+      abortRef.current?.abort();
+      abortRef.current = null;
+      setTranslating(false);
+      return;
+    }
+    if (translated) {                  // already translated -> revert to original
+      setTranslated(false);
+      return;
+    }
+    if (lang === "en") return;
+    const ac = new AbortController();
+    abortRef.current = ac;
+    setTranslating(true);
+    await translateNow(cardStrings, lang, ac.signal);
+    if (abortRef.current === ac) {
+      abortRef.current = null;
+      setTranslating(false);
+      if (!ac.signal.aborted) setTranslated(true);
+    }
+  }, [translating, translated, lang, cardStrings]);
+
+  // Switching the survey language cancels any in-flight translation and drops this
+  // card back to the original until the surveyor translates again.
+  useEffect(() => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+    setTranslating(false);
+    setTranslated(false);
+  }, [lang]);
+
+  const TranslateBtn =
+    lang === "en" ? null : (
+      <button
+        type="button"
+        onClick={onTranslate}
+        title={translating ? "Cancel translation" : translated ? "Show original" : "Translate this question"}
+        aria-label="Translate this question"
+        className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition ${
+          translating
+            ? "border-amber-200 bg-amber-50 text-amber-700"
+            : translated
+              ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+              : "border-slate-200 bg-slate-100 text-slate-500 hover:bg-slate-200"
+        }`}
+      >
+        {translating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Languages className="h-4 w-4" />}
+      </button>
+    );
 
   // ---- Checklist: a Yes/No/N-A gate + typed sub-questions ----
   // The parent acts as a gate ("is this present / applicable?"). Only a "Yes"
@@ -202,13 +308,16 @@ function QuestionCard({ question, area, answer, photos, photoBaseKey, onField, o
     const na = gate === "N/A";     // not applicable -> skipped entirely
     return (
       <div className={CARD}>
-        <p className="mb-2 text-sm font-semibold text-slate-800">{question.text}</p>
+        <div className="mb-2 flex items-start justify-between gap-2">
+          <p className="text-sm font-semibold text-slate-800">{T(question.text)}</p>
+          {TranslateBtn}
+        </div>
 
         {/* Gate */}
         <div className="flex flex-wrap gap-2">
           {CHOICES.map((c) => (
             <button key={c} type="button" onClick={() => setGate(gate === c ? "" : c)} className={btn(CHOICE_COLOR[c], gate === c)}>
-              {c === "N/A" ? "Not Applicable" : c}
+              {c === "N/A" ? T("Not Applicable") : T(c)}
             </button>
           ))}
         </div>
@@ -241,9 +350,9 @@ function QuestionCard({ question, area, answer, photos, photoBaseKey, onField, o
               const subPhotos = photos[`${photoBaseKey}${PHOTO_SUB_SEP}${sub.id}`] ?? [];
               return (
                 <div key={sub.id} className="rounded-lg border border-slate-200 bg-white p-3">
-                  <p className="mb-2 text-sm font-medium text-slate-700">{i + 1}. {sub.text}</p>
+                  <p className="mb-2 text-sm font-medium text-slate-700">{i + 1}. {T(sub.text)}</p>
                   <div className="flex flex-col gap-2">
-                    <TypedControl type={sub.answer_type} value={valueMap[sub.id] ?? ""} setValue={(v) => setSub("value", sub.id, v)} />
+                    <TypedControl type={sub.answer_type} value={valueMap[sub.id] ?? ""} setValue={(v) => setSub("value", sub.id, v)} t={T} />
                     <textarea
                       value={remarkMap[sub.id] ?? ""}
                       onChange={(e) => setSub("remark", sub.id, e.target.value)}
@@ -269,16 +378,23 @@ function QuestionCard({ question, area, answer, photos, photoBaseKey, onField, o
     return (
       <div className={CARD}>
         <div className="mb-2 flex items-start justify-between gap-3">
-          <p className="text-sm font-medium text-slate-800">{question.text}</p>
-          {ResetBtn}
+          <p className="text-sm font-medium text-slate-800">{T(question.text)}</p>
+          <div className="flex shrink-0 items-center gap-2.5">
+            {TranslateBtn}
+            {NaBtn}
+            <span className="h-6 w-px bg-slate-200" />
+            {ResetBtn}
+          </div>
         </div>
-        <textarea
-          value={a.remark}
-          onChange={(e) => setRemark(e.target.value)}
-          placeholder="Enter notes, observations, or suggestions for the AI report"
-          rows={6}
-          className={FIELD}
-        />
+        {isNaSelf ? NaNote : (
+          <textarea
+            value={a.remark}
+            onChange={(e) => setRemark(e.target.value)}
+            placeholder="Enter notes, observations, or suggestions for the AI report"
+            rows={6}
+            className={FIELD}
+          />
+        )}
       </div>
     );
   }
@@ -287,19 +403,24 @@ function QuestionCard({ question, area, answer, photos, photoBaseKey, onField, o
   return (
     <div className={CARD}>
       <div className="flex items-start justify-between gap-3">
-        <p className="text-sm font-medium text-slate-800">{question.text}</p>
-        <div className="flex shrink-0 items-center gap-2">
+        <p className="text-sm font-medium text-slate-800">{T(question.text)}</p>
+        <div className="flex shrink-0 items-center gap-2.5">
           {question.needs_photo && <span className="rounded-md bg-amber-100 px-2 py-0.5 text-xs text-amber-700">photo</span>}
+          {TranslateBtn}
+          {t === "text" && NaBtn}
+          <span className="h-6 w-px bg-slate-200" />
           {ResetBtn}
         </div>
       </div>
 
       <div className="mt-3 flex flex-col gap-2">
-        <TypedControl type={t === "rating" ? "rating" : t === "text" ? "text" : "choice"} value={a.value} setValue={setValue} />
-
-        <textarea value={a.remark} onChange={(e) => setRemark(e.target.value)} placeholder="Remarks (optional)" rows={2} className={FIELD} />
-
-        <PhotoButton photos={myPhotos} onFile={(f) => onPhoto(area, question.id, f)} />
+        {isNaSelf && t === "text" ? NaNote : (
+          <>
+            <TypedControl type={t === "rating" ? "rating" : t === "text" ? "text" : "choice"} value={a.value} setValue={setValue} t={T} />
+            <textarea value={a.remark} onChange={(e) => setRemark(e.target.value)} placeholder="Remarks (optional)" rows={2} className={FIELD} />
+            <PhotoButton photos={myPhotos} onFile={(f) => onPhoto(area, question.id, f)} />
+          </>
+        )}
       </div>
     </div>
   );

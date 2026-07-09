@@ -100,8 +100,8 @@ export default function SurveySidebar(props: Props) {
           <span className="text-xs text-slate-500">{done}/{total} done</span>
         </button>
         {open && (
-          <div className="fixed inset-0 z-30 flex">
-            <div className="w-72 max-w-[80%] overflow-y-auto bg-white p-4 shadow-xl">
+          <div className="fixed inset-0 z-40 flex">
+            <div className="w-72 max-w-[80%] animate-[drawer-in-left_0.2s_ease-out] overflow-y-auto bg-white p-4 shadow-xl">
               <div className="mb-3 flex items-center justify-between">
                 <span className="text-sm font-semibold">Sections · {done}/{total}</span>
                 <button type="button" onClick={() => setOpen(false)} className="text-slate-500">

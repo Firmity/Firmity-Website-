@@ -11,11 +11,12 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import {
-  AlertTriangle, CalendarDays, CalendarClock, ChevronLeft, ChevronRight, Clock, List, MapPin, UserRound, X,
+  AlertTriangle, CalendarDays, CalendarClock, ChevronLeft, ChevronRight, Clock, List, Lock, MapPin, UserRound, X,
 } from "lucide-react";
 import StatusBadge from "@/src/components/StatusBadge";
 import DeleteSurveyButton from "@/src/components/DeleteSurveyButton";
 import DateTimePicker from "@/src/components/ui/DateTimePicker";
+import { facilityIcon, statusVisual } from "@/src/lib/facility-visuals";
 
 export interface Staff {
   id: string;
@@ -249,7 +250,13 @@ export default function SurveysBoard({ rows, staff }: { rows: BoardRow[]; staff:
             </button>
           </div>
           <div className="grid grid-cols-7 gap-1 text-center text-xs font-medium text-slate-400">
-            {DOW.map((d) => <div key={d} className="py-1">{d}</div>)}
+            {DOW.map((d) => (
+              <div key={d} className="py-1">
+                {/* single letter on phone, full label on desktop */}
+                <span className="sm:hidden">{d[0]}</span>
+                <span className="hidden sm:inline">{d}</span>
+              </div>
+            ))}
           </div>
           <div className="grid grid-cols-7 gap-1">
             {grid.map((d, i) => {
@@ -262,24 +269,40 @@ export default function SurveysBoard({ rows, staff }: { rows: BoardRow[]; staff:
                   type="button"
                   disabled={evs.length === 0}
                   onClick={() => setModalDay(d)}
-                  className={`flex min-h-[76px] flex-col items-start gap-1 rounded-lg border p-1.5 text-left transition ${
+                  className={`flex min-h-[44px] flex-col items-start gap-1 rounded-lg border p-1 text-left transition sm:min-h-[76px] sm:p-1.5 ${
                     inMonth ? "border-slate-200 bg-white" : "border-transparent bg-slate-50/50"
                   } ${evs.length ? "hover:border-slate-400 hover:shadow-sm" : "cursor-default"}`}
                 >
                   <span className={`text-xs ${isToday ? "flex h-5 w-5 items-center justify-center rounded-full bg-slate-900 text-white" : inMonth ? "text-slate-600" : "text-slate-300"}`}>
                     {d.getDate()}
                   </span>
-                  {evs.slice(0, 2).map((e, j) => (
-                    <span
-                      key={j}
-                      className={`w-full truncate rounded px-1 py-0.5 text-[10px] font-medium ${
-                        e.kind === "scheduled" ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700"
-                      }`}
-                    >
-                      {e.kind === "scheduled" ? e.time : "•"} {e.name}
+
+                  {/* Mobile: compact dots (no truncated text -> no squish) */}
+                  {evs.length > 0 && (
+                    <span className="mt-auto flex flex-wrap gap-0.5 sm:hidden">
+                      {evs.slice(0, 3).map((e, j) => (
+                        <span
+                          key={j}
+                          className={`h-1.5 w-1.5 rounded-full ${e.kind === "scheduled" ? "bg-blue-500" : "bg-amber-500"}`}
+                        />
+                      ))}
                     </span>
-                  ))}
-                  {evs.length > 2 && <span className="text-[10px] text-slate-400">+{evs.length - 2} more</span>}
+                  )}
+
+                  {/* Desktop: labelled pills */}
+                  <span className="hidden w-full flex-col gap-1 sm:flex">
+                    {evs.slice(0, 2).map((e, j) => (
+                      <span
+                        key={j}
+                        className={`w-full truncate rounded px-1 py-0.5 text-[10px] font-medium ${
+                          e.kind === "scheduled" ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700"
+                        }`}
+                      >
+                        {e.kind === "scheduled" ? e.time : "•"} {e.name}
+                      </span>
+                    ))}
+                    {evs.length > 2 && <span className="text-[10px] text-slate-400">+{evs.length - 2} more</span>}
+                  </span>
                 </button>
               );
             })}
@@ -292,12 +315,20 @@ export default function SurveysBoard({ rows, staff }: { rows: BoardRow[]; staff:
       ) : (
         <div className="flex flex-col gap-2">
           {data.length === 0 && <p className="text-sm text-slate-500">No surveys yet.</p>}
-          {data.map((s) => (
-            <div key={s.id} className="rounded-xl border border-slate-200 bg-white p-4">
+          {data.map((s) => {
+            const v = statusVisual(s.status);
+            const FIcon = facilityIcon(s.facility_type);
+            return (
+            <div key={s.id} className={`rounded-2xl border p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${v.card}`}>
               <div className="flex items-start gap-2">
-                <Link href={`/survey/${s.id}`} className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-slate-800">{s.facility_name || "Unnamed facility"}</p>
-                  <p className="truncate text-xs text-slate-500">{s.facility_type} · {s.domain_slugs?.join(", ")}</p>
+                <Link href={`/survey/${s.id}`} className="group flex min-w-0 flex-1 items-center gap-3">
+                  <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${v.chip}`}>
+                    <FIcon className={`h-5 w-5 ${v.icon}`} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className={`truncate text-sm font-semibold group-hover:underline ${v.title}`}>{s.facility_name || "Unnamed facility"}</p>
+                    <p className={`truncate text-xs ${v.sub}`}>{s.facility_type}</p>
+                  </div>
                 </Link>
                 <div className="flex shrink-0 items-center gap-2">
                   <StatusBadge status={s.status} />
@@ -326,7 +357,7 @@ export default function SurveysBoard({ rows, staff }: { rows: BoardRow[]; staff:
               </div>
 
               {/* on-site verification (internal only — never in the AI report) */}
-              <div className="mt-2 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-100 bg-slate-50/70 px-3 py-2">
+              <div className="mt-2 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm ring-1 ring-black/5">
                 {s.visit ? (
                   <div className="flex min-w-0 items-center gap-2.5">
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-100 text-xs font-bold text-green-700">
@@ -370,19 +401,37 @@ export default function SurveysBoard({ rows, staff }: { rows: BoardRow[]; staff:
               <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-slate-100 pt-3">
                 <label className="flex items-center gap-1.5 text-xs text-slate-500">
                   <UserRound className="h-3.5 w-3.5" /> Assigned
-                  <select value={s.assigned_to ?? ""} onChange={(e) => onAssign(s.id, e.target.value)} className="rounded-lg border border-slate-300 px-2 py-1 text-sm text-slate-700">
+                  <select
+                    value={s.assigned_to ?? ""}
+                    onChange={(e) => onAssign(s.id, e.target.value)}
+                    disabled={!!s.visit}
+                    title={s.visit ? "Locked — surveyor already checked in on-site" : undefined}
+                    className="rounded-lg border border-slate-300 px-2 py-1 text-sm text-slate-700 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+                  >
                     <option value="">Unassigned</option>
                     {staff.map((st) => <option key={st.id} value={st.id}>{st.full_name || st.email}</option>)}
                   </select>
                 </label>
                 <div className="flex items-center gap-1.5 text-xs text-slate-500">
                   <CalendarDays className="h-3.5 w-3.5" /> Visit
-                  <DateTimePicker key={`${s.id}-${resetKey}`} value={s.scheduled_at} onChange={(iso) => onSchedule(s.id, iso)} />
+                  {s.visit ? (
+                    <span className="rounded-lg border border-slate-200 bg-slate-100 px-2 py-1 text-slate-400">
+                      {s.scheduled_at ? new Date(s.scheduled_at).toLocaleString() : "—"}
+                    </span>
+                  ) : (
+                    <DateTimePicker key={`${s.id}-${resetKey}`} value={s.scheduled_at} onChange={(iso) => onSchedule(s.id, iso)} />
+                  )}
                 </div>
                 {s.assigned_to && <span className="text-xs text-green-700">→ {staffName(s.assigned_to)}</span>}
+                {s.visit && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 ring-1 ring-amber-200">
+                    <Lock className="h-3 w-3" /> Locked · checked in on-site
+                  </span>
+                )}
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

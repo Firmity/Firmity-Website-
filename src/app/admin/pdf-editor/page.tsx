@@ -17,7 +17,7 @@ import {
   Undo2, Redo2, Copy,
 } from "lucide-react";
 import {
-  ReportTemplate, Overlay, OverlayPage, Palette, SectionStyle, PAGE_W_MM, PAGE_H_MM,
+  ReportTemplate, ContentConfig, Overlay, OverlayPage, Palette, SectionStyle, PAGE_W_MM, PAGE_H_MM,
   DEFAULT_CATEGORY_LABELS, defaultTemplate, fallbackPresets, getPresets, previewPdfUrl,
   loadDefaultTemplate, saveDefaultTemplate,
 } from "@/src/lib/template-api";
@@ -322,6 +322,14 @@ export default function AdminPdfEditor() {
       section_styles: t.section_styles, spacing: t.spacing,
     }));
 
+  // ---- report content (AI prompt + graph/section toggles) ----
+  const DEFAULT_CONTENT: ContentConfig = {
+    focus: [], length: "standard", tone: "formal", audience: "client", graphs: {}, sections_on: {},
+  };
+  const content: ContentConfig = tpl.content ?? DEFAULT_CONTENT;
+  const setContent = (u: Partial<ContentConfig>) =>
+    patch((t) => ({ ...t, content: { ...DEFAULT_CONTENT, ...(t.content ?? {}), ...u } }));
+
   const onSave = async () => {
     setBusy("saving"); setMsg(null);
     try { await saveDefaultTemplate(tpl); setMsg("Saved. New reports will use this template."); }
@@ -335,12 +343,23 @@ export default function AdminPdfEditor() {
   const selected = tpl.overlays.find((o) => o.id === selectedId) || null;
 
   return (
-    <div className="flex h-screen flex-col bg-neutral-50 text-neutral-900">
+    <div className="relative flex h-screen flex-col bg-neutral-50 text-neutral-900">
+      {/* Desktop-only guard: the drag-and-drop canvas is unusable on small screens */}
+      <div className="absolute inset-0 z-[70] flex flex-col items-center justify-center gap-3 bg-white px-8 text-center lg:hidden">
+        <Layers className="h-12 w-12 text-neutral-300" />
+        <p className="text-lg font-semibold text-neutral-800">Open on desktop</p>
+        <p className="max-w-xs text-sm text-neutral-500">
+          The PDF Report Editor needs a larger screen for the drag-and-drop canvas. Please open it on a laptop or desktop.
+        </p>
+        <Link href="/surveys" className="mt-1 rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white">
+          Back to dashboard
+        </Link>
+      </div>
       {/* top bar */}
       <div className="flex items-center justify-between border-b bg-white px-4 py-2.5">
         <div className="flex items-center gap-3">
-          <Link href="/admin/users" className="flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-800">
-            <ChevronLeft size={16} /> Staff &amp; Roles
+          <Link href="/surveys" className="flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-800">
+            <ChevronLeft size={16} /> Dashboard
           </Link>
           <span className="text-sm font-semibold">PDF Report Editor</span>
         </div>
@@ -384,6 +403,56 @@ export default function AdminPdfEditor() {
                   </div>
                   <span style={{ color: p.palette.ink }}>{p.name}</span>
                 </button>
+              ))}
+            </div>
+          </Section>
+
+          {/* report content (AI prompt + graphs/sections) */}
+          <Section title="Report content (AI)" icon={<Star size={14} />}>
+            <label className="mb-1 block text-xs font-medium text-neutral-500">Focus (comma-separated)</label>
+            <input
+              value={content.focus.join(", ")}
+              onChange={(e) => setContent({ focus: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) })}
+              placeholder="fire safety, compliance"
+              className="mb-2 w-full rounded-lg border px-2 py-1.5 text-xs"
+            />
+            <div className="mb-2 grid grid-cols-3 gap-1.5">
+              <select value={content.length} onChange={(e) => setContent({ length: e.target.value as ContentConfig["length"] })} className="rounded-lg border px-1.5 py-1 text-xs">
+                <option value="concise">Concise</option><option value="standard">Standard</option><option value="detailed">Detailed</option>
+              </select>
+              <select value={content.tone} onChange={(e) => setContent({ tone: e.target.value as ContentConfig["tone"] })} className="rounded-lg border px-1.5 py-1 text-xs">
+                <option value="formal">Formal</option><option value="plain">Plain</option>
+              </select>
+              <select value={content.audience} onChange={(e) => setContent({ audience: e.target.value as ContentConfig["audience"] })} className="rounded-lg border px-1.5 py-1 text-xs">
+                <option value="client">Client</option><option value="internal">Internal</option><option value="regulator">Regulator</option>
+              </select>
+            </div>
+            <label className="mb-1 block text-xs font-medium text-neutral-500">Custom system prompt (overrides the fields above)</label>
+            <textarea
+              value={content.system_prompt ?? ""}
+              onChange={(e) => setContent({ system_prompt: e.target.value })}
+              rows={4}
+              placeholder="Leave blank to auto-build the prompt from Focus / length / tone / audience."
+              className="mb-2 w-full rounded-lg border px-2 py-1.5 text-xs"
+            />
+            <p className="mb-1 text-xs font-medium text-neutral-500">Graphs</p>
+            <div className="mb-2 grid grid-cols-1 gap-1">
+              {([["domain_bars", "Domain score bars"], ["donut", "Rating donut"]] as [string, string][]).map(([k, label]) => (
+                <label key={k} className="flex items-center gap-1.5 text-xs text-neutral-600">
+                  <input type="checkbox" checked={content.graphs?.[k] ?? true}
+                    onChange={(e) => setContent({ graphs: { ...(content.graphs ?? {}), [k]: e.target.checked } })} />
+                  {label}
+                </label>
+              ))}
+            </div>
+            <p className="mb-1 text-xs font-medium text-neutral-500">Sections</p>
+            <div className="grid grid-cols-1 gap-1">
+              {([["exec_summary", "Executive summary"], ["buildings", "Per-building detail"], ["corrective", "Corrective action plan"], ["key_recs", "Key recommendations"], ["photos", "Photos"]] as [string, string][]).map(([k, label]) => (
+                <label key={k} className="flex items-center gap-1.5 text-xs text-neutral-600">
+                  <input type="checkbox" checked={content.sections_on?.[k] ?? true}
+                    onChange={(e) => setContent({ sections_on: { ...(content.sections_on ?? {}), [k]: e.target.checked } })} />
+                  {label}
+                </label>
               ))}
             </div>
           </Section>
