@@ -677,10 +677,10 @@ export default function FirmityHome() {
               Get 2 weeks free trial with unlimited training and 24/7 support
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center mb-7">
-              <Link href="/contact" className="group inline-flex items-center justify-center gap-2 bg-white text-[#1a2744] px-7 py-3 text-[13px] font-semibold hover:bg-[#e8f0fb] transition-colors">
+              {/* <Link href="/contact" className="group inline-flex items-center justify-center gap-2 bg-white text-[#1a2744] px-7 py-3 text-[13px] font-semibold hover:bg-[#e8f0fb] transition-colors">
                 Start Your Free Trial
                 <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
-              </Link>
+              </Link> */}
               <Link href="/features" className="inline-flex items-center justify-center border border-white/20 text-white/70 hover:text-white hover:border-white/[0.4] px-7 py-3 text-[13px] font-light transition-all">
                 Explore Features
               </Link>
