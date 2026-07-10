@@ -1,5 +1,4 @@
-import { Navigation } from "@/src/components/navigation"
-import { Footer } from "@/src/components/footer"
+import { BlogPostShell } from "@/src/components/blog-post-shell"
 
 export const metadata = {
   title: "The CMMS Nobody Uses Is Just an Expensive Spreadsheet | Firmity",
@@ -7,10 +6,7 @@ export const metadata = {
     "Why mobile experience — not feature lists — determines whether a CMMS rollout actually succeeds with field technicians.",
 }
 
-<Navigation />
-
-<main className="bg-white">
-  <section className="max-w-3xl mx-auto px-6 sm:px-10 py-16 lg:py-20">
+<BlogPostShell>
 
 # The CMMS Nobody Uses Is Just an Expensive Spreadsheet
 
@@ -45,7 +41,4 @@ Facility teams sometimes respond to low adoption with more mandates and more tra
 
 Before selecting or renewing any CMMS, it's worth asking a blunt question: hand a technician a phone, mid-shift, low signal, gloves on, and see how long it takes them to log a completed work order. If the answer is "longer than writing it on a clipboard," the platform has already lost the adoption battle — no matter what the feature sheet says.
 
-  </section>
-</main>
-
-<Footer />
+</BlogPostShell>
