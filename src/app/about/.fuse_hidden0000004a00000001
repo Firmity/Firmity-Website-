@@ -1,0 +1,10 @@
+import type { ReactNode } from "react"
+import { buildPageMetadata } from "@/src/lib/seo-store"
+
+export const revalidate = 60
+
+export async function generateMetadata() {
+  return buildPageMetadata("/about")
+}export default function Layout({ children }: { children: ReactNode }) {
+  return children
+}

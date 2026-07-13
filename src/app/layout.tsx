@@ -7,6 +7,7 @@ import Script from "next/script"
 import { ScrollToTop } from "@/src/components/scroll-to-top"
 import { JsonLd } from "@/src/components/json-ld"
 import { SITE, buildMetadata, organizationJsonLd, websiteJsonLd } from "@/src/lib/seo"
+import { getSiteSeo } from "@/src/lib/seo-store"
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -52,9 +53,15 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  // Organization structured data, editable in the Marketing Studio (SEO tab).
+  const site = await getSiteSeo()
+  const org: Record<string, unknown> = { ...organizationJsonLd() }
+  if (site.org_name) org.name = site.org_name
+  if (site.org_logo_url) org.logo = site.org_logo_url
+  if (site.social_links && site.social_links.length) org.sameAs = site.social_links
   return (
     <html
       lang="en"
@@ -87,7 +94,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         </noscript>
         {/* End Google Tag Manager (noscript) */}
         {/* Site-wide structured data for rich results / knowledge panel */}
-        <JsonLd data={organizationJsonLd()} />
+        <JsonLd data={org} />
         <JsonLd data={websiteJsonLd()} />
         <ScrollToTop />
         {children}

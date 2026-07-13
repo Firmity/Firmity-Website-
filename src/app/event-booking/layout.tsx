@@ -1,8 +1,18 @@
 import type { ReactNode } from "react"
-import { buildMetadata } from "@/src/lib/seo"
+import { buildPageMetadata } from "@/src/lib/seo-store"
+import { PageJsonLd } from "@/src/components/seo-json-ld"
 
-export const metadata = buildMetadata("/event-booking")
+export const revalidate = 60
+
+export async function generateMetadata() {
+  return buildPageMetadata("/event-booking")
+}
 
 export default function Layout({ children }: { children: ReactNode }) {
-  return children
+  return (
+    <>
+      <PageJsonLd path="/event-booking" />
+      {children}
+    </>
+  )
 }

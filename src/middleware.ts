@@ -15,6 +15,8 @@ function isAdminPath(pathname: string): boolean {
 }
 
 export async function middleware(request: NextRequest) {
+  // NB: /blog-admin is NOT gated here — it uses its own signed-cookie auth,
+  // enforced server-side in the blog-admin pages + API routes (see blog-guard.ts).
   const response = NextResponse.next({ request });
 
   const supabase = createServerClient(
