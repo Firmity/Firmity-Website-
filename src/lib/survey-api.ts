@@ -109,6 +109,8 @@ export interface Survey {
   deployment_plan: Record<string, unknown>;
   progress: Record<string, boolean>;
   na_sections: string[]; // ['<area>||<domain>'] sections marked not-applicable
+  gate_located_at?: string | null;  // on-site GPS confirmed (server-persisted, cross-device)
+  gate_verified_at?: string | null; // survey code confirmed (server-persisted, cross-device)
   status: string;
   created_at: string;
 }

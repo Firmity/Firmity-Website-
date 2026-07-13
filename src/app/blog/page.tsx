@@ -1,10 +1,9 @@
 "use client"
 
 // ─── Blog Page ────────────────────────────────────────────────────────────────
-// Seeded with the article set previously on /resources (now trimmed there).
-// Posts are index-only for now — no detail routes exist yet, so cards are not
-// dead links. When MDX/CMS posts land, give each post a slug and wrap the card
-// in <Link href={`/blog/${slug}`}>.
+// Index of the live articles. Each POSTS entry links to app/blog/<slug>/page.mdx.
+// To publish a post: create the .mdx folder, add its slug to sitemap.ts, and add
+// one entry to POSTS below.
 // Design language: dark navy hero, serif display, DM Sans, 12/20px radii.
 
 import { Navigation } from "@/src/components/navigation"
@@ -17,6 +16,7 @@ import { ArrowRight, Clock, Mail } from "lucide-react"
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
 interface Post {
+  slug: string            // route under /blog/<slug> (must match the .mdx folder)
   title: string
   description: string
   category: string
@@ -25,16 +25,16 @@ interface Post {
   featured?: boolean
 }
 
+// The live articles. Each `slug` maps to app/blog/<slug>/page.mdx.
+// Add a new post: create the .mdx folder + add one entry here.
 const POSTS: Post[] = [
-  { title: "The Complete Guide to Preventive Maintenance",            description: "Learn how planned preventive maintenance can extend asset lifespan, reduce breakdowns, and save costs across your facility portfolio.", category: "Guide",          readTime: "8 min read", date: "Jun 2026", featured: true },
-  { title: "Digitalizing Facility Management: Best Practices",        description: "Discover proven strategies for transitioning from manual to digital facility management systems.",                                       category: "Best Practices", readTime: "6 min read", date: "May 2026" },
-  { title: "Reducing Operational Costs Through Smart Asset Tracking", description: "Explore how real-time asset monitoring and alerts help organizations cut waste and improve ROI.",                                          category: "Case Study",     readTime: "7 min read", date: "May 2026" },
-  { title: "Building an Efficient Maintenance Schedule",              description: "Learn the key factors for creating maintenance schedules that minimize downtime and maximize productivity.",                               category: "Guide",          readTime: "5 min read", date: "Apr 2026" },
-  { title: "Data Security in Cloud-Based Facility Management",        description: "Understand how Firmity protects your facility data with enterprise-grade security measures.",                                              category: "Security",       readTime: "4 min read", date: "Apr 2026" },
-  { title: "Maximizing ROI with Integrated Facility Management",      description: "Discover how integrated platforms deliver better results than disconnected systems.",                                                      category: "ROI",            readTime: "6 min read", date: "Mar 2026" },
+  { slug: "spreadsheets-to-cmms",           title: "Why Your Facility Team Is Still Running on Spreadsheets",   description: "What spreadsheet-based maintenance tracking is really costing facility teams — and how to move to a CMMS without a six-month project.", category: "Guide",          readTime: "6 min read", date: "Jul 2026", featured: true },
+  { slug: "predictive-maintenance-ai",      title: "From Reactive to Predictive: AI-Driven Maintenance in Practice", description: "What predictive maintenance actually looks like day to day — where it earns its keep, and where a simple preventive schedule still wins.", category: "Best Practices", readTime: "7 min read", date: "Jul 2026" },
+  { slug: "mobile-first-technician-adoption", title: "The CMMS Nobody Uses Is Just an Expensive Spreadsheet",    description: "Why mobile experience — not feature lists — determines whether a CMMS rollout actually succeeds with field technicians.",             category: "Case Study",     readTime: "5 min read", date: "Jun 2026" },
+  { slug: "cloud-vs-onprem-multisite",      title: "Cloud vs. On-Premise CMMS for Multi-Site Portfolios",       description: "What actually matters when choosing between cloud and on-premise facility management software for a multi-site organization.",         category: "Guide",          readTime: "6 min read", date: "Jun 2026" },
 ]
 
-const CATEGORIES = ["All", "Guide", "Best Practices", "Case Study", "Security", "ROI"] as const
+const CATEGORIES = ["All", "Guide", "Best Practices", "Case Study"] as const
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -105,7 +105,8 @@ export default function BlogPage() {
           {/* Featured post */}
           {featured && (
             <Reveal>
-              <article className="group bg-[#1a2744] rounded-[20px] relative overflow-hidden p-8 sm:p-10 mb-8 hover:-translate-y-1 hover:shadow-[0_18px_48px_rgba(17,29,53,0.25)] transition-all duration-300">
+              <Link href={`/blog/${featured.slug}`} className="block group mb-8">
+              <article className="bg-[#1a2744] rounded-[20px] relative overflow-hidden p-8 sm:p-10 hover:-translate-y-1 hover:shadow-[0_18px_48px_rgba(17,29,53,0.25)] transition-all duration-300">
                 <div className="absolute top-0 left-0 right-0 h-[3px] bg-[#2b6cb0]" />
                 <div className="flex items-center gap-3 mb-4">
                   <span className="text-[9px] font-semibold tracking-[0.16em] uppercase text-[#63b3ed] border border-[#63b3ed]/30 rounded-lg px-2.5 py-1">
@@ -121,6 +122,7 @@ export default function BlogPage() {
                 </h2>
                 <p className="text-[13px] font-light text-white/[0.5] leading-[1.8] max-w-2xl">{featured.description}</p>
               </article>
+              </Link>
             </Reveal>
           )}
 
@@ -128,7 +130,8 @@ export default function BlogPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {rest.map((post, i) => (
               <Reveal key={post.title} delay={(i % 3) * 100}>
-                <article className="group h-full bg-white rounded-[20px] border border-[#cbd5e0] shadow-[0_4px_20px_rgba(17,29,53,0.06)] hover:shadow-[0_14px_36px_rgba(17,29,53,0.13)] hover:-translate-y-1 hover:border-[#2b6cb0]/50 transition-all duration-300 p-6 flex flex-col">
+                <Link href={`/blog/${post.slug}`} className="group h-full block">
+                <article className="h-full bg-white rounded-[20px] border border-[#cbd5e0] shadow-[0_4px_20px_rgba(17,29,53,0.06)] hover:shadow-[0_14px_36px_rgba(17,29,53,0.13)] hover:-translate-y-1 hover:border-[#2b6cb0]/50 transition-all duration-300 p-6 flex flex-col">
                   <div className="flex items-center gap-2.5 mb-3">
                     <span className="text-[9px] font-semibold tracking-[0.14em] uppercase text-[#2b6cb0] border border-[#2b6cb0]/25 rounded-lg px-2 py-[3px]">
                       {post.category}
@@ -144,10 +147,11 @@ export default function BlogPage() {
                   <div className="flex items-center justify-between mt-4 pt-4 border-t border-[#eef3f9]">
                     <span className="text-[10.5px] font-light text-[#a0aec0]">{post.date}</span>
                     <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#2b6cb0] opacity-0 -translate-x-1.5 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
-                      Coming soon <ArrowRight size={11} />
+                      Read article <ArrowRight size={11} />
                     </span>
                   </div>
                 </article>
+                </Link>
               </Reveal>
             ))}
           </div>

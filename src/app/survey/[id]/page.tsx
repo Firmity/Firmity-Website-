@@ -162,6 +162,17 @@ export default function SurveyPage() {
     if (survey) {
       setProgress((survey.progress as Progress) || {});
       setNaSections(new Set(survey.na_sections ?? []));
+      // Cross-device gate: honour the server-persisted flags so a second device
+      // (e.g. the phone after the laptop) is not re-prompted for location/code.
+      // Mirror into localStorage as an offline fast-path for the next load.
+      if (survey.gate_located_at) {
+        setLocOk(true);
+        try { localStorage.setItem(`survey_loc_${id}`, "1"); } catch { /* ignore */ }
+      }
+      if (survey.gate_verified_at) {
+        setLocOk(true); setStarted(true);
+        try { localStorage.setItem(`survey_started_${id}`, "1"); } catch { /* ignore */ }
+      }
     }
   }, [survey?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 

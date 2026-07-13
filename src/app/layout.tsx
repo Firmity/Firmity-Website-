@@ -5,6 +5,8 @@ import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 import Script from "next/script"
 import { ScrollToTop } from "@/src/components/scroll-to-top"
+import { JsonLd } from "@/src/components/json-ld"
+import { SITE, buildMetadata, organizationJsonLd, websiteJsonLd } from "@/src/lib/seo"
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -26,17 +28,27 @@ const dmMono = DM_Mono({
   display: "swap",
 })
 
+// Home ("/") metadata + site-wide defaults. `metadataBase` makes every relative
+// canonical/OG URL absolute. `title.template` gives child pages "<Page> | Firmity"
+// while the home page keeps its own absolute title (title.default). Child pages
+// override description/canonical/OG via their own `buildMetadata(path)` export.
+const { title: homeTitle, ...homeRest } = buildMetadata("/")
 export const metadata: Metadata = {
-  title: "Firmity CMMS — Complete Facility Management Software",
-  description: "Firmity is a smart, integrated facility management software built to simplify operations, enhance visibility, and empower teams with real-time control over maintenance, assets, workforce, and compliance.",
+  metadataBase: new URL(SITE.url),
+  applicationName: SITE.name,
+  ...homeRest,
+  title: {
+    default: homeTitle as string,
+    template: `%s | ${SITE.name}`,
+  },
   icons: {
     icon: [{ url: "/firmity.png" }],
     apple: "/apple-icon.png",
   },
-  openGraph: {
-    title: "Firmity CMMS — Complete Facility Management Software",
-    description: "Smart, integrated CMMS platform. Centralised records, automated PPM, complaint management, and workforce control.",
-    type: "website",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large" },
   },
 }
 
@@ -74,6 +86,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           />
         </noscript>
         {/* End Google Tag Manager (noscript) */}
+        {/* Site-wide structured data for rich results / knowledge panel */}
+        <JsonLd data={organizationJsonLd()} />
+        <JsonLd data={websiteJsonLd()} />
         <ScrollToTop />
         {children}
         <Analytics />
