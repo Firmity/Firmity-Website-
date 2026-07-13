@@ -17,6 +17,7 @@ export interface Card {
   category: string;
   readTime: string;
   date: string;
+  cover?: string | null;
 }
 
 export function BlogIndex({ posts }: { posts: Card[] }) {
@@ -112,7 +113,18 @@ export function BlogIndex({ posts }: { posts: Card[] }) {
             {rest.map((post, i) => (
               <Reveal key={post.slug} delay={(i % 3) * 100}>
                 <Link href={`/blog/${post.slug}`} className="group h-full block">
-                  <article className="h-full bg-white rounded-[20px] border border-[#cbd5e0] shadow-[0_4px_20px_rgba(17,29,53,0.06)] hover:shadow-[0_14px_36px_rgba(17,29,53,0.13)] hover:-translate-y-1 hover:border-[#2b6cb0]/50 transition-all duration-300 p-6 flex flex-col">
+                  <article className="h-full bg-white rounded-[20px] border border-[#cbd5e0] shadow-[0_4px_20px_rgba(17,29,53,0.06)] hover:shadow-[0_14px_36px_rgba(17,29,53,0.13)] hover:-translate-y-1 hover:border-[#2b6cb0]/50 transition-all duration-300 p-6 flex flex-col overflow-hidden">
+                    {/* Cover thumbnail: full-bleed, gradient veil, slow pan-in on hover */}
+                    <div className="relative -mx-6 -mt-6 mb-4 h-44 overflow-hidden rounded-t-[20px]">
+                      {post.cover && (
+                        <div
+                          className="absolute inset-0 bg-cover bg-center transition-transform duration-[900ms] ease-out group-hover:scale-110"
+                          style={{ backgroundImage: `url(${post.cover})` }}
+                        />
+                      )}
+                      {!post.cover && <div className="absolute inset-0 bg-gradient-to-br from-[#1a2744] to-[#2b6cb0]" />}
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#111d35]/55 via-[#111d35]/10 to-transparent" />
+                    </div>
                     <div className="flex items-center gap-2.5 mb-3">
                       <span className="text-[9px] font-semibold tracking-[0.14em] uppercase text-[#2b6cb0] border border-[#2b6cb0]/25 rounded-lg px-2 py-[3px]">
                         {post.category}

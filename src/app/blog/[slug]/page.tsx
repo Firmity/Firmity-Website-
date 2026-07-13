@@ -5,7 +5,9 @@ import { notFound } from "next/navigation";
 import { BlogPostShell } from "@/src/components/blog-post-shell";
 import { getBySlug } from "@/src/lib/blog";
 import { BLOG_PROSE } from "@/src/lib/blog-prose";
-import { canonical } from "@/src/lib/seo";
+import { canonical, SITE } from "@/src/lib/seo";
+import { JsonLd } from "@/src/components/json-ld";
+import { DownloadPdf } from "@/src/components/blog/download-pdf";
 
 export const revalidate = 60;
 
@@ -47,6 +49,26 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
   return (
     <BlogPostShell>
+      <style>{`@media print{.no-print{display:none!important}nav,header,footer{display:none!important}}`}</style>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "BlogPosting",
+          headline: post.title,
+          description: post.meta_description || post.subtitle || undefined,
+          image: post.cover_image_url || undefined,
+          datePublished: post.published_at || undefined,
+          dateModified: post.updated_at || undefined,
+          author: { "@type": "Organization", name: "Firmity" },
+          publisher: {
+            "@type": "Organization",
+            name: "Firmity",
+            logo: { "@type": "ImageObject", url: `${SITE.url}/firmity.png` },
+          },
+          mainEntityOfPage: canonical(`/blog/${slug}`),
+        }}
+      />
+      <DownloadPdf />
       {post.category && (
         <p className="text-[11px] font-semibold text-[#2b6cb0] tracking-[0.16em] uppercase mb-3">{post.category}</p>
       )}

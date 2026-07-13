@@ -24,6 +24,7 @@ export default async function BlogPage() {
     category: p.category || "Article",
     readTime: p.read_time || "",
     date: monthYear(p.published_at),
+    cover: p.cover_image_url,
   }));
   return <BlogIndex posts={cards} />;
 }

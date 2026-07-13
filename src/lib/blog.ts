@@ -72,6 +72,13 @@ export function estimateReadTime(html: string): string {
   return `${Math.max(1, Math.round(words / 200))} min read`;
 }
 
+/** First ~155 chars of plain text — used to auto-fill an SEO meta description. */
+export function excerptFromHtml(html: string): string {
+  const text = html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  if (!text) return "";
+  return text.length <= 155 ? text : text.slice(0, 152).replace(/\s+\S*$/, "") + "…";
+}
+
 export async function listPublished(): Promise<BlogPost[]> {
   const { data, error } = await getSupabaseAdmin()
     .from(TABLE)
@@ -118,7 +125,8 @@ export async function upsertPost(input: BlogPostInput): Promise<BlogPost> {
     content_html,
     category: input.category?.trim() || null,
     read_time: input.read_time?.trim() || estimateReadTime(content_html),
-    meta_description: input.meta_description?.trim() || null,
+    // Auto-generate an SEO description from the article body when none is given.
+    meta_description: input.meta_description?.trim() || excerptFromHtml(content_html) || null,
     status: input.status,
   };
 

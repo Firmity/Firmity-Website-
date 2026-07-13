@@ -44,10 +44,13 @@ function EditorInner() {
 
   // Load the marketer-managed category list.
   const loadCategories = useCallback(async () => {
-    const res = await fetch("/api/blog-admin/categories");
-    if (res.ok) {
-      const { categories } = await res.json();
-      setCategories(categories || []);
+    const fallback = ["Guide", "Best Practices", "Case Study", "Security", "ROI"];
+    try {
+      const res = await fetch("/api/blog-admin/categories");
+      const data = res.ok ? await res.json() : {};
+      setCategories(data.categories?.length ? data.categories : fallback);
+    } catch {
+      setCategories(fallback);
     }
   }, []);
   useEffect(() => {
