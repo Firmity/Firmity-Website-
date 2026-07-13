@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Users, Loader2 } from "lucide-react";
+import { TrendingUp, Loader2 } from "lucide-react";
 
 export default function BlogLoginPage() {
   const router = useRouter();
@@ -40,7 +40,7 @@ export default function BlogLoginPage() {
       <div className="w-full max-w-sm rounded-2xl border border-[#dbe5f0] bg-white p-8 shadow-[0_8px_40px_rgba(17,29,53,0.08)]">
         <div className="mb-6 flex items-center gap-2.5">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#111d35]">
-            <Users className="h-5 w-5 text-white" />
+            <TrendingUp className="h-5 w-5 text-white" />
           </div>
           <div>
             <p className="text-[15px] font-semibold text-[#111d35]">Firmity Marketing Studio</p>
