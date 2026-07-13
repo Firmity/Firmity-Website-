@@ -179,6 +179,32 @@ export function canonical(path: string): string {
   return path === "/" ? SITE.url : `${SITE.url}${path}`;
 }
 
+// The fixed set of pages the Marketing Studio SEO tab can edit. Marketers can
+// override/reset these — they CANNOT add new routes here (only a developer can).
+export const SEO_ROUTES: { path: string; label: string }[] = [
+  { path: "/", label: "Home" },
+  { path: "/features", label: "Features" },
+  { path: "/pricing", label: "Pricing" },
+  { path: "/about", label: "About" },
+  { path: "/resources", label: "Resources" },
+  { path: "/blog", label: "Blog (index)" },
+  { path: "/contact", label: "Contact" },
+  { path: "/facility-survey", label: "Facility Survey" },
+  { path: "/facility-survey/book", label: "Facility Survey — Book" },
+  { path: "/preventive-maintenance", label: "Preventive Maintenance" },
+  { path: "/complaint-management", label: "Complaint Management" },
+  { path: "/asset-management", label: "Asset Management" },
+  { path: "/inventory-management", label: "Inventory Management" },
+  { path: "/staff-attendance", label: "Staff Attendance" },
+  { path: "/visitor-management", label: "Visitor Management" },
+  { path: "/facility-records", label: "Facility Records" },
+  { path: "/industries/manufacturing", label: "Industries — Manufacturing" },
+  { path: "/industries/educational", label: "Industries — Educational" },
+  { path: "/industries/residential", label: "Industries — Residential" },
+  { path: "/privacy", label: "Privacy Policy" },
+  { path: "/terms", label: "Terms & Conditions" },
+];
+
 /**
  * Build a full Metadata object for a public page. Falls back to the home entry
  * if the path is unknown (so a missing map entry degrades gracefully, never 500s).
