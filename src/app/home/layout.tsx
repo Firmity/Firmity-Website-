@@ -7,7 +7,9 @@ import { PageJsonLd } from "@/src/components/seo-json-ld"
 export const revalidate = 60
 
 export async function generateMetadata() {
-  return buildPageMetadata("/")
+  const m = await buildPageMetadata("/")
+  // absolute = skip the "%s | Firmity" template (home title already starts with Firmity)
+  return { ...m, title: { absolute: m.title as string } }
 }
 
 export default function Layout({ children }: { children: ReactNode }) {

@@ -93,24 +93,41 @@ export function SeoManager() {
     if (jsonText.trim()) {
       try { json_ld = JSON.parse(jsonText); } catch { setErr("JSON-LD is not valid JSON."); return; }
     }
-    setSaving(true);
+    // Diff against code defaults: null = "stay linked to default"; a value (incl.
+    // "" or []) = an explicit override. So an untouched page never freezes the
+    // default, and a deliberately-cleared field stays empty.
+    const d = PAGE_SEO[form.path] ?? {};
+    const sameArr = (a?: string[] | null, b?: string[]) => JSON.stringify(a ?? []) === JSON.stringify(b ?? []);
+    const title = form.title && form.title !== d.title ? form.title : null;
+    const description = form.description && form.description !== d.description ? form.description : null;
+    const keywords = form.keywords?.length && !sameArr(form.keywords, d.keywords) ? form.keywords : null;
     const body = {
-      path: form.path,
-      title: form.title || null,
-      description: form.description || null,
-      keywords: form.keywords && form.keywords.length ? form.keywords : null,
+      path: form.path, title, description, keywords,
       og_image_url: form.og_image_url || null,
       noindex: !!form.noindex,
       sitemap_priority: form.sitemap_priority,
       sitemap_changefreq: form.sitemap_changefreq || null,
       json_ld,
     };
-    const res = await fetch("/api/blog-admin/seo", {
-      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
-    });
+    // Nothing actually overridden → delete the row so the page tracks defaults.
+    const isEmpty =
+      title === null && description === null && keywords === null && !body.og_image_url &&
+      !body.noindex && body.sitemap_priority == null && !body.sitemap_changefreq && !json_ld;
+
+    setSaving(true);
+    let res: Response;
+    if (isEmpty) {
+      res = await fetch(`/api/blog-admin/seo?path=${encodeURIComponent(form.path)}`, { method: "DELETE" });
+      if (res.ok) setOverrides((m) => { const n = { ...m }; delete n[form.path]; return n; });
+    } else {
+      res = await fetch("/api/blog-admin/seo", {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+      });
+      if (res.ok) setOverrides((m) => ({ ...m, [form.path]: body as Override }));
+    }
     setSaving(false);
-    if (res.ok) { setOverrides((m) => ({ ...m, [form.path]: body as Override })); setSavedTick(true); setTimeout(() => setSavedTick(false), 1500); }
-    else { const d = await res.json().catch(() => ({})); setErr(d.error || "Save failed"); }
+    if (res.ok) { setSavedTick(true); setTimeout(() => setSavedTick(false), 1500); }
+    else { const e = await res.json().catch(() => ({})); setErr(e.error || "Save failed"); }
   }
 
   async function reset() {

@@ -312,7 +312,7 @@
 
 import { Navigation } from "@/src/components/navigation"
 import { Footer } from "@/src/components/footer"
-import { JsonLd } from "@/src/components/json-ld"
+import { HomeJsonLd } from "@/src/components/home-jsonld"
 import { BrochureDownloadForm } from "@/src/components/brochure-download-form"
 import { SurveyPopup } from "@/src/components/survey-popup"
 import { ClientsCarousel } from "@/src/components/clients-carousel"
@@ -499,24 +499,7 @@ export default function FirmityHome() {
 
   return (
     <>
-      <JsonLd
-        data={{
-          "@context": "https://schema.org",
-          "@type": "SoftwareApplication",
-          name: "Firmity",
-          applicationCategory: "BusinessApplication",
-          operatingSystem: "Web, iOS, Android",
-          description:
-            "AI-powered facility management & CMMS platform for maintenance, assets, workforce and compliance.",
-          url: "https://www.firmity.in",
-          offers: {
-            "@type": "Offer",
-            price: "0",
-            priceCurrency: "INR",
-            description: "Free AI facility health survey",
-          },
-        }}
-      />
+      <HomeJsonLd />
       <Navigation />
       <main>
 

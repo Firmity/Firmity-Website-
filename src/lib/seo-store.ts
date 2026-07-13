@@ -79,7 +79,7 @@ export async function buildPageMetadata(path: string): Promise<Metadata> {
     ...base,
     title,
     description,
-    keywords: row.keywords?.length ? row.keywords : base.keywords,
+    keywords: row.keywords ?? base.keywords,
     robots: row.noindex ? { index: false, follow: true } : base.robots,
     openGraph: { ...base.openGraph, title, description, url, ...(ogImages ? { images: ogImages } : {}) },
     twitter: { ...base.twitter, title, description, ...(row.og_image_url ? { images: [row.og_image_url] } : {}) },
