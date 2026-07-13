@@ -195,6 +195,9 @@ export function Footer() {
             <Link href="/login" className="text-[13px] text-[#1a4a8a] hover:text-[#0d2d5e] font-light transition-colors">
               Login
             </Link>
+            <Link href="/staff-login" className="text-[13px] text-[#1a4a8a] hover:text-[#0d2d5e] font-light transition-colors">
+              Survey Login
+            </Link>
           </div>
         </div>
 

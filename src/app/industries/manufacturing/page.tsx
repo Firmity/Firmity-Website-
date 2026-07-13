@@ -4,6 +4,7 @@ import React, { useState } from "react"
 import Link from "next/link"
 import { Navigation } from "@/src/components/navigation"
 import { Footer } from "@/src/components/footer"
+import { Reveal } from "@/src/components/reveal"
 import {
   ArrowRight,
   CheckCircle,
@@ -416,7 +417,7 @@ export default function ManufacturingPage() {
         <section className="relative bg-[#0d1829] overflow-hidden">
           <video
             autoPlay muted loop playsInline
-            className="absolute inset-0 w-full h-full object-cover opacity-[0.28]"
+            className="absolute inset-0 w-full h-full object-cover opacity-[0.7]"
             poster="/images/factory-poster.jpg"
           >
             <source src="/videos/factory.mp4" type="video/mp4" />
@@ -502,26 +503,28 @@ export default function ManufacturingPage() {
 
         {/* ── Industry Challenges ───────────────────────────────── */}
         <section className="bg-white py-20 px-6">
-          <div className="max-w-5xl mx-auto">
-            <SectionLabel>Industry Challenges</SectionLabel>
-            <h2 className="font-serif text-[clamp(1.4rem,2.8vw,1.9rem)] font-light text-[#111d35] mb-4 max-w-2xl">
-              Manufacturing maintenance is broken by default
-            </h2>
-            <p className="text-[14px] text-[#718096] font-light mb-14 max-w-xl leading-relaxed">
-              Most plants run on WhatsApp groups, paper registers, and tribal knowledge. The result is predictable — and expensive.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-20 gap-y-11">
+          <div className="max-w-6xl mx-auto">
+            <Reveal>
+              <SectionLabel>Industry Challenges</SectionLabel>
+              <h2 className="font-serif text-[clamp(1.8rem,4vw,2.8rem)] font-light text-[#111d35] mb-4 max-w-2xl">
+                Manufacturing maintenance is broken by default
+              </h2>
+              <p className="text-[15px] text-[#718096] font-light mb-14 max-w-2xl leading-relaxed">
+                Most plants run on WhatsApp groups, paper registers, and tribal knowledge. The result is predictable — and expensive.
+              </p>
+            </Reveal>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-12">
               {CHALLENGES.map(function({ Icon, title, desc }, i) {
                 return (
-                  <div key={i} className="flex gap-4">
-                    <div className="flex-shrink-0 mt-0.5">
-                      <Icon size={17} className="text-[#2b6cb0]" />
-                    </div>
+                  <Reveal key={i} delay={(i % 3) * 90}>
                     <div>
-                      <p className="text-[14px] font-semibold text-[#111d35] mb-1.5">{title}</p>
+                      <div className="w-10 h-10 rounded-xl bg-[#eef3f9] flex items-center justify-center mb-4">
+                        <Icon size={18} className="text-[#2b6cb0]" />
+                      </div>
+                      <p className="font-serif text-[1.2rem] font-light text-[#111d35] mb-1.5">{title}</p>
                       <p className="text-[13.5px] text-[#718096] font-light leading-relaxed">{desc}</p>
                     </div>
-                  </div>
+                  </Reveal>
                 )
               })}
             </div>
@@ -530,28 +533,35 @@ export default function ManufacturingPage() {
 
         {/* ── Sub-Verticals ─────────────────────────────────────── */}
         <section className="bg-[#f8fafc] py-20 px-6 border-t border-[#eef3f9]">
-          <div className="max-w-5xl mx-auto">
-            <SectionLabel>Sub-Verticals</SectionLabel>
-            <h2 className="font-serif text-[clamp(1.8rem,4vw,2.8rem)] font-light text-[#111d35] mb-4">
-              Built for every type of manufacturing facility
-            </h2>
-            <p className="text-[15px] text-[#718096] font-light mb-14 max-w-2xl leading-relaxed">
-              Not a one-size-fits-all CMMS — Firmity adapts to your specific production environment.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-20 gap-y-12">
+          <div className="max-w-6xl mx-auto">
+            <Reveal>
+              <SectionLabel>Sub-Verticals</SectionLabel>
+              <h2 className="font-serif text-[clamp(1.8rem,4vw,2.8rem)] font-light text-[#111d35] mb-4">
+                Built for every type of manufacturing facility
+              </h2>
+              <p className="text-[15px] text-[#718096] font-light mb-14 max-w-2xl leading-relaxed">
+                Not a one-size-fits-all CMMS — Firmity adapts to your specific production environment.
+              </p>
+            </Reveal>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-12">
               {VERTICALS.map(function({ title, tag, points }, i) {
                 return (
-                  <div key={i}>
-                    <p className="font-serif text-[1.2rem] font-light text-[#111d35] mb-0.5">{title}</p>
-                    <p className="text-[12px] text-[#a0aec0] font-light mb-4 tracking-wide">{tag}</p>
-                    <ul className="space-y-2">
-                      {points.map(function(p, j) {
-                        return (
-                          <li key={j} className="text-[13.5px] text-[#2b6cb0] font-light leading-relaxed">{p}</li>
-                        )
-                      })}
-                    </ul>
-                  </div>
+                  <Reveal key={i} delay={(i % 3) * 90}>
+                    <div>
+                      <p className="font-serif text-[1.2rem] font-light text-[#111d35] mb-1">{title}</p>
+                      <p className="text-[10.5px] text-[#a0aec0] font-semibold mb-4 tracking-[0.14em] uppercase">{tag}</p>
+                      <ul className="space-y-2.5">
+                        {points.map(function(p, j) {
+                          return (
+                            <li key={j} className="flex items-start gap-2.5">
+                              <CheckCircle size={14} className="text-[#2b6cb0] mt-0.5 flex-shrink-0" />
+                              <span className="text-[13px] text-[#4a5568] font-light leading-relaxed">{p}</span>
+                            </li>
+                          )
+                        })}
+                      </ul>
+                    </div>
+                  </Reveal>
                 )
               })}
             </div>
@@ -561,13 +571,13 @@ export default function ManufacturingPage() {
         {/* ── Feature Tabs ──────────────────────────────────────── */}
         <section className="bg-white py-20 px-6">
           {/* Header aligned to max-w-5xl like sibling sections */}
-          <div className="max-w-5xl mx-auto mb-10">
+          <Reveal className="max-w-5xl mx-auto mb-10">
             <SectionLabel>Features</SectionLabel>
             <h2 className="font-serif text-[clamp(1.8rem,4vw,2.8rem)] font-light text-[#111d35] mb-2">
               Everything your plant needs, in one platform
             </h2>
             <p className="text-[14px] text-[#718096] font-light">Click a module to see how it works.</p>
-          </div>
+          </Reveal>
 
           <div className="max-w-6xl mx-auto">
             {/* Tab bar */}
@@ -611,7 +621,7 @@ export default function ManufacturingPage() {
 
         {/* ── Case Study ────────────────────────────────────────── */}
         <section className="bg-[#f8fafc] py-20 px-6 border-t border-[#eef3f9]">
-          <div className="max-w-3xl mx-auto text-center">
+          <Reveal className="max-w-3xl mx-auto text-center">
             <SectionLabel>Case Study</SectionLabel>
             <h2 className="font-serif text-[clamp(1.5rem,3vw,2.1rem)] font-light text-[#111d35] mb-4">
               How Apex Auto Components cut maintenance costs by 31%
@@ -650,12 +660,12 @@ export default function ManufacturingPage() {
                 </p>
               </blockquote>
             </div>
-          </div>
+          </Reveal>
         </section>
 
         {/* ── Related Industries ────────────────────────────────── */}
         <section className="bg-white py-16 px-6 border-t border-[#eef3f9]">
-          <div className="max-w-5xl mx-auto">
+          <Reveal className="max-w-5xl mx-auto">
             <p className="text-[11px] font-semibold text-[#718096] tracking-[0.2em] uppercase mb-6 text-center">
               Explore Other Industries
             </p>
@@ -676,12 +686,12 @@ export default function ManufacturingPage() {
                 )
               })}
             </div>
-          </div>
+          </Reveal>
         </section>
 
         {/* ── CTA ───────────────────────────────────────────────── */}
         <section className="bg-[#111d35] py-20 px-6">
-          <div className="max-w-3xl mx-auto text-center">
+          <Reveal className="max-w-3xl mx-auto text-center">
             <h2 className="font-serif text-[clamp(1.6rem,4vw,2.5rem)] font-light text-white mb-4">
               Ready to transform your facility maintenance?
             </h2>
@@ -699,7 +709,7 @@ export default function ManufacturingPage() {
                 Contact Sales
               </Link>
             </div>
-          </div>
+          </Reveal>
         </section>
 
       </main>
