@@ -109,9 +109,9 @@ export function BlogIndex({ posts }: { posts: Card[] }) {
             </Reveal>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="-mx-6 flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-3 sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-5 sm:overflow-visible sm:px-0 lg:grid-cols-3">
             {rest.map((post, i) => (
-              <Reveal key={post.slug} delay={(i % 3) * 100}>
+              <Reveal key={post.slug} delay={(i % 3) * 100} className="w-[82%] flex-shrink-0 snap-start sm:w-auto">
                 <Link href={`/blog/${post.slug}`} className="group h-full block">
                   <article className="h-full bg-white rounded-[20px] border border-[#cbd5e0] shadow-[0_4px_20px_rgba(17,29,53,0.06)] hover:shadow-[0_14px_36px_rgba(17,29,53,0.13)] hover:-translate-y-1 hover:border-[#2b6cb0]/50 transition-all duration-300 p-6 flex flex-col overflow-hidden">
                     {/* Cover thumbnail: full-bleed, gradient veil, slow pan-in on hover */}

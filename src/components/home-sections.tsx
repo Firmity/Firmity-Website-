@@ -216,7 +216,7 @@ export function ProblemsSection() {
   const allDone = resolved >= PROBLEMS.length
 
   return (
-    <section ref={sectionRef} className={`bg-white grid grid-cols-1 lg:grid-cols-2 ${HERO_MINH}`}>
+    <section ref={sectionRef} className={`bg-[#fdfbf7] bg-[radial-gradient(130%_90%_at_50%_-10%,#f4ecdd_0%,rgba(253,251,247,0)_58%)] sm:bg-white sm:bg-none grid grid-cols-1 lg:grid-cols-2 ${HERO_MINH}`}>
       {/* Left — copy, aligned with hero left column */}
       <div className={`${HERO_PX} py-16 lg:py-0 flex flex-col justify-center`}>
         <Reveal direction="right">
@@ -312,151 +312,86 @@ export function ProblemsSection() {
 
 export function WhyFirmitySection() {
   const trackRef = useRef<HTMLDivElement | null>(null)
-  const itemRefs = useRef<(HTMLDivElement | null)[]>([])
   const [drawn, setDrawn] = useState(false)
   const [activePhoto, setActivePhoto] = useState(0)
 
-  // Draw the timeline spine once when it scrolls into view.
+  // Reveal the block once it scrolls into view.
   useEffect(() => {
     const el = trackRef.current
-    if (!el || typeof IntersectionObserver === "undefined") {
-      setDrawn(true)
-      return
-    }
-    const obs = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setDrawn(true)
-          obs.disconnect()
-        }
-      },
-      { threshold: 0.2 },
-    )
+    if (!el || typeof IntersectionObserver === "undefined") { setDrawn(true); return }
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setDrawn(true); obs.disconnect() } }, { threshold: 0.2 })
     obs.observe(el)
     return () => obs.disconnect()
   }, [])
 
-  // Track which timeline item is in the viewport's middle band — the photo
-  // panel crossfades to match (scroll-linked, like the reference site).
-  useEffect(() => {
-    if (typeof IntersectionObserver === "undefined") return
-    const obs = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            const idx = itemRefs.current.findIndex((n) => n === entry.target)
-            if (idx >= 0) setActivePhoto(idx)
-          }
-        }
-      },
-      { rootMargin: "-40% 0px -40% 0px" },
-    )
-    itemRefs.current.forEach((n) => n && obs.observe(n))
-    return () => obs.disconnect()
-  }, [])
+  const pct = BENEFITS.length > 1 ? (activePhoto / (BENEFITS.length - 1)) * 100 : 0
 
   return (
-    <section className="bg-white flex flex-col justify-center">
-      <div className={`${HERO_PX} py-8 lg:py-10 w-full`}>
-        {/* Photos LEFT, heading + timeline RIGHT */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-start">
-          {/* Cycling photo panel — sticky on desktop, hidden on mobile */}
-          <div className="hidden lg:block lg:sticky lg:top-20 order-1">
-            <div className="relative h-[290px] rounded-[20px] overflow-hidden bg-[#111d35]">
-              {BENEFITS.map(({ img, imgAlt, tag }, i) => (
+    <section className="bg-white">
+      <div ref={trackRef} className={`${HERO_PX} py-10 lg:py-14 w-full`}>
+        <Reveal>
+          <div className="mb-8 lg:mb-12 lg:text-center">
+            <SectionKicker text="Why Choose Firmity" />
+            <h2 className="font-serif text-[clamp(1.6rem,4vw,2.6rem)] font-light leading-[1.15] tracking-tight text-[#1a202c]">
+              Built for <em className="not-italic text-[#2b6cb0]">operational clarity</em>
+            </h2>
+          </div>
+        </Reveal>
+
+        {/* ── DESKTOP: big photo + horizontal timeline ── */}
+        <div
+          className="hidden lg:block"
+          style={{ opacity: drawn ? 1 : 0, transform: drawn ? "none" : "translateY(14px)", transition: "opacity 700ms ease, transform 700ms ease" }}
+        >
+          <div className="relative mx-auto mb-10 h-[300px] max-w-4xl overflow-hidden rounded-[24px] bg-[#111d35]">
+            {BENEFITS.map(({ img, imgAlt, tag }, i) => (
+              <div key={img} className="absolute inset-0 transition-opacity duration-700 ease-out" style={{ opacity: activePhoto === i ? 1 : 0 }} aria-hidden={activePhoto !== i}>
                 <div
-                  key={img}
-                  className="absolute inset-0 transition-opacity duration-700 ease-out"
-                  style={{ opacity: activePhoto === i ? 1 : 0 }}
-                  aria-hidden={activePhoto !== i}
-                >
-                  {/* Slow Ken Burns drift while active */}
-                  <div
-                    className="absolute inset-0 bg-cover bg-center transition-transform ease-out"
-                    style={{
-                      backgroundImage: `url('${img}')`,
-                      transform: activePhoto === i ? "scale(1.08)" : "scale(1)",
-                      transitionDuration: "6000ms",
-                    }}
-                    role="img"
-                    aria-label={imgAlt}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#111d35]/85 via-[#111d35]/20 to-transparent" />
-                  <div className="absolute bottom-5 left-5 right-5 flex items-center justify-between">
-                    <span className="text-[9.5px] font-semibold tracking-[0.16em] uppercase text-white/85 bg-[#111d35]/60 backdrop-blur-sm rounded-lg px-3 py-1.5">
-                      {tag}
-                    </span>
-                    {/* Progress dots */}
-                    <span className="flex gap-1.5">
-                      {BENEFITS.map((_, d) => (
-                        <span
-                          key={d}
-                          className={`h-[5px] rounded-full transition-all duration-500 ${d === activePhoto ? "w-5 bg-[#63b3ed]" : "w-[5px] bg-white/40"}`}
-                        />
-                      ))}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
+                  className="absolute inset-0 bg-cover bg-center transition-transform ease-out"
+                  style={{ backgroundImage: `url('${img}')`, transform: activePhoto === i ? "scale(1.06)" : "scale(1)", transitionDuration: "6000ms" }}
+                  role="img" aria-label={imgAlt}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#111d35]/85 via-[#111d35]/15 to-transparent" />
+                <span className="absolute bottom-5 left-6 rounded-lg bg-[#111d35]/60 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/90 backdrop-blur-sm">{tag}</span>
+              </div>
+            ))}
           </div>
 
-          {/* Heading + timeline */}
-          <div className="order-2">
-            <Reveal>
-              <SectionKicker text="Why Choose Firmity" />
-              <h2 className="font-serif text-[clamp(1.6rem,4vw,2.6rem)] font-light leading-[1.15] tracking-tight text-[#1a202c] mb-5 lg:mb-6">
-                Built for <em className="not-italic text-[#2b6cb0]">operational clarity</em>
-              </h2>
-            </Reveal>
-
-            {/* Timeline track */}
-            <div ref={trackRef} className="relative">
-            <div className="absolute left-[21px] top-2 bottom-2 w-px bg-[#e2e8f0]" aria-hidden="true" />
-            <div
-              className="absolute left-[21px] top-2 w-px bg-[#2b6cb0] origin-top transition-transform duration-[1600ms] ease-out"
-              style={{ height: "calc(100% - 16px)", transform: drawn ? "scaleY(1)" : "scaleY(0)" }}
-              aria-hidden="true"
-            />
-
-            <div className="space-y-5">
-              {BENEFITS.map(({ num, tag, title, desc }, i) => (
-                <div
+          <div className="relative mx-auto max-w-5xl">
+            <div className="absolute left-0 right-0 top-[15px] h-px bg-[#e2e8f0]" aria-hidden />
+            <div className="absolute left-0 top-[15px] h-px bg-[#2b6cb0] transition-[width] duration-500 ease-out" style={{ width: `${pct}%` }} aria-hidden />
+            <div className="grid" style={{ gridTemplateColumns: `repeat(${BENEFITS.length}, minmax(0,1fr))` }}>
+              {BENEFITS.map(({ num, title, desc }, i) => (
+                <button
                   key={num}
-                  ref={(node) => { itemRefs.current[i] = node }}
-                  className="relative flex gap-5 group"
-                  style={{
-                    opacity: drawn ? 1 : 0,
-                    transform: drawn ? "none" : "translateY(18px)",
-                    transition: `opacity 600ms cubic-bezier(0.22,1,0.36,1) ${400 + i * 420}ms, transform 600ms cubic-bezier(0.22,1,0.36,1) ${400 + i * 420}ms`,
-                  }}
+                  onMouseEnter={() => setActivePhoto(i)}
+                  onFocus={() => setActivePhoto(i)}
+                  onClick={() => setActivePhoto(i)}
+                  className="group relative flex flex-col items-center px-3 text-center"
                 >
-                  {/* Node — fills when its photo is active */}
-                  <div
-                    className={`relative z-10 w-[30px] h-[30px] flex-shrink-0 rounded-full border flex items-center justify-center transition-all duration-300 ${
-                      activePhoto === i ? "bg-[#2b6cb0] border-[#2b6cb0]" : "bg-white border-[#2b6cb0]/40"
-                    }`}
-                    style={{
-                      transform: drawn ? "scale(1)" : "scale(0.4)",
-                      transition: `transform 500ms cubic-bezier(0.34,1.56,0.64,1) ${400 + i * 420}ms, background-color 300ms, border-color 300ms`,
-                    }}
-                  >
-                    <span className={`text-[12px] font-medium transition-colors duration-300 ${activePhoto === i ? "text-white" : "text-[#2b6cb0]"}`}>{num}</span>
-                  </div>
-
-                  <div className="pt-0">
-                    <span className="inline-block text-[9px] font-medium tracking-[0.14em] uppercase text-[#2b6cb0] border border-[#2b6cb0]/25 rounded-lg px-2 py-[3px] mb-1">
-                      {tag}
-                    </span>
-                    <h3 className="font-serif text-[clamp(0.95rem,1.5vw,1.1rem)] font-normal text-[#1a202c] leading-snug mb-1">
-                      {title}
-                    </h3>
-                    <p className="text-[12.5px] font-light text-[#4a5568] leading-[1.65] max-w-[440px]">{desc}</p>
-                  </div>
-                </div>
+                  <span className={`relative z-10 mb-3 flex h-8 w-8 items-center justify-center rounded-full border text-[12px] font-medium transition-all duration-300 ${activePhoto === i ? "border-[#2b6cb0] bg-[#2b6cb0] text-white" : "border-[#2b6cb0]/40 bg-white text-[#2b6cb0]"}`}>{num}</span>
+                  <h3 className={`mb-1 font-serif text-[15px] font-normal leading-snug transition-colors ${activePhoto === i ? "text-[#1a202c]" : "text-[#4a5568]"}`}>{title}</h3>
+                  <p className="max-w-[210px] text-[12px] font-light leading-[1.6] text-[#718096]">{desc}</p>
+                </button>
               ))}
             </div>
           </div>
+        </div>
+
+        {/* ── MOBILE: clean vertical list (no photos) ── */}
+        <div className="relative lg:hidden">
+          <div className="absolute bottom-2 left-[15px] top-2 w-px bg-[#e2e8f0]" aria-hidden />
+          <div className="space-y-5">
+            {BENEFITS.map(({ num, tag, title, desc }) => (
+              <div key={num} className="relative flex gap-4">
+                <span className="relative z-10 flex h-[30px] w-[30px] flex-shrink-0 items-center justify-center rounded-full border border-[#2b6cb0]/40 bg-white text-[12px] font-medium text-[#2b6cb0]">{num}</span>
+                <div>
+                  <span className="mb-1 inline-block rounded-lg border border-[#2b6cb0]/25 px-2 py-[3px] text-[9px] font-medium uppercase tracking-[0.14em] text-[#2b6cb0]">{tag}</span>
+                  <h3 className="mb-1 font-serif text-[1rem] font-normal leading-snug text-[#1a202c]">{title}</h3>
+                  <p className="text-[12.5px] font-light leading-[1.65] text-[#4a5568]">{desc}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -470,7 +405,7 @@ export function PillarsSection() {
   return (
     <section className="bg-white flex flex-col justify-center">
       <div className={`${HERO_PX} py-10 lg:py-14 w-full`}>
-        <Reveal>
+        <Reveal className="hidden sm:block">
           <SectionKicker text="Built on Three Pillars" />
           <h2 className="font-serif text-[clamp(1.6rem,4vw,2.6rem)] font-light leading-[1.15] tracking-tight text-[#1a202c] mb-10 lg:mb-14">
             The foundations of <em className="not-italic text-[#2b6cb0]">smarter facility management</em>
@@ -696,6 +631,21 @@ function SlideshowLeft({
       className="relative overflow-hidden h-full flex flex-col"
       style={{ background: isHero ? "#ffffff" : slide.bg, transition: "background 600ms ease" }}
     >
+      {/* Phone only: the rotating slide image becomes the hero background (desktop
+          keeps the flat panel). Light frosted overlay keeps the text readable. */}
+      <div className="lg:hidden absolute inset-0 z-0" aria-hidden>
+        {ALL_SLIDES.map((s, i) => (
+          <div
+            key={i}
+            className="absolute inset-0 bg-cover bg-center transition-opacity duration-700"
+            style={{
+              backgroundImage: `url('${s.image || "https://images.unsplash.com/photo-1486325212027-8081e485255e?w=900&q=85&fit=crop&crop=top"}')`,
+              opacity: i === activeIndex ? 1 : 0,
+            }}
+          />
+        ))}
+        <div className="absolute inset-0 bg-white/70 backdrop-blur-[3px]" />
+      </div>
       <style>{`
         @keyframes hsModUp  { from { opacity:0; transform:translateY(36px); } to { opacity:1; transform:translateY(0); } }
         @keyframes hsModUp2 { 0%{opacity:0;transform:translateY(36px);} 18%{opacity:0;transform:translateY(36px);} 100%{opacity:1;transform:translateY(0);} }
