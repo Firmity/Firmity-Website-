@@ -110,14 +110,18 @@ export function BlogIndex({ posts }: { posts: Card[] }) {
             <Reveal>
               <Link href={`/blog/${featured.slug}`} className="block group mb-8">
                 <article className="relative overflow-hidden rounded-[20px] border border-[#cbd5e0] p-8 sm:p-10 hover:-translate-y-1 hover:shadow-[0_18px_48px_rgba(17,29,53,0.15)] transition-all duration-300">
-                  {/* Pastel holographic wash (shares the hero's blogHolo keyframes) */}
+                  {/* Static holographic foil illustration (layered radial + conic gradients) */}
                   <div
-                    className="blog-holo absolute inset-0 pointer-events-none"
+                    className="absolute inset-0 pointer-events-none"
                     style={{
-                      background:
-                        "linear-gradient(120deg,#cfe8ff 0%,#dcd6ff 22%,#ffd9e8 44%,#ffe6c7 62%,#d5f5e3 80%,#cfe8ff 100%)",
-                      backgroundSize: "300% 300%",
-                      animation: "blogHolo 22s ease-in-out infinite",
+                      backgroundColor: "#eaf2ff",
+                      backgroundImage:
+                        "radial-gradient(circle at 18% 22%, rgba(147,197,253,0.85) 0%, transparent 46%)," +
+                        "radial-gradient(circle at 82% 14%, rgba(244,168,208,0.85) 0%, transparent 42%)," +
+                        "radial-gradient(circle at 72% 82%, rgba(153,230,190,0.8) 0%, transparent 46%)," +
+                        "radial-gradient(circle at 12% 88%, rgba(196,181,253,0.8) 0%, transparent 46%)," +
+                        "conic-gradient(from 200deg at 55% 45%, #cfe8ff, #ffd9e8, #ffe6c7, #d5f5e3, #dcd6ff, #cfe8ff)",
+                      backgroundBlendMode: "screen, screen, screen, screen, normal",
                     }}
                     aria-hidden="true"
                   />
