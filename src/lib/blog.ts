@@ -33,9 +33,18 @@ export interface BlogPostInput {
   read_time?: string;
   meta_description?: string;
   status: "draft" | "published";
+  /** Optional publish date (YYYY-MM-DD or ISO). When set, overrides the auto stamp. */
+  published_at?: string | null;
 }
 
 const TABLE = "blog_posts";
+
+/** Normalize a "YYYY-MM-DD"/ISO string to a full ISO timestamp; null if invalid/empty. */
+function toIsoOrNull(v: string | null | undefined): string | null {
+  if (!v) return null;
+  const d = new Date(v);
+  return isNaN(d.getTime()) ? null : d.toISOString();
+}
 
 export function slugify(input: string): string {
   return input
@@ -133,11 +142,15 @@ export async function upsertPost(input: BlogPostInput): Promise<BlogPost> {
     status: input.status,
   };
 
+  // A user-chosen date always wins; otherwise fall back to the auto stamp.
+  const chosen = toIsoOrNull(input.published_at);
+
   if (input.id) {
     // On update: stamp published_at the first time it goes live.
     const existing = await getById(input.id);
     const published_at =
-      input.status === "published" ? existing?.published_at ?? new Date().toISOString() : existing?.published_at ?? null;
+      chosen ??
+      (input.status === "published" ? existing?.published_at ?? new Date().toISOString() : existing?.published_at ?? null);
     const { data, error } = await db
       .from(TABLE)
       .update({ ...base, published_at })
@@ -148,7 +161,7 @@ export async function upsertPost(input: BlogPostInput): Promise<BlogPost> {
     return data as BlogPost;
   }
 
-  const published_at = input.status === "published" ? new Date().toISOString() : null;
+  const published_at = chosen ?? (input.status === "published" ? new Date().toISOString() : null);
   const { data, error } = await db
     .from(TABLE)
     .insert({ ...base, published_at })

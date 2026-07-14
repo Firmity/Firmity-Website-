@@ -23,11 +23,19 @@ interface Form {
   cover_image_url: string;
   content_html: string;
   author: string;
+  published_at: string; // YYYY-MM-DD
 }
+
+// Local (not UTC) date to avoid an off-by-one day near midnight.
+const todayStr = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
 
 const EMPTY: Form = {
   title: "", subtitle: "", slug: "", category: "Guide", author: "",
   read_time: "", meta_description: "", cover_image_url: "", content_html: "",
+  published_at: todayStr(),
 };
 
 function EditorInner() {
@@ -96,6 +104,7 @@ function EditorInner() {
           category: post.category ?? "Guide", read_time: post.read_time ?? "",
           meta_description: post.meta_description ?? "", cover_image_url: post.cover_image_url ?? "",
           content_html: post.content_html ?? "", author: post.author ?? "",
+          published_at: (post.published_at ?? post.created_at ?? "").slice(0, 10) || todayStr(),
         });
       }
       setLoading(false);
@@ -249,6 +258,10 @@ function EditorInner() {
         <label className="block">
           <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-[#718096]">Read time (optional)</span>
           <input value={form.read_time} onChange={(e) => set("read_time", e.target.value)} placeholder="auto (e.g. 6 min read)" className="w-full rounded-lg border border-[#cbd5e0] px-3 py-2 text-[13px] focus:border-[#2b6cb0] focus:outline-none" />
+        </label>
+        <label className="block">
+          <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-[#718096]">Publish date</span>
+          <input type="date" value={form.published_at} onChange={(e) => set("published_at", e.target.value)} className="w-full rounded-lg border border-[#cbd5e0] px-3 py-2 text-[13px] focus:border-[#2b6cb0] focus:outline-none" />
         </label>
         <label className="block">
           <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-[#718096]">URL slug (optional)</span>
