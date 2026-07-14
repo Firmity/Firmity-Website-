@@ -1112,7 +1112,7 @@ export function ModulesSection() {
         </Reveal>
       </div>
 
-      <div className="hidden lg:flex bg-white/60 border-l border-[#dbe5f0] items-center justify-center p-6 sm:p-10 lg:p-14">
+      <div className="hidden lg:flex bg-white border-l border-[#dbe5f0] items-center justify-center p-6 sm:p-10 lg:p-14">
         <div className="w-full max-w-[520px]">
           <div key={active.slug} style={{ animation: "hsModuleFade 450ms cubic-bezier(0.22,1,0.36,1)" }}>
             <div className="min-h-[250px]">
