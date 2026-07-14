@@ -327,7 +327,7 @@ export function WhyFirmitySection() {
   const pct = BENEFITS.length > 1 ? (activePhoto / (BENEFITS.length - 1)) * 100 : 0
 
   return (
-    <section className="bg-white/70">
+    <section className="bg-transparent sm:bg-white/60">
       <div ref={trackRef} className={`${HERO_PX} py-10 lg:py-14 w-full`}>
         <Reveal>
           <div className="mb-8 lg:mb-12 lg:text-center">
@@ -403,7 +403,7 @@ export function WhyFirmitySection() {
 
 export function PillarsSection() {
   return (
-    <section className="hidden sm:flex bg-white/70 flex-col justify-center">
+    <section className="hidden sm:flex bg-white/60 flex-col justify-center">
       <div className={`${HERO_PX} py-10 lg:py-14 w-full`}>
         <Reveal className="hidden sm:block">
           <SectionKicker text="Built on Three Pillars" />
@@ -647,31 +647,18 @@ function SlideshowLeft({
       className="relative overflow-hidden h-full flex flex-col"
       style={{ background: isHero ? "#ffffff" : slide.bg, transition: "background 600ms ease", ["--ink" as string]: inkAccent(slide.accent) } as CSSProperties}
     >
-      {/* Phone only: the rotating slide image becomes the hero background (desktop
-          keeps the flat panel). Light frosted overlay keeps the text readable. */}
-      <div className="lg:hidden absolute inset-0 z-0" aria-hidden>
-        {ALL_SLIDES.map((s, i) => (
-          <div
-            key={i}
-            className="absolute inset-0 bg-cover bg-center transition-opacity duration-700"
-            style={{
-              backgroundImage: `url('${s.image || "https://images.unsplash.com/photo-1486325212027-8081e485255e?w=900&q=85&fit=crop&crop=top"}')`,
-              opacity: i === activeIndex ? 1 : 0,
-            }}
-          />
-        ))}
-        <div
-          className="absolute inset-0 backdrop-blur-[3px]"
-          style={{
-            // Frost is slightly darker than before and carries a faint wash of the
-            // slide's own colour, so each phone slide reads as "its colour" while
-            // the inked (darkened-accent) text stays legible on top.
-            background: isHero
-              ? "rgba(255,255,255,0.66)"
-              : `linear-gradient(180deg, rgba(255,255,255,0.56) 0%, rgba(255,255,255,0.74) 100%), ${slide.accent}12`,
-          }}
-        />
-      </div>
+      {/* Phone only: a clean light gradient tinted to the active slide's colour
+          replaces the photo (photos hurt text legibility on small screens). The
+          desktop panel below keeps its flat `slide.bg`. Inked text sits on top. */}
+      <div
+        className="lg:hidden absolute inset-0 z-0 transition-[background] duration-700"
+        aria-hidden
+        style={{
+          background: isHero
+            ? "linear-gradient(160deg, #ffffff 0%, #f7f1e6 62%, #f1e8d7 100%)"
+            : `linear-gradient(160deg, #ffffff 0%, ${slide.accent}14 52%, ${slide.accent}28 100%)`,
+        }}
+      />
       <style>{`
         @keyframes hsModUp  { from { opacity:0; transform:translateY(36px); } to { opacity:1; transform:translateY(0); } }
         @keyframes hsModUp2 { 0%{opacity:0;transform:translateY(36px);} 18%{opacity:0;transform:translateY(36px);} 100%{opacity:1;transform:translateY(0);} }
@@ -1125,7 +1112,7 @@ export function ModulesSection() {
         </Reveal>
       </div>
 
-      <div className="hidden lg:flex bg-white/70 border-l border-[#dbe5f0] items-center justify-center p-6 sm:p-10 lg:p-14">
+      <div className="hidden lg:flex bg-white/60 border-l border-[#dbe5f0] items-center justify-center p-6 sm:p-10 lg:p-14">
         <div className="w-full max-w-[520px]">
           <div key={active.slug} style={{ animation: "hsModuleFade 450ms cubic-bezier(0.22,1,0.36,1)" }}>
             <div className="min-h-[250px]">

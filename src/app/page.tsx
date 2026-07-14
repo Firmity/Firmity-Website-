@@ -447,7 +447,7 @@ function HomeBlogSection() {
   if (loaded && posts.length === 0) return null
 
   return (
-    <section className="bg-[#f8fafc]/70 border-t border-[#eef3f9] py-14 px-6">
+    <section className="bg-transparent sm:bg-[#f8fafc]/60 border-t border-[#eef3f9] py-14 px-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
@@ -561,7 +561,7 @@ const FAQ_ITEMS = [
 function FaqSection() {
   const [openIdx, setOpenIdx] = useState<number | null>(null)
   return (
-    <section className="bg-white/70 py-8 lg:py-12">
+    <section className="bg-transparent sm:bg-white/60 py-8 lg:py-12">
       <div className="max-w-3xl mx-auto px-6 sm:px-10">
         <h2 className="font-serif font-light text-[clamp(1.8rem,4vw,2.8rem)] text-[#1a202c] tracking-tight mb-10">FAQ</h2>
         <div>
@@ -632,7 +632,7 @@ export default function FirmityHome() {
         {/* ── CLIENTS ─────────────────────────────────────────────────────
             Sits directly below Problems — social proof before deeper content
         ── */}
-        <section className="bg-white/70">
+        <section className="bg-transparent sm:bg-white/60">
           <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 pt-10 pb-6 text-center">
             <div className="flex items-center gap-3 mb-2 justify-center">
               <div className="w-6 h-px bg-[#2b6cb0]" />
@@ -683,7 +683,7 @@ export default function FirmityHome() {
             - Form top/bottom padding: py-4 on the form content div
             - Form heading size: text-[1.1rem]
         ── */}
-        <section className="bg-white/70 border-t border-[#e2e8f0]">
+        <section className="bg-transparent sm:bg-white/60 border-t border-[#e2e8f0]">
           <div className="grid grid-cols-1 lg:grid-cols-2">
 
             {/* Left — video panel (inline player) */}
