@@ -13,7 +13,7 @@
 // board, pillar panels, module showcase); narrative sections sit on white.
 
 import Link from "next/link"
-import { useEffect, useRef, useState, type FC } from "react"
+import { useEffect, useRef, useState, type CSSProperties, type FC } from "react"
 import { Reveal } from "@/src/components/reveal"
 import { ModuleVignette } from "@/src/components/module-vignette"
 import {
@@ -216,7 +216,7 @@ export function ProblemsSection() {
   const allDone = resolved >= PROBLEMS.length
 
   return (
-    <section ref={sectionRef} className={`bg-[#fdfbf7] bg-[radial-gradient(130%_90%_at_50%_-10%,#f4ecdd_0%,rgba(253,251,247,0)_58%)] sm:bg-white sm:bg-none grid grid-cols-1 lg:grid-cols-2 ${HERO_MINH}`}>
+    <section ref={sectionRef} className={`bg-transparent sm:bg-white/60 grid grid-cols-1 lg:grid-cols-2 ${HERO_MINH}`}>
       {/* Left — copy, aligned with hero left column */}
       <div className={`${HERO_PX} py-16 lg:py-0 flex flex-col justify-center`}>
         <Reveal direction="right">
@@ -327,7 +327,7 @@ export function WhyFirmitySection() {
   const pct = BENEFITS.length > 1 ? (activePhoto / (BENEFITS.length - 1)) * 100 : 0
 
   return (
-    <section className="bg-white">
+    <section className="bg-white/70">
       <div ref={trackRef} className={`${HERO_PX} py-10 lg:py-14 w-full`}>
         <Reveal>
           <div className="mb-8 lg:mb-12 lg:text-center">
@@ -403,7 +403,7 @@ export function WhyFirmitySection() {
 
 export function PillarsSection() {
   return (
-    <section className="bg-white flex flex-col justify-center">
+    <section className="hidden sm:flex bg-white/70 flex-col justify-center">
       <div className={`${HERO_PX} py-10 lg:py-14 w-full`}>
         <Reveal className="hidden sm:block">
           <SectionKicker text="Built on Three Pillars" />
@@ -612,6 +612,22 @@ const ALL_SLIDES: SlideEntry[] = [
 
 // ─── Shared slideshow logic ─────────────────────────────────────────────────
 
+/**
+ * Darken a module accent toward near-black navy so the vivid light accents
+ * (amber, sky, green…) stay legible as TEXT on the light frosted phone hero.
+ * Keeps enough hue that each slide reads as "its colour" (pink, orange, blue).
+ * Desktop uses the flat dark panel, so this only drives the mobile `--ink` var.
+ */
+function inkAccent(hex: string): string {
+  const m = hex.replace("#", "")
+  if (m.length !== 6) return "#132339"
+  const r = parseInt(m.slice(0, 2), 16)
+  const g = parseInt(m.slice(2, 4), 16)
+  const b = parseInt(m.slice(4, 6), 16)
+  const mix = (c: number) => Math.round(c * 0.5 + 18 * 0.5) // 50% toward #121212
+  return `rgb(${mix(r)}, ${mix(g)}, ${mix(b)})`
+}
+
 function SlideshowLeft({
   activeIndex,
   animKey,
@@ -629,7 +645,7 @@ function SlideshowLeft({
   return (
     <div
       className="relative overflow-hidden h-full flex flex-col"
-      style={{ background: isHero ? "#ffffff" : slide.bg, transition: "background 600ms ease" }}
+      style={{ background: isHero ? "#ffffff" : slide.bg, transition: "background 600ms ease", ["--ink" as string]: inkAccent(slide.accent) } as CSSProperties}
     >
       {/* Phone only: the rotating slide image becomes the hero background (desktop
           keeps the flat panel). Light frosted overlay keeps the text readable. */}
@@ -644,7 +660,17 @@ function SlideshowLeft({
             }}
           />
         ))}
-        <div className="absolute inset-0 bg-white/70 backdrop-blur-[3px]" />
+        <div
+          className="absolute inset-0 backdrop-blur-[3px]"
+          style={{
+            // Frost is slightly darker than before and carries a faint wash of the
+            // slide's own colour, so each phone slide reads as "its colour" while
+            // the inked (darkened-accent) text stays legible on top.
+            background: isHero
+              ? "rgba(255,255,255,0.66)"
+              : `linear-gradient(180deg, rgba(255,255,255,0.56) 0%, rgba(255,255,255,0.74) 100%), ${slide.accent}12`,
+          }}
+        />
       </div>
       <style>{`
         @keyframes hsModUp  { from { opacity:0; transform:translateY(36px); } to { opacity:1; transform:translateY(0); } }
@@ -691,7 +717,7 @@ function SlideshowLeft({
                 Software Suite
               </h1>
             ) : (
-              <h1 className="font-serif font-light text-[#f0f4f8] leading-[1.08] tracking-tight mb-4" style={{ fontSize: "clamp(1.75rem,3.5vw,2.75rem)" }}>
+              <h1 className="font-serif font-light text-[var(--ink)] lg:text-[#f0f4f8] leading-[1.08] tracking-tight mb-4" style={{ fontSize: "clamp(1.75rem,3.5vw,2.75rem)" }}>
                 {slide.title}
               </h1>
             )}
@@ -699,7 +725,7 @@ function SlideshowLeft({
 
           {/* Description */}
           <div style={{ animation: "hsModUp3 0.8s cubic-bezier(0.22,1,0.36,1) both" }}>
-            <p className={"text-[13.5px] font-light leading-[1.75] mb-7 max-w-[380px] " + (isHero ? "text-[#4a5568]" : "text-[#8ba5be]")}>{slide.desc}</p>
+            <p className={"text-[13.5px] font-light leading-[1.75] mb-7 max-w-[380px] " + (isHero ? "text-[#4a5568]" : "text-[var(--ink)] lg:text-[#8ba5be]")}>{slide.desc}</p>
           </div>
 
           {/* CTAs */}
@@ -1099,7 +1125,7 @@ export function ModulesSection() {
         </Reveal>
       </div>
 
-      <div className="hidden lg:flex bg-white border-l border-[#dbe5f0] items-center justify-center p-6 sm:p-10 lg:p-14">
+      <div className="hidden lg:flex bg-white/70 border-l border-[#dbe5f0] items-center justify-center p-6 sm:p-10 lg:p-14">
         <div className="w-full max-w-[520px]">
           <div key={active.slug} style={{ animation: "hsModuleFade 450ms cubic-bezier(0.22,1,0.36,1)" }}>
             <div className="min-h-[250px]">
