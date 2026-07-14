@@ -569,7 +569,11 @@ export default function ManufacturingPage() {
         </section>
 
         {/* ── Feature Tabs ──────────────────────────────────────── */}
-        <section className="bg-white py-20 px-6">
+        <section className="relative bg-white py-20 px-6 overflow-hidden">
+          {/* FIRMITY watermark */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none" aria-hidden="true">
+            <span className="font-serif font-bold text-[#111d35] opacity-[0.04] leading-none tracking-tight" style={{ fontSize: "clamp(6rem,18vw,14rem)" }}>FIRMITY</span>
+          </div>
           {/* Header aligned to max-w-5xl like sibling sections */}
           <Reveal className="max-w-5xl mx-auto mb-10">
             <SectionLabel>Features</SectionLabel>
@@ -592,7 +596,7 @@ export default function ManufacturingPage() {
                     className={"cursor-pointer px-5 py-2 rounded-full text-[13px] font-medium transition-all " + (
                       active
                         ? "bg-[#2b6cb0] text-white shadow-[0_2px_12px_rgba(43,108,176,0.30)]"
-                        : "border border-[#dbe5f0] text-[#4a5568] hover:border-[#2b6cb0] hover:text-[#2b6cb0]"
+                        : "border border-[#b0bfd4] text-[#2d3748] bg-[#f7f9fc] hover:border-[#2b6cb0] hover:text-[#2b6cb0] hover:bg-white"
                     )}
                   >
                     {t.label}
