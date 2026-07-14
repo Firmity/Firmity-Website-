@@ -656,7 +656,7 @@ function SlideshowLeft({
         style={{
           background: isHero
             ? "linear-gradient(160deg, #ffffff 0%, #f7f1e6 62%, #f1e8d7 100%)"
-            : `linear-gradient(160deg, #ffffff 0%, ${slide.accent}14 52%, ${slide.accent}28 100%)`,
+            : slide.bg,
         }}
       />
       <style>{`
@@ -704,7 +704,7 @@ function SlideshowLeft({
                 Software Suite
               </h1>
             ) : (
-              <h1 className="font-serif font-light text-[var(--ink)] lg:text-[#f0f4f8] leading-[1.08] tracking-tight mb-4" style={{ fontSize: "clamp(1.75rem,3.5vw,2.75rem)" }}>
+              <h1 className="font-serif font-light text-[#f0f4f8] leading-[1.08] tracking-tight mb-4" style={{ fontSize: "clamp(1.75rem,3.5vw,2.75rem)" }}>
                 {slide.title}
               </h1>
             )}
@@ -712,7 +712,7 @@ function SlideshowLeft({
 
           {/* Description */}
           <div style={{ animation: "hsModUp3 0.8s cubic-bezier(0.22,1,0.36,1) both" }}>
-            <p className={"text-[13.5px] font-light leading-[1.75] mb-7 max-w-[380px] " + (isHero ? "text-[#4a5568]" : "text-[var(--ink)] lg:text-[#8ba5be]")}>{slide.desc}</p>
+            <p className={"text-[13.5px] font-light leading-[1.75] mb-7 max-w-[380px] " + (isHero ? "text-[#4a5568]" : "text-[#8ba5be]")}>{slide.desc}</p>
           </div>
 
           {/* CTAs */}
