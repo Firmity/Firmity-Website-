@@ -235,7 +235,7 @@ export function ProblemsSection() {
       </div>
 
       {/* Right — live risk board */}
-      <div className="bg-[#111d35] flex items-center justify-center p-6 sm:p-10 lg:p-14">
+      <div className="hidden lg:flex items-center justify-center p-6 sm:p-10 lg:p-14 bg-[#111d35]">
         <Reveal direction="left" delay={120} className="w-full max-w-[480px]">
           <div className="border border-white/[0.1] rounded-[20px] overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.08] bg-white/[0.03]">
@@ -484,7 +484,7 @@ export function PillarsSection() {
             {PILLARS.map(({ numeral, title, line, chips, bg, accent, accentSoft }) => (
               <div
                 key={numeral}
-                className="group relative flex-1 md:hover:flex-[2.2] basis-0 grow transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] rounded-[20px] overflow-hidden cursor-default"
+                className="group relative flex-1 md:hover:flex-[2.2] basis-0 grow min-h-[190px] md:min-h-0 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] rounded-[20px] overflow-hidden cursor-default"
                 // style={{ background: bg }}
               >
                   <div
@@ -502,7 +502,7 @@ export function PillarsSection() {
                 </span>
 
                 <div
-  className="m-3 h-[calc(100%-24px)] rounded-[16px] border border-white/10 bg-white/5 shadow-inner flex flex-col md:flex-row items-center justify-center gap-5 px-6 py-8 md:py-0"
+  className="m-3 h-auto md:h-[calc(100%-24px)] rounded-[16px] border border-white/10 bg-white/5 shadow-inner flex flex-col md:flex-row items-center justify-center gap-5 px-6 py-8 md:py-0"
 >
                   {/* Column + title — always visible */}
                   <div className="flex flex-col items-center text-center flex-shrink-0">
@@ -694,7 +694,7 @@ function SlideshowLeft({
   return (
     <div
       className="relative overflow-hidden h-full flex flex-col"
-      style={{ background: slide.bg, transition: "background 600ms ease" }}
+      style={{ background: isHero ? "#ffffff" : slide.bg, transition: "background 600ms ease" }}
     >
       <style>{`
         @keyframes hsModUp  { from { opacity:0; transform:translateY(36px); } to { opacity:1; transform:translateY(0); } }
@@ -735,7 +735,7 @@ function SlideshowLeft({
           {/* Headline */}
           <div style={{ animation: "hsModUp2 0.65s cubic-bezier(0.22,1,0.36,1) both" }}>
             {isHero ? (
-              <h1 className="font-serif font-light text-[#f0f4f8] leading-[1.1] tracking-tight mb-4" style={{ fontSize: "clamp(1.75rem,3.5vw,2.75rem)" }}>
+              <h1 className="font-serif font-light text-[#111d35] leading-[1.1] tracking-tight mb-4" style={{ fontSize: "clamp(1.75rem,3.5vw,2.75rem)" }}>
                 The Complete<br />
                 <em className="not-italic" style={{ color: slide.accent }}>Facility Management</em><br />
                 Software Suite
@@ -749,19 +749,19 @@ function SlideshowLeft({
 
           {/* Description */}
           <div style={{ animation: "hsModUp3 0.8s cubic-bezier(0.22,1,0.36,1) both" }}>
-            <p className="text-[13.5px] font-light text-[#8ba5be] leading-[1.75] mb-7 max-w-[380px]">{slide.desc}</p>
+            <p className={"text-[13.5px] font-light leading-[1.75] mb-7 max-w-[380px] " + (isHero ? "text-[#4a5568]" : "text-[#8ba5be]")}>{slide.desc}</p>
           </div>
 
           {/* CTAs */}
           <div className="flex flex-row flex-wrap items-center gap-3" style={{ animation: "hsModUp4 0.95s cubic-bezier(0.22,1,0.36,1) both" }}>
-            <Link href={slide.ctaPrimary.href} className="group inline-flex items-center justify-center gap-2 bg-white text-[#1a2744] text-[13px] font-semibold px-7 py-3 hover:bg-[#e8f0fb] transition-colors whitespace-nowrap">
+            <Link href={slide.ctaPrimary.href} className={"group inline-flex items-center justify-center gap-2 text-[13px] font-semibold px-7 py-3 transition-colors whitespace-nowrap " + (isHero ? "bg-[#111d35] text-white hover:bg-[#1a2744]" : "bg-white text-[#1a2744] hover:bg-[#e8f0fb]")}>
               {slide.ctaPrimary.label}
               <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
             </Link>
             <Link
               href={slide.ctaSecondary.href}
               className="inline-flex items-center justify-center text-[13px] font-light px-7 py-3 border transition-all duration-200 whitespace-nowrap"
-              style={{ borderColor: `${slide.accent}28`, color: `${slide.accent}80` }}
+              style={isHero ? { borderColor: "rgba(17,29,53,0.18)", color: "rgba(17,29,53,0.5)" } : { borderColor: `${slide.accent}28`, color: `${slide.accent}80` }}
             >
               {slide.ctaSecondary.label}
             </Link>
@@ -786,28 +786,28 @@ function SlideshowLeft({
                   {s.indicatorId ? (
                     <span
                       className="text-[10px] font-semibold tracking-[0.15em] leading-none transition-colors duration-300"
-                      style={{ color: isActive ? slide.accent : "rgba(255,255,255,0.22)" }}
+                      style={{ color: isActive ? slide.accent : (isHero ? "rgba(17,29,53,0.2)" : "rgba(255,255,255,0.22)") }}
                     >
                       {s.indicatorId}
                     </span>
                   ) : (
                     <span
                       className="block w-[5px] h-[5px] rounded-full transition-colors duration-300"
-                      style={{ background: isActive ? slide.accent : "rgba(255,255,255,0.22)" }}
+                      style={{ background: isActive ? slide.accent : (isHero ? "rgba(17,29,53,0.2)" : "rgba(255,255,255,0.22)") }}
                     />
                   )}
                 </span>
                 {/* Label — whitespace-nowrap prevents wrapping */}
                 <span
                   className="text-[9.5px] font-light transition-colors duration-300 hidden xl:block leading-tight whitespace-nowrap"
-                  style={{ color: isActive ? "rgba(255,255,255,0.78)" : "rgba(255,255,255,0.22)" }}
+                  style={{ color: isActive ? (isHero ? "rgba(17,29,53,0.7)" : "rgba(255,255,255,0.78)") : (isHero ? "rgba(17,29,53,0.2)" : "rgba(255,255,255,0.22)") }}
                 >
                   {s.indicatorLabel}
                 </span>
                 {/* Progress track */}
                 <div
                   className="h-[2px] rounded-full overflow-hidden"
-                  style={{ width: i === 0 ? "20px" : "16px", background: "rgba(255,255,255,0.08)" }}
+                  style={{ width: i === 0 ? "20px" : "16px", background: isHero ? "rgba(17,29,53,0.08)" : "rgba(255,255,255,0.08)" }}
                 >
                   {isActive && (
                     <div
@@ -927,7 +927,7 @@ export function HeroSection() {
         <SlideshowLeft activeIndex={activeIndex} animKey={animKey} paused={paused} goTo={goTo} />
       </div>
 
-      <div ref={panelRef} className="relative order-2 min-h-[360px] lg:min-h-0 overflow-hidden bg-[#111d35]">
+      <div ref={panelRef} className="hidden lg:block relative overflow-hidden bg-[#111d35]">
 
         <div
           className="absolute inset-0 transition-opacity duration-700 ease-out"
@@ -1149,7 +1149,7 @@ export function ModulesSection() {
         </Reveal>
       </div>
 
-      <div className="bg-white border-t lg:border-t-0 lg:border-l border-[#dbe5f0] flex items-center justify-center p-6 sm:p-10 lg:p-14">
+      <div className="hidden lg:flex bg-white border-l border-[#dbe5f0] items-center justify-center p-6 sm:p-10 lg:p-14">
         <div className="w-full max-w-[520px]">
           <div key={active.slug} style={{ animation: "hsModuleFade 450ms cubic-bezier(0.22,1,0.36,1)" }}>
             <div className="min-h-[250px]">

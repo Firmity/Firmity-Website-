@@ -22,10 +22,11 @@ interface Form {
   meta_description: string;
   cover_image_url: string;
   content_html: string;
+  author: string;
 }
 
 const EMPTY: Form = {
-  title: "", subtitle: "", slug: "", category: "Guide",
+  title: "", subtitle: "", slug: "", category: "Guide", author: "",
   read_time: "", meta_description: "", cover_image_url: "", content_html: "",
 };
 
@@ -94,7 +95,7 @@ function EditorInner() {
           title: post.title ?? "", subtitle: post.subtitle ?? "", slug: post.slug ?? "",
           category: post.category ?? "Guide", read_time: post.read_time ?? "",
           meta_description: post.meta_description ?? "", cover_image_url: post.cover_image_url ?? "",
-          content_html: post.content_html ?? "",
+          content_html: post.content_html ?? "", author: post.author ?? "",
         });
       }
       setLoading(false);
@@ -220,7 +221,13 @@ function EditorInner() {
         value={form.subtitle}
         onChange={(e) => set("subtitle", e.target.value)}
         placeholder="Subtitle / short description"
-        className="mb-6 w-full text-[15px] font-light text-[#718096] placeholder-[#cbd5e0] focus:outline-none"
+        className="mb-2 w-full text-[15px] font-light text-[#718096] placeholder-[#cbd5e0] focus:outline-none"
+      />
+      <input
+        value={form.author}
+        onChange={(e) => set("author", e.target.value)}
+        placeholder="Article written by (author name)"
+        className="mb-6 w-full text-[13px] font-light text-[#94a3b8] placeholder-[#cbd5e0] focus:outline-none"
       />
 
       {/* Editor */}

@@ -133,67 +133,68 @@ export function Navigation() {
           </button>
         </div>
 
-        {/* Mobile menu */}
-        {isOpen && (
-          <div className="md:hidden border-t border-[#e8edf4] py-4 space-y-1">
-            {/* Industries accordion */}
-            <div>
-              <button
-                onClick={() => setIndustriesMobileOpen(!industriesMobileOpen)}
-                className="flex items-center justify-between w-full text-[14px] font-medium text-[#2d3748] hover:text-[#2b6cb0] transition-colors py-2.5 text-left"
-              >
-                <span>Industries</span>
-                <ChevronDown
-                  size={13}
-                  className={`transition-transform duration-200 text-[#718096] ${industriesMobileOpen ? "rotate-180" : ""}`}
-                />
-              </button>
-              {industriesMobileOpen && (
-                <div className="pl-4 pb-2 space-y-1">
-                  {industryItems.map(({ label, href }) => (
-                    <Link
-                      key={href}
-                      href={href}
-                      className="block text-[13.5px] text-[#4a5568] hover:text-[#1a4a8a] transition-colors py-2"
-                      onClick={() => { setIsOpen(false); setIndustriesMobileOpen(false) }}
-                    >
-                      {label}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="block text-[14px] font-medium text-[#2d3748] hover:text-[#2b6cb0] transition-colors py-2.5"
-                onClick={() => setIsOpen(false)}
-              >
-                {item.label}
-              </Link>
-            ))}
-
-            <div className="flex flex-col gap-3 pt-4 border-t border-[#e8edf4]">
-              <Link
-                href="/login"
-                className="text-center text-[14px] font-medium text-[#2d3748] hover:text-[#2b6cb0] transition-colors"
-                onClick={() => setIsOpen(false)}
-              >
-                Login
-              </Link>
-              <Link
-                href="/contact"
-                className="text-center bg-[#111d35] hover:bg-[#1a2744] text-white text-[13.5px] font-medium px-5 py-2.5 rounded-xl transition-colors"
-                onClick={() => setIsOpen(false)}
-              >
-                Book Demo
-              </Link>
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* Mobile menu — full-screen overlay, sits outside the max-w container */}
+      {isOpen && (
+        <div className="md:hidden fixed inset-x-0 top-16 bottom-0 bg-white z-[60] overflow-y-auto px-6 py-5 space-y-1 border-t border-[#e8edf4]">
+          {/* Industries accordion */}
+          <div>
+            <button
+              onClick={() => setIndustriesMobileOpen(!industriesMobileOpen)}
+              className="flex items-center justify-between w-full text-[15px] font-medium text-[#2d3748] hover:text-[#2b6cb0] transition-colors py-3 text-left"
+            >
+              <span>Industries</span>
+              <ChevronDown
+                size={14}
+                className={`transition-transform duration-200 text-[#718096] ${industriesMobileOpen ? "rotate-180" : ""}`}
+              />
+            </button>
+            {industriesMobileOpen && (
+              <div className="pl-5 pb-2 space-y-1">
+                {industryItems.map(({ label, href }) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    className="block text-[14px] text-[#4a5568] hover:text-[#1a4a8a] transition-colors py-2.5"
+                    onClick={() => { setIsOpen(false); setIndustriesMobileOpen(false) }}
+                  >
+                    {label}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {navItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="block text-[15px] font-medium text-[#2d3748] hover:text-[#2b6cb0] transition-colors py-3"
+              onClick={() => setIsOpen(false)}
+            >
+              {item.label}
+            </Link>
+          ))}
+
+          <div className="flex flex-col gap-3 pt-5 mt-2 border-t border-[#e8edf4]">
+            <Link
+              href="/login"
+              className="text-center text-[14px] font-medium text-[#2d3748] hover:text-[#2b6cb0] transition-colors py-2"
+              onClick={() => setIsOpen(false)}
+            >
+              Login
+            </Link>
+            <Link
+              href="/contact"
+              className="text-center bg-[#111d35] hover:bg-[#1a2744] text-white text-[14px] font-medium px-5 py-3 rounded-xl transition-colors"
+              onClick={() => setIsOpen(false)}
+            >
+              Book Demo
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* ── Full-width Industries Dropdown ─────────────────────────────────────
           Positioned absolute relative to the sticky nav bar.

@@ -325,7 +325,7 @@ import {
 } from "@/src/components/home-sections"
 import Link from "next/link"
 import { ArrowRight, ChevronDown } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 // ─── Inline video URL builder ─────────────────────────────────────────────────
 // Converts any video URL to an embeddable autoplay URL.
@@ -416,6 +416,115 @@ function BrochureIllustration() {
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
+
+// ─── Home Blog Section ────────────────────────────────────────────────────────
+
+interface LatestPost {
+  slug: string
+  title: string
+  description: string
+  category: string
+  readTime: string
+  date: string
+  cover: string | null
+}
+
+function HomeBlogSection() {
+  const [posts, setPosts] = useState<LatestPost[]>([])
+  const [loaded, setLoaded] = useState(false)
+
+  useEffect(function() {
+    fetch("/api/blog/latest")
+      .then(function(r) { return r.ok ? r.json() : [] })
+      .then(function(data: LatestPost[]) {
+        setPosts(data)
+        setLoaded(true)
+      })
+      .catch(function() { setLoaded(true) })
+  }, [])
+
+  // Don't render the section at all if there are no posts
+  if (loaded && posts.length === 0) return null
+
+  return (
+    <section className="bg-[#f8fafc] border-t border-[#eef3f9] py-14 px-6">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-5 h-px bg-[#2b6cb0]" />
+              <span className="text-[#2b6cb0] text-[10px] font-semibold tracking-[0.2em] uppercase">Insights</span>
+            </div>
+            <h2 className="font-serif text-[clamp(1.4rem,2.5vw,1.9rem)] font-light text-[#1a202c] tracking-tight">
+              More facility management insights
+            </h2>
+          </div>
+          <Link
+            href="/blog"
+            className="inline-flex items-center gap-1.5 text-[#2b6cb0] text-[12.5px] font-semibold hover:gap-2.5 transition-all flex-shrink-0"
+          >
+            Explore more blogs <ArrowRight size={13} />
+          </Link>
+        </div>
+
+        {/* Cards skeleton while loading */}
+        {!loaded && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {[0, 1, 2, 3].map(function(i) {
+              return (
+                <div key={i} className="bg-white rounded-[16px] border border-[#eef3f9] h-[220px] animate-pulse" />
+              )
+            })}
+          </div>
+        )}
+
+        {/* Cards */}
+        {loaded && posts.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {posts.map(function(post) {
+              return (
+                <Link
+                  key={post.slug}
+                  href={"/blog/" + post.slug}
+                  className="group flex flex-col bg-white rounded-[16px] border border-[#dbe5f0] hover:border-[#2b6cb0] hover:shadow-[0_4px_20px_rgba(43,108,176,0.1)] transition-all overflow-hidden"
+                >
+                  {/* Cover image or placeholder */}
+                  <div className="h-[120px] bg-[#eef3f9] overflow-hidden flex-shrink-0">
+                    {post.cover
+                      ? <img src={post.cover} alt={post.title} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300" />
+                      : <div className="w-full h-full flex items-center justify-center">
+                          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" className="opacity-20">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="#2b6cb0" strokeWidth="1.5"/>
+                            <polyline points="14 2 14 8 20 8" stroke="#2b6cb0" strokeWidth="1.5"/>
+                          </svg>
+                        </div>
+                    }
+                  </div>
+                  {/* Content */}
+                  <div className="flex flex-col flex-1 p-4">
+                    {/* Category */}
+                    <span className="text-[10px] font-semibold text-[#2b6cb0] tracking-[0.14em] uppercase mb-1.5">{post.category}</span>
+                    {/* Title */}
+                    <p className="font-serif text-[14px] font-light text-[#1a202c] leading-snug mb-2 line-clamp-2 group-hover:text-[#2b6cb0] transition-colors">
+                      {post.title}
+                    </p>
+                    {/* Meta */}
+                    <div className="mt-auto flex items-center gap-2 text-[10.5px] text-[#a0aec0] font-light">
+                      {post.date && <span>{post.date}</span>}
+                      {post.date && post.readTime && <span>·</span>}
+                      {post.readTime && <span>{post.readTime}</span>}
+                    </div>
+                  </div>
+                </Link>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    </section>
+  )
+}
 
 // ─── FAQ Section ─────────────────────────────────────────────────────────────
 const FAQ_ITEMS = [
@@ -539,18 +648,21 @@ export default function FirmityHome() {
           </div>
         </section>
 
+        {/* ── BLOG PREVIEW — 4 latest posts, fetched client-side via /api/blog/latest ── */}
+        <HomeBlogSection />
+
         {/* ── WHY CHOOSE FIRMITY — hero-aligned animated timeline ──
             Implementation lives in src/components/home-sections.tsx */}
         <WhyFirmitySection />
 
-        {/* ── THREE PILLARS — hero-aligned interactive tilt cards ──
-            Implementation lives in src/components/home-sections.tsx */}
-        <PillarsSection />
-
-        {/* ── SIX MODULES — hero-aligned product showcase (selector + preview) ──
+        {/* ── SEVEN MODULES — moved here: directly after "Built for operational clarity" ──
             Implementation lives in src/components/home-sections.tsx.
             Each module deep-links to /features#<slug>. */}
         <ModulesSection />
+
+        {/* ── THREE PILLARS — hero-aligned interactive tilt cards ──
+            Implementation lives in src/components/home-sections.tsx */}
+        <PillarsSection />
 
         {/* ── SEE FIRMITY IN ACTION ─────────────────────────────────────
             Video plays INLINE on click (not popup).
@@ -636,9 +748,9 @@ export default function FirmityHome() {
                 {/* Trust chips */}
                 <div className="flex items-center justify-center gap-5 mt-4">
                   {[
-                    { icon: "🔒", label: "No spam" },
-                    { icon: "⚡", label: "Instant download" },
-                    { icon: "📄", label: "PDF brochure" },
+                    { icon: "\ud83d\udd12", label: "No spam" },
+                    { icon: "\u26a1", label: "Instant download" },
+                    { icon: "\ud83d\udcc4", label: "PDF brochure" },
                   ].map(function(chip) {
                     return (
                       <span key={chip.label} className="flex items-center gap-1.5 text-[10.5px] font-light text-[#a0aec0]">
@@ -657,10 +769,10 @@ export default function FirmityHome() {
           </div>
         </section>
 
-        {/* ── FAQ ─────────────────────────────────────────────────────────── */}
+        {/* ── FAQ ─────────────────────────────────────────────────────────────── */}
         <FaqSection />
 
-        {/* ── CTA ───────────────────────────────────────────────────────── */}
+        {/* ── CTA ─────────────────────────────────────────────────────────────── */}
         <section className="relative bg-[#0d1525] overflow-hidden">
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden" aria-hidden="true">
             <span className="font-serif text-[clamp(40px,10vw,130px)] font-light text-[rgba(43,108,176,0.05)] tracking-[0.12em] whitespace-nowrap select-none">FIRMITY</span>
@@ -679,10 +791,6 @@ export default function FirmityHome() {
               Get 2 weeks free trial with unlimited training and 24/7 support
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center mb-7">
-              {/* <Link href="/contact" className="group inline-flex items-center justify-center gap-2 bg-white text-[#1a2744] px-7 py-3 text-[13px] font-semibold hover:bg-[#e8f0fb] transition-colors">
-                Start Your Free Trial
-                <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
-              </Link> */}
               <Link href="/features" className="inline-flex items-center justify-center border border-white/20 text-white/70 hover:text-white hover:border-white/[0.4] px-7 py-3 text-[13px] font-light transition-all">
                 Explore Features
               </Link>

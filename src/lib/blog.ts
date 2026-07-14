@@ -12,6 +12,7 @@ export interface BlogPost {
   cover_image_url: string | null;
   content_html: string;
   category: string | null;
+  author: string | null;
   read_time: string | null;
   meta_description: string | null;
   status: "draft" | "published";
@@ -28,6 +29,7 @@ export interface BlogPostInput {
   cover_image_url?: string | null;
   content_html: string;
   category?: string;
+  author?: string;
   read_time?: string;
   meta_description?: string;
   status: "draft" | "published";
@@ -124,6 +126,7 @@ export async function upsertPost(input: BlogPostInput): Promise<BlogPost> {
     cover_image_url: input.cover_image_url || null,
     content_html,
     category: input.category?.trim() || null,
+    author: input.author?.trim() || null,
     read_time: input.read_time?.trim() || estimateReadTime(content_html),
     // Auto-generate an SEO description from the article body when none is given.
     meta_description: input.meta_description?.trim() || excerptFromHtml(content_html) || null,
