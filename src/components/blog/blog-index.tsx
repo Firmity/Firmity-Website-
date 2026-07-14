@@ -36,21 +36,43 @@ export function BlogIndex({ posts }: { posts: Card[] }) {
       <Navigation />
       <main className="bg-white">
         {/* HERO */}
-        <section className="bg-[#111d35] relative overflow-hidden">
+        <section className="relative overflow-hidden">
+          <style>{`
+            @keyframes blogHolo {
+              0%   { background-position: 0% 50%; }
+              50%  { background-position: 100% 50%; }
+              100% { background-position: 0% 50%; }
+            }
+            @media (prefers-reduced-motion: reduce) {
+              .blog-holo { animation: none !important; }
+            }
+          `}</style>
+          {/* Soft animated pastel holographic wash */}
           <div
-            className="absolute inset-0 opacity-[0.03] pointer-events-none"
-            style={{ backgroundImage: "repeating-linear-gradient(0deg,#fff 0,#fff 1px,transparent 0,transparent 56px),repeating-linear-gradient(90deg,#fff 0,#fff 1px,transparent 0,transparent 56px)" }}
+            className="blog-holo absolute inset-0 pointer-events-none"
+            style={{
+              background:
+                "linear-gradient(120deg,#cfe8ff 0%,#dcd6ff 22%,#ffd9e8 44%,#ffe6c7 62%,#d5f5e3 80%,#cfe8ff 100%)",
+              backgroundSize: "300% 300%",
+              animation: "blogHolo 22s ease-in-out infinite",
+            }}
+            aria-hidden="true"
+          />
+          {/* Faint grid + top white fade to seat the navbar */}
+          <div
+            className="absolute inset-0 opacity-[0.04] pointer-events-none"
+            style={{ backgroundImage: "repeating-linear-gradient(0deg,#111d35 0,#111d35 1px,transparent 0,transparent 56px),repeating-linear-gradient(90deg,#111d35 0,#111d35 1px,transparent 0,transparent 56px)" }}
             aria-hidden="true"
           />
           <div className="relative max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 pt-14 pb-16">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-6 h-px bg-[#2b6cb0]" />
-              <span className="text-[#63b3ed] text-[10px] font-semibold tracking-[0.2em] uppercase">Blog</span>
+              <div className="w-6 h-px bg-[#111d35]" />
+              <span className="text-[#1a2744] text-[10px] font-semibold tracking-[0.2em] uppercase">Blog</span>
             </div>
-            <h1 className="font-serif text-[clamp(1.8rem,4vw,2.6rem)] font-light text-[#f0f4f8] leading-tight tracking-tight max-w-3xl">
-              Ideas for teams that <em className="not-italic text-[#63b3ed]">run buildings better.</em>
+            <h1 className="font-serif text-[clamp(1.8rem,4vw,2.6rem)] font-light text-[#111d35] leading-tight tracking-tight max-w-3xl">
+              Ideas for teams that <em className="not-italic text-[#2b6cb0]">run buildings better.</em>
             </h1>
-            <p className="text-[13.5px] font-light text-white/[0.45] leading-[1.85] max-w-2xl mt-3">
+            <p className="text-[13.5px] font-light text-[#1a2744]/75 leading-[1.85] max-w-2xl mt-3">
               Guides, case studies, and best practices on facility operations, maintenance, and the systems behind them.
             </p>
           </div>
@@ -87,23 +109,36 @@ export function BlogIndex({ posts }: { posts: Card[] }) {
           {featured && (
             <Reveal>
               <Link href={`/blog/${featured.slug}`} className="block group mb-8">
-                <article className="bg-[#1a2744] rounded-[20px] relative overflow-hidden p-8 sm:p-10 hover:-translate-y-1 hover:shadow-[0_18px_48px_rgba(17,29,53,0.25)] transition-all duration-300">
+                <article className="relative overflow-hidden rounded-[20px] border border-[#cbd5e0] p-8 sm:p-10 hover:-translate-y-1 hover:shadow-[0_18px_48px_rgba(17,29,53,0.15)] transition-all duration-300">
+                  {/* Pastel holographic wash (shares the hero's blogHolo keyframes) */}
+                  <div
+                    className="blog-holo absolute inset-0 pointer-events-none"
+                    style={{
+                      background:
+                        "linear-gradient(120deg,#cfe8ff 0%,#dcd6ff 22%,#ffd9e8 44%,#ffe6c7 62%,#d5f5e3 80%,#cfe8ff 100%)",
+                      backgroundSize: "300% 300%",
+                      animation: "blogHolo 22s ease-in-out infinite",
+                    }}
+                    aria-hidden="true"
+                  />
                   <div className="absolute top-0 left-0 right-0 h-[3px] bg-[#2b6cb0]" />
-                  <div className="flex items-center gap-3 mb-4">
-                    <span className="text-[9px] font-semibold tracking-[0.16em] uppercase text-[#63b3ed] border border-[#63b3ed]/30 rounded-lg px-2.5 py-1">
-                      Featured · {featured.category}
-                    </span>
-                    {featured.readTime && (
-                      <span className="flex items-center gap-1.5 text-[10.5px] font-light text-white/[0.4]">
-                        <Clock size={11} /> {featured.readTime}
+                  <div className="relative">
+                    <div className="flex items-center gap-3 mb-4">
+                      <span className="text-[9px] font-semibold tracking-[0.16em] uppercase text-[#2b6cb0] border border-[#2b6cb0]/40 bg-white/50 rounded-lg px-2.5 py-1">
+                        Featured · {featured.category}
                       </span>
-                    )}
-                    <span className="text-[10.5px] font-light text-white/[0.4]">{featured.date}</span>
+                      {featured.readTime && (
+                        <span className="flex items-center gap-1.5 text-[10.5px] font-light text-[#1a2744]/70">
+                          <Clock size={11} /> {featured.readTime}
+                        </span>
+                      )}
+                      <span className="text-[10.5px] font-light text-[#1a2744]/70">{featured.date}</span>
+                    </div>
+                    <h2 className="font-serif text-[clamp(1.3rem,2.6vw,1.8rem)] font-light text-[#111d35] leading-snug tracking-tight mb-3 max-w-2xl group-hover:text-[#2b6cb0] transition-colors">
+                      {featured.title}
+                    </h2>
+                    <p className="text-[13px] font-light text-[#1a2744]/80 leading-[1.8] max-w-2xl">{featured.description}</p>
                   </div>
-                  <h2 className="font-serif text-[clamp(1.3rem,2.6vw,1.8rem)] font-light text-[#f0f4f8] leading-snug tracking-tight mb-3 max-w-2xl group-hover:text-[#90cdf4] transition-colors">
-                    {featured.title}
-                  </h2>
-                  <p className="text-[13px] font-light text-white/[0.5] leading-[1.8] max-w-2xl">{featured.description}</p>
                 </article>
               </Link>
             </Reveal>
