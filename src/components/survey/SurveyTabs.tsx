@@ -13,11 +13,11 @@ interface AnswerState {
 }
 
 interface Props {
-  activeArea: string;
+  activeArea: string;                            // section id (tree node id or facility label)
   activeDomain: string;
   onDomainChange: (d: string) => void;
-  domainsByArea: Record<string, string[]>;
-  questionsByDomain: Record<string, Question[]>;
+  domainsBySection: Record<string, string[]>;
+  questionsByArea: Record<string, Record<string, Question[]>>;
   domainMeta: Record<string, Domain>;
   answers: Record<string, AnswerState>;
   photos: Record<string, string[]>;
@@ -25,10 +25,15 @@ interface Props {
   keyFor: (area: string, qid: string) => string;
   onField: (area: string, questionId: string, field: "value" | "remark", val: string) => void;
   onPhoto: (area: string, questionId: string, file: File) => void;
+  onRemovePhoto?: (area: string, questionId: string, url: string, subId?: string) => void;
   staffArea?: string;
   staffNode?: ReactNode;
   naKeys: Set<string>;                                   // '<area>||<domain>' marked not-applicable
   onToggleNa: (area: string, domain: string, next: boolean) => void;
+  addBar?: ReactNode;                                    // "Add from bank / custom" controls (v2)
+  emptyAdd?: ReactNode;                                  // first-question entry point for empty sections
+  onEditChecklist?: (qid: string, checklist: { id: string; text: string; answer_type: string }[]) => void;
+  onRemoveQuestion?: (qid: string) => void;
 }
 
 function Tab({ active, done, label, onClick }: { active: boolean; done: boolean; label: string; onClick: () => void }) {
@@ -51,12 +56,12 @@ function Tab({ active, done, label, onClick }: { active: boolean; done: boolean;
 
 export default function SurveyTabs(props: Props) {
   const {
-    activeArea, activeDomain, onDomainChange, domainsByArea, questionsByDomain,
-    domainMeta, answers, photos, completedDomains, keyFor, onField, onPhoto, staffArea, staffNode,
-    naKeys, onToggleNa,
+    activeArea, activeDomain, onDomainChange, domainsBySection, questionsByArea,
+    domainMeta, answers, photos, completedDomains, keyFor, onField, onPhoto, onRemovePhoto, staffArea, staffNode,
+    naKeys, onToggleNa, addBar, emptyAdd, onEditChecklist, onRemoveQuestion,
   } = props;
 
-  const domains = domainsByArea[activeArea] ?? [];
+  const domains = domainsBySection[activeArea] ?? [];
   const label = (slug: string) =>
     slug === "general" ? "Site Details" : domainMeta[slug]?.name ?? slug;
 
@@ -95,22 +100,46 @@ export default function SurveyTabs(props: Props) {
       )}
 
       {isStaff ? (
-        staffNode
+        (() => {
+          const staffNaKey = `${activeArea}||__self`;
+          const staffNa = naKeys.has(staffNaKey);
+          return (
+            <>
+              <label className="mb-4 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
+                <input type="checkbox" checked={staffNa} onChange={(e) => onToggleNa(activeArea, "__self", e.target.checked)} className="h-4 w-4 rounded border-slate-300" />
+                <Ban className="h-4 w-4 text-slate-400" /> This section does not apply
+              </label>
+              {staffNa ? (
+                <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">
+                  Marked not applicable — this section is excluded from the report.
+                </div>
+              ) : staffNode}
+            </>
+          );
+        })()
+      ) : domains.length === 0 && emptyAdd ? (
+        emptyAdd
       ) : activeDomain ? (
         isNa ? (
           <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">
             Marked not applicable — these questions are disabled and won&apos;t appear in the report.
           </div>
         ) : (
-          <DomainGroup
-            area={activeArea}
-            questions={questionsByDomain[activeDomain] ?? []}
-            answers={answers}
-            photos={photos}
-            keyFor={keyFor}
-            onField={onField}
-            onPhoto={onPhoto}
-          />
+          <>
+            {addBar}
+            <DomainGroup
+              area={activeArea}
+              questions={questionsByArea[activeArea]?.[activeDomain] ?? []}
+              answers={answers}
+              photos={photos}
+              keyFor={keyFor}
+              onField={onField}
+              onPhoto={onPhoto}
+              onRemovePhoto={onRemovePhoto}
+              onEditChecklist={onEditChecklist}
+              onRemoveQuestion={onRemoveQuestion}
+            />
+          </>
         )
       ) : null}
     </section>

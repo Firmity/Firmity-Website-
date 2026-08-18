@@ -9,9 +9,10 @@
 // row as JSON maps: value = {subId: value}, remark = {subId: remark}.
 
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Camera, Image as ImageIcon, Languages, Loader2, RotateCcw } from "lucide-react";
+import { Camera, Image as ImageIcon, Languages, Loader2, RotateCcw, Trash2, X } from "lucide-react";
 import type { Question, SubAnswerType } from "@/src/lib/survey-api";
 import { PHOTO_SUB_SEP } from "@/src/hooks/useSurveyAnswers";
+import { uuid } from "@/src/lib/uuid";
 import { translateNow, useTranslator } from "@/src/lib/i18n";
 import { useSurveyLang } from "@/src/components/survey/SurveyLangContext";
 
@@ -56,6 +57,9 @@ interface Props {
   photoBaseKey: string;             // keyFor(area, question.id)
   onField: (area: string, questionId: string, field: "value" | "remark", val: string) => void;
   onPhoto: (area: string, questionId: string, file: File, subId?: string) => void;
+  onRemovePhoto?: (area: string, questionId: string, url: string, subId?: string) => void;
+  onEditChecklist?: (qid: string, checklist: { id: string; text: string; answer_type: string }[]) => void;
+  onRemoveQuestion?: (qid: string) => void;   // delete a survey-scoped custom question
 }
 
 function isNumberValue(v: string) {
@@ -76,14 +80,16 @@ function ChoiceInput({ value, setValue, t = IDENT }: { value: string; setValue: 
   return (
     <>
       <div className="flex flex-wrap gap-2">
-        {CHOICES.map((c) => (
+        {/* N/A removed — the per-question "Applies here / Not applicable" gate
+            handles non-applicability; Yes/No/Numbered is all that's needed. */}
+        {(["Yes", "No"] as const).map((c) => (
           <button
             key={c}
             type="button"
             onClick={() => { setNumActive(false); setValue(value === c ? "" : c); }}
             className={btn(CHOICE_COLOR[c], !numActive && value === c)}
           >
-            {c === "N/A" ? t("Not Applicable") : t(c)}
+            {t(c)}
           </button>
         ))}
         <button
@@ -119,10 +125,6 @@ function TypedControl({ type, value, setValue, t = IDENT }: { type: SubAnswerTyp
             {t(r)}
           </button>
         ))}
-        {/* Not Applicable — excluded from the health score and AI report */}
-        <button type="button" onClick={() => setValue(value === "N/A" ? "" : "N/A")} className={btn("slate", value === "N/A")}>
-          {t("Not Applicable")}
-        </button>
       </div>
     );
   }
@@ -135,7 +137,11 @@ function TypedControl({ type, value, setValue, t = IDENT }: { type: SubAnswerTyp
   return <ChoiceInput value={value} setValue={setValue} t={t} />; // yes_no | choice
 }
 
-function PhotoButton({ photos, onFile }: { photos: string[]; onFile: (f: File) => void }) {
+function PhotoButton({ photos, onFile, onRemove }: {
+  photos: string[];
+  onFile: (f: File) => void;
+  onRemove?: (url: string) => void;
+}) {
   const camRef = useRef<HTMLInputElement | null>(null);
   const galRef = useRef<HTMLInputElement | null>(null);
   const handle = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -148,8 +154,21 @@ function PhotoButton({ photos, onFile }: { photos: string[]; onFile: (f: File) =
       {photos.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {photos.map((url) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img key={url} src={url} alt="survey" className="h-16 w-16 rounded-lg border border-slate-200 object-cover" />
+            <span key={url} className="group/photo relative inline-flex">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={url} alt="survey" className="h-16 w-16 rounded-lg border border-slate-200 object-cover" />
+              {onRemove && (
+                <button
+                  type="button"
+                  onClick={() => onRemove(url)}
+                  aria-label="Remove photo"
+                  title="Remove photo"
+                  className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full border border-white bg-slate-900/80 text-white shadow-sm transition hover:bg-red-600 md:opacity-0 md:group-hover/photo:opacity-100"
+                >
+                  <X className="h-3 w-3" strokeWidth={3} />
+                </button>
+              )}
+            </span>
           ))}
         </div>
       )}
@@ -177,7 +196,24 @@ function PhotoButton({ photos, onFile }: { photos: string[]; onFile: (f: File) =
   );
 }
 
-function QuestionCard({ question, area, answer, photos, photoBaseKey, onField, onPhoto }: Props) {
+function QuestionCard({ question, area, answer, photos, photoBaseKey, onField, onPhoto, onRemovePhoto, onEditChecklist, onRemoveQuestion }: Props) {
+  const RemoveBtn = question.source === "custom" && onRemoveQuestion ? (
+    <button
+      type="button"
+      onClick={() => onRemoveQuestion(question.id)}
+      title="Delete this custom question"
+      className="shrink-0 rounded-md border border-slate-200 p-1.5 text-slate-400 hover:border-red-300 hover:text-red-600"
+    >
+      <Trash2 className="h-4 w-4" />
+    </button>
+  ) : null;
+  const [newSub, setNewSub] = useState("");
+  const addSubQuestion = () => {
+    const text = newSub.trim();
+    if (!text) return;
+    onEditChecklist?.(question.id, [...(question.checklist ?? []), { id: uuid(), text, answer_type: "yes_no" }]);
+    setNewSub("");
+  };
   const a = answer ?? { value: "", remark: "" };
   const setValue = useCallback((v: string) => onField(area, question.id, "value", v), [onField, area, question.id]);
   const setRemark = useCallback((v: string) => onField(area, question.id, "remark", v), [onField, area, question.id]);
@@ -222,6 +258,26 @@ function QuestionCard({ question, area, answer, photos, photoBaseKey, onField, o
   const [translated, setTranslated] = useState(false);
   const [translating, setTranslating] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
+
+  // Default-N/A model: a question stays behind an "Applies here" gate until the
+  // surveyor opts in (or it already has an answer). Ungated = N/A everywhere
+  // (excluded from score + report), so this only controls visibility.
+  const hasAnswer = !!(a.value || a.remark);
+  const [applied, setApplied] = useState(hasAnswer);
+  useEffect(() => { if (hasAnswer) setApplied(true); }, [hasAnswer]);
+
+  // Undo an accidental "Applies here": clear any answer and collapse back to the
+  // gated N/A state (clearing first, so the hasAnswer effect can't re-expand it).
+  const NotApplicableBtn = (
+    <button
+      type="button"
+      onClick={() => { reset(); setApplied(false); }}
+      title="This doesn't apply here — collapse"
+      className="shrink-0 rounded-md border border-slate-200 bg-white px-2 py-1 text-[10px] font-semibold text-slate-500 hover:bg-slate-100"
+    >
+      Not applicable
+    </button>
+  );
 
   const cardStrings = useMemo(
     () => [
@@ -288,6 +344,23 @@ function QuestionCard({ question, area, answer, photos, photoBaseKey, onField, o
       </button>
     );
 
+  // Non-checklist questions default to N/A behind an "Applies here" gate.
+  // (Checklist has its own Yes/No/N-A gate, so it is never double-gated.)
+  if (t !== "checklist" && !applied) {
+    return (
+      <div className={`${CARD} flex items-center justify-between gap-3`}>
+        <p className="text-sm font-medium text-slate-500">{T(question.text)}</p>
+        <button
+          type="button"
+          onClick={() => setApplied(true)}
+          className="shrink-0 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100"
+        >
+          Applies here
+        </button>
+      </div>
+    );
+  }
+
   // ---- Checklist: a Yes/No/N-A gate + typed sub-questions ----
   // The parent acts as a gate ("is this present / applicable?"). Only a "Yes"
   // reveals the sub-questions; No / Not-Applicable hides them and excludes the
@@ -310,7 +383,7 @@ function QuestionCard({ question, area, answer, photos, photoBaseKey, onField, o
       <div className={CARD}>
         <div className="mb-2 flex items-start justify-between gap-2">
           <p className="text-sm font-semibold text-slate-800">{T(question.text)}</p>
-          {TranslateBtn}
+          <span className="flex shrink-0 items-center gap-2">{TranslateBtn}{RemoveBtn}</span>
         </div>
 
         {/* Gate */}
@@ -350,9 +423,35 @@ function QuestionCard({ question, area, answer, photos, photoBaseKey, onField, o
               const subPhotos = photos[`${photoBaseKey}${PHOTO_SUB_SEP}${sub.id}`] ?? [];
               return (
                 <div key={sub.id} className="rounded-lg border border-slate-200 bg-white p-3">
-                  <p className="mb-2 text-sm font-medium text-slate-700">{i + 1}. {T(sub.text)}</p>
+                  <div className="mb-2 flex items-center justify-between gap-2">
+                    <p className="text-sm font-medium text-slate-700">{i + 1}. {T(sub.text)}</p>
+                    <span className="flex shrink-0 items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setSub("value", sub.id, valueMap[sub.id] === "N/A" ? "" : "N/A")}
+                        title="Not applicable — excluded from score & report"
+                        className={`rounded-md border px-2 py-0.5 text-[10px] font-semibold ${valueMap[sub.id] === "N/A" ? "border-slate-700 bg-slate-700 text-white" : "border-slate-200 bg-slate-100 text-slate-500 hover:bg-slate-200"}`}
+                      >
+                        N/A
+                      </button>
+                      {onEditChecklist && (
+                        <button
+                          type="button"
+                          onClick={() => onEditChecklist(question.id, (question.checklist ?? []).filter((s) => s.id !== sub.id))}
+                          title="Remove this sub-question"
+                          className="rounded-md border border-slate-200 p-1 text-slate-400 hover:border-red-300 hover:text-red-600"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                    </span>
+                  </div>
                   <div className="flex flex-col gap-2">
-                    <TypedControl type={sub.answer_type} value={valueMap[sub.id] ?? ""} setValue={(v) => setSub("value", sub.id, v)} t={T} />
+                    {valueMap[sub.id] === "N/A" ? (
+                      <p className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-2 text-xs text-slate-500">Not applicable — excluded from the score and report.</p>
+                    ) : (
+                      <TypedControl type={sub.answer_type} value={valueMap[sub.id] ?? ""} setValue={(v) => setSub("value", sub.id, v)} t={T} />
+                    )}
                     <textarea
                       value={remarkMap[sub.id] ?? ""}
                       onChange={(e) => setSub("remark", sub.id, e.target.value)}
@@ -360,11 +459,28 @@ function QuestionCard({ question, area, answer, photos, photoBaseKey, onField, o
                       rows={2}
                       className={FIELD}
                     />
-                    <PhotoButton photos={subPhotos} onFile={(f) => onPhoto(area, question.id, f, sub.id)} />
+                    <PhotoButton
+                      photos={subPhotos}
+                      onFile={(f) => onPhoto(area, question.id, f, sub.id)}
+                      onRemove={onRemovePhoto ? (u) => onRemovePhoto(area, question.id, u, sub.id) : undefined}
+                    />
                   </div>
                 </div>
               );
             })}
+            {onEditChecklist && (
+              <div className="flex items-center gap-2 rounded-lg border border-dashed border-slate-300 bg-slate-50 p-2">
+                <input
+                  value={newSub}
+                  onChange={(e) => setNewSub(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") addSubQuestion(); }}
+                  placeholder="Add a sub-question…"
+                  className="min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm"
+                />
+                <button type="button" onClick={addSubQuestion} disabled={!newSub.trim()}
+                  className="shrink-0 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50">Add</button>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -381,9 +497,10 @@ function QuestionCard({ question, area, answer, photos, photoBaseKey, onField, o
           <p className="text-sm font-medium text-slate-800">{T(question.text)}</p>
           <div className="flex shrink-0 items-center gap-2.5">
             {TranslateBtn}
-            {NaBtn}
+            {NotApplicableBtn}
             <span className="h-6 w-px bg-slate-200" />
             {ResetBtn}
+            {RemoveBtn}
           </div>
         </div>
         {isNaSelf ? NaNote : (
@@ -407,9 +524,10 @@ function QuestionCard({ question, area, answer, photos, photoBaseKey, onField, o
         <div className="flex shrink-0 items-center gap-2.5">
           {question.needs_photo && <span className="rounded-md bg-amber-100 px-2 py-0.5 text-xs text-amber-700">photo</span>}
           {TranslateBtn}
-          {t === "text" && NaBtn}
+          {NotApplicableBtn}
           <span className="h-6 w-px bg-slate-200" />
           {ResetBtn}
+          {RemoveBtn}
         </div>
       </div>
 
@@ -418,7 +536,11 @@ function QuestionCard({ question, area, answer, photos, photoBaseKey, onField, o
           <>
             <TypedControl type={t === "rating" ? "rating" : t === "text" ? "text" : "choice"} value={a.value} setValue={setValue} t={T} />
             <textarea value={a.remark} onChange={(e) => setRemark(e.target.value)} placeholder="Remarks (optional)" rows={2} className={FIELD} />
-            <PhotoButton photos={myPhotos} onFile={(f) => onPhoto(area, question.id, f)} />
+            <PhotoButton
+              photos={myPhotos}
+              onFile={(f) => onPhoto(area, question.id, f)}
+              onRemove={onRemovePhoto ? (u) => onRemovePhoto(area, question.id, u) : undefined}
+            />
           </>
         )}
       </div>

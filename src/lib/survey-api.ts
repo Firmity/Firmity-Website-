@@ -3,7 +3,27 @@
 
 import { getSupabaseBrowser } from "./supabase-browser";
 
-const API = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
+// API base resolution (in priority order):
+//  1) NEXT_PUBLIC_API_BASE if set (production / explicit override).
+//  2) In the browser with no override: derive from the current page host so LAN
+//     testing works — on a phone at http://192.168.1.30:3000 this becomes
+//     http://192.168.1.30:8000 (NOT localhost, which would be the phone itself).
+//  3) SSR fallback.
+function resolveApiBase(): string {
+  const env = process.env.NEXT_PUBLIC_API_BASE?.replace(/\/$/, "");
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname;
+    const onLan = host !== "localhost" && host !== "127.0.0.1";
+    const envIsLocal = !env || /\/\/(localhost|127\.0\.0\.1)\b/.test(env);
+    // Page served over the LAN (phone/tablet) but the configured base points at
+    // localhost -> that host is THIS device, unreachable. Derive from the page host.
+    if (onLan && envIsLocal) return `${window.location.protocol}//${host}:8000`;
+    if (env) return env;
+    return `${window.location.protocol}//${host}:8000`;
+  }
+  return env || "http://localhost:8000";
+}
+const API = resolveApiBase();
 
 // Attach the signed-in staff user's Supabase token so FastAPI can verify it.
 async function authHeader(): Promise<Record<string, string>> {
@@ -79,6 +99,7 @@ export interface Question {
   needs_photo: boolean;
   facility_types: string[];
   sort_order: number;
+  source?: "bank" | "custom"; // survey-scoped questions carry this so the UI can allow delete
   checklist?: ChecklistItem[]; // only when answer_type === "checklist"
 }
 
@@ -111,8 +132,46 @@ export interface Survey {
   na_sections: string[]; // ['<area>||<domain>'] sections marked not-applicable
   gate_located_at?: string | null;  // on-site GPS confirmed (server-persisted, cross-device)
   gate_verified_at?: string | null; // survey code confirmed (server-persisted, cross-device)
+  assigned_to?: string | null;      // surveyor user id (admin-assigned)
+  first_answer_at?: string | null;  // survey timer start (set on first answer sync)
   status: string;
   created_at: string;
+}
+
+// Area hierarchy colours — MUST mirror backend report_theme.py (AREA_BUILDING /
+// AREA_FLOOR / AREA_ROOM) so the tree reads identically on screen and in the PDF.
+// depth 0 = building (navy), 1 = floor (teal), 2+ = room/area (amber).
+export const AREA_DEPTH_COLORS = ["#1E3A5F", "#0F766E", "#B45309"] as const;
+
+export function areaDepthColor(depth: number): string {
+  const i = Math.min(Math.max(depth, 0), AREA_DEPTH_COLORS.length - 1);
+  return AREA_DEPTH_COLORS[i];
+}
+
+// ---- Area tree (arbitrary depth) ----
+export interface SurveyArea {
+  id: string;
+  survey_id: string;
+  parent_id: string | null; // null => top-level building
+  name: string;
+  kind: "building" | "area";
+  sort_order: number;
+}
+
+// ---- Per-survey question instances (snapshots + custom) ----
+export interface SurveyQuestion {
+  id: string;
+  survey_id: string;
+  area_id: string | null;
+  domain_slug: string;
+  section: string | null;
+  text: string;
+  answer_type: AnswerType;
+  needs_photo: boolean;
+  checklist: ChecklistItem[];
+  sort_order: number;
+  source: "bank" | "custom";
+  origin_question_id: string | null;
 }
 
 export interface ReportResult {
@@ -123,6 +182,8 @@ export interface ReportResult {
   share_token: string | null;
   generated_at: string;
   ai_generated?: boolean; // false => AI narrative was unavailable; deterministic fallback used
+  duration_seconds?: number | null; // first_answer_at -> generated_at
+  retry_after_seconds?: number | null; // set on LLM quota (429): seconds to wait before AI retry
 }
 
 export interface SavedAnswer {
@@ -198,7 +259,9 @@ export const saveDeployment = (surveyId: string, plan: Record<string, unknown>) 
     body: JSON.stringify(plan),
   });
 
-export const saveProgress = (surveyId: string, progress: Record<string, boolean>) =>
+// Progress is a nested map (section -> { domain|flag: boolean }); the backend just
+// stores the JSON, so accept any serialisable shape.
+export const saveProgress = (surveyId: string, progress: Record<string, unknown>) =>
   http<{ ok: boolean }>(`/surveys/${surveyId}/progress`, {
     method: "PUT",
     body: JSON.stringify(progress),
@@ -258,6 +321,85 @@ export const getQuestionsBatch = (domains: string[], facilityType: string) =>
     `/questions/batch?domains=${encodeURIComponent(domains.join(","))}&facility_type=${encodeURIComponent(facilityType)}`
   );
 
+// --- Area tree (per-survey) ---
+export const getAreas = (surveyId: string) =>
+  http<SurveyArea[]>(`/surveys/${surveyId}/areas`);
+
+// id is client-generated (UUID) so offline answers can reference the node immediately.
+export const createArea = (
+  surveyId: string,
+  body: { id?: string; parent_id?: string | null; name: string; kind?: "building" | "area"; sort_order?: number }
+) => http<SurveyArea>(`/surveys/${surveyId}/areas`, { method: "POST", body: JSON.stringify(body) });
+
+export const updateArea = (
+  surveyId: string,
+  areaId: string,
+  body: { name: string; parent_id?: string | null; kind?: "building" | "area"; sort_order?: number }
+) => http<SurveyArea>(`/surveys/${surveyId}/areas/${areaId}`, { method: "PATCH", body: JSON.stringify(body) });
+
+export const deleteArea = (surveyId: string, areaId: string) =>
+  http<{ ok: boolean; deleted_areas: number }>(`/surveys/${surveyId}/areas/${areaId}`, { method: "DELETE" });
+
+export const reorderAreas = (surveyId: string, orderedIds: string[]) =>
+  http<{ ok: boolean }>(`/surveys/${surveyId}/areas/reorder`, {
+    method: "PUT",
+    body: JSON.stringify({ ordered_ids: orderedIds }),
+  });
+
+// --- Survey questions (per-survey instances) ---
+export const getSurveyQuestions = (surveyId: string) =>
+  http<SurveyQuestion[]>(`/surveys/${surveyId}/questions`);
+
+export const addQuestionsFromBank = (surveyId: string, areaId: string | null, questionIds: string[]) =>
+  http<SurveyQuestion[]>(`/surveys/${surveyId}/questions/from-bank`, {
+    method: "POST",
+    body: JSON.stringify({ area_id: areaId, question_ids: questionIds }),
+  });
+
+export interface CustomQuestionBody {
+  id?: string;
+  area_id?: string | null;
+  domain_slug: string;
+  section?: string | null;
+  text: string;
+  answer_type: AnswerType;
+  needs_photo?: boolean;
+  checklist?: ChecklistItem[];
+}
+
+export const addCustomQuestion = (surveyId: string, body: CustomQuestionBody) =>
+  http<SurveyQuestion>(`/surveys/${surveyId}/questions/custom`, { method: "POST", body: JSON.stringify(body) });
+
+export const updateSurveyQuestion = (surveyId: string, sqId: string, body: CustomQuestionBody) =>
+  http<SurveyQuestion>(`/surveys/${surveyId}/questions/${sqId}`, { method: "PATCH", body: JSON.stringify(body) });
+
+export const deleteSurveyQuestion = (surveyId: string, sqId: string) =>
+  http<{ ok: boolean }>(`/surveys/${surveyId}/questions/${sqId}`, { method: "DELETE" });
+
+export const reorderSurveyQuestions = (surveyId: string, orderedIds: string[]) =>
+  http<{ ok: boolean }>(`/surveys/${surveyId}/questions/reorder`, {
+    method: "PUT",
+    body: JSON.stringify({ ordered_ids: orderedIds }),
+  });
+
+// --- Admin: create a survey directly (role-gated server-side) ---
+export interface AdminSurveyBody {
+  facility_type: string;
+  domain_slugs: string[];
+  facility_name?: string | null;
+  facility_address?: string | null;
+  total_area?: number | null;
+  area_unit?: "sqft" | "acres" | null;
+  blocks?: { name: string; notes?: string | null }[];
+  preferred_dates?: { date: string; window?: string }[];
+  contact?: Record<string, unknown> | null;
+  form_payload?: Record<string, unknown>;
+  assigned_to?: string | null;
+}
+
+export const adminCreateSurvey = (body: AdminSurveyBody) =>
+  http<Survey>(`/surveys/admin`, { method: "POST", body: JSON.stringify(body) });
+
 // --- Photos (same-origin Next route; keeps the Supabase service key server-side) ---
 export async function uploadPhoto(
   surveyId: string,
@@ -278,4 +420,17 @@ export async function uploadPhoto(
     throw new Error(`uploadPhoto -> ${res.status}: ${msg}`);
   }
   return res.json();
+}
+
+/** Remove a previously uploaded photo (deletes the DB row + the Storage object). */
+export async function deletePhoto(surveyId: string, url: string): Promise<void> {
+  const res = await fetch("/api/survey-photo", {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ survey_id: surveyId, url }),
+  });
+  if (!res.ok) {
+    const msg = (await res.json().catch(() => ({})))?.error ?? res.statusText;
+    throw new Error(`deletePhoto -> ${res.status}: ${msg}`);
+  }
 }

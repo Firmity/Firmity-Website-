@@ -6,12 +6,15 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, GripVertical, HelpCircle, Plus, Power, Trash2 } from "lucide-react";
 import { getSupabaseBrowser } from "@/src/lib/supabase-browser";
+import { uuid } from "@/src/lib/uuid";
 import Dropdown from "@/src/components/ui/Dropdown";
 
 interface Domain { slug: string; name: string; is_key: boolean; is_active: boolean; sort_order: number }
 interface Q {
   id: string; domain_slug: string; section: string | null; text: string;
   answer_type: string; is_active: boolean; sort_order: number;
+  facility_types: string[]; is_default: boolean;
+  good_answer?: string | null;   // 'yes' | 'no'; which answer is compliant
   checklist?: SubItem[];
 }
 const TYPES = ["choice", "rating", "text", "remarks", "number", "yes_no", "checklist"];
@@ -29,7 +32,64 @@ const SUB_TYPE_LABELS: Record<string, string> = {
 };
 const subTypeOpts = SUB_TYPES.map((t) => ({ value: t, label: SUB_TYPE_LABELS[t] ?? t }));
 
-interface SubItem { id: string; text: string; answer_type: string }
+interface SubItem { id: string; text: string; answer_type: string; good_answer?: string | null }
+
+// Compliant-answer picker for a yes/no sub-question. Mirrors the parent-question
+// toggle: default "yes" = compliant when unset. Scoring reads sub.good_answer to
+// invert polarity (e.g. "Is there scrap?" → compliant answer is "No").
+function SubGood({ value, onChange }: { value?: string | null; onChange: (v: string) => void }) {
+  const cur = value === "no" ? "no" : "yes";
+  return (
+    <div className="flex shrink-0 items-center gap-1" title="Which answer passes (is compliant)?">
+      <span className="text-[10px] uppercase tracking-wide text-slate-400">OK</span>
+      {(["yes", "no"] as const).map((v) => (
+        <button
+          key={v}
+          type="button"
+          onClick={() => onChange(v)}
+          className={`rounded px-1.5 py-0.5 text-xs font-medium ${cur === v ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}
+        >
+          {v === "yes" ? "Yes" : "No"}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// Facility types mirror the backend FacilityType literal (models.py). Empty
+// selection on a question = "applies to all facility types".
+const FACILITY_TYPES = ["manufacturing", "educational", "residential", "commercial", "healthcare", "hotel", "mixed_use"];
+const FT_LABELS: Record<string, string> = {
+  manufacturing: "Manufacturing", educational: "Educational", residential: "Residential",
+  commercial: "Commercial", healthcare: "Healthcare", hotel: "Hotel", mixed_use: "Mixed-use",
+};
+
+function FacilityChips({ value, onChange }: { value: string[]; onChange: (v: string[]) => void }) {
+  const toggle = (t: string) =>
+    onChange(value.includes(t) ? value.filter((x) => x !== t) : [...value, t]);
+  return (
+    <div className="flex flex-wrap items-center gap-1">
+      <span className="mr-0.5 text-[11px] text-slate-400">
+        {value.length === 0 ? "All facilities:" : "Applies to:"}
+      </span>
+      {FACILITY_TYPES.map((t) => {
+        const on = value.includes(t);
+        return (
+          <button
+            key={t}
+            type="button"
+            onClick={() => toggle(t)}
+            className={`rounded-full border px-2 py-0.5 text-[11px] transition ${
+              on ? "border-slate-900 bg-slate-900 text-white" : "border-slate-300 text-slate-500 hover:bg-slate-100"
+            }`}
+          >
+            {FT_LABELS[t] ?? t}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function AdminQuestions() {
   const sb = getSupabaseBrowser();
@@ -38,7 +98,7 @@ export default function AdminQuestions() {
   const [qs, setQs] = useState<Q[]>([]);
   const [err, setErr] = useState<string | null>(null);
   const [addingQ, setAddingQ] = useState(false);
-  const [draft, setDraft] = useState<{ text: string; section: string; answer_type: string; checklist: SubItem[] }>({ text: "", section: "", answer_type: "choice", checklist: [] });
+  const [draft, setDraft] = useState<{ text: string; section: string; answer_type: string; facility_types: string[]; is_default: boolean; checklist: SubItem[] }>({ text: "", section: "", answer_type: "choice", facility_types: [], is_default: false, checklist: [] });
   const [addingCat, setAddingCat] = useState(false);
   const [catDraft, setCatDraft] = useState({ name: "", isKey: true });
   const [rename, setRename] = useState("");
@@ -59,7 +119,7 @@ export default function AdminQuestions() {
 
   async function loadQs(d: string) {
     const { data, error } = await sb
-      .from("questions").select("id,domain_slug,section,text,answer_type,is_active,sort_order,checklist")
+      .from("questions").select("id,domain_slug,section,text,answer_type,is_active,sort_order,facility_types,is_default,good_answer,checklist")
       .eq("domain_slug", d).order("sort_order"); // manual order (drag-and-drop) drives the admin list
     if (error) setErr(error.message);
     let rows = (data as Q[]) ?? [];
@@ -112,22 +172,23 @@ export default function AdminQuestions() {
     if (!draft.text.trim()) return;
     const isChecklist = draft.answer_type === "checklist";
     const checklist = isChecklist
-      ? draft.checklist.filter((s) => s.text.trim()).map((s) => ({ id: s.id, text: s.text.trim(), answer_type: s.answer_type }))
+      ? draft.checklist.filter((s) => s.text.trim()).map((s) => ({ id: s.id, text: s.text.trim(), answer_type: s.answer_type, good_answer: s.answer_type === "yes_no" ? (s.good_answer ?? "yes") : null }))
       : [];
     if (isChecklist && checklist.length === 0) { setErr("Add at least one sub-question to a checklist."); return; }
     const max = qs.reduce((m, q) => Math.max(m, q.sort_order), 0) + 1;
     const { error } = await sb.from("questions").insert({
       domain_slug: domain, section: draft.section || null, text: draft.text.trim(),
-      answer_type: draft.answer_type, needs_photo: false, facility_types: [], sort_order: max, is_active: true,
+      answer_type: draft.answer_type, needs_photo: false, facility_types: draft.facility_types,
+      is_default: draft.is_default, sort_order: max, is_active: true,
       checklist,
     });
     if (error) { setErr(error.message); return; }
-    setDraft({ text: "", section: "", answer_type: "choice", checklist: [] }); setAddingQ(false); loadQs(domain);
+    setDraft({ text: "", section: "", answer_type: "choice", facility_types: [], is_default: false, checklist: [] }); setAddingQ(false); loadQs(domain);
   }
 
   // Sub-question editor helpers (checklist drafts)
   const addSub = () =>
-    setDraft((d) => ({ ...d, checklist: [...d.checklist, { id: crypto.randomUUID(), text: "", answer_type: "yes_no" }] }));
+    setDraft((d) => ({ ...d, checklist: [...d.checklist, { id: uuid(), text: "", answer_type: "yes_no" }] }));
   const updateSub = (id: string, patch: Partial<SubItem>) =>
     setDraft((d) => ({ ...d, checklist: d.checklist.map((s) => (s.id === id ? { ...s, ...patch } : s)) }));
   const removeSub = (id: string) =>
@@ -140,7 +201,7 @@ export default function AdminQuestions() {
   const setDraftFor = (qid: string, items: SubItem[]) =>
     setCheckDrafts((d) => ({ ...d, [qid]: items }));
   const addSubTo = (q: Q) =>
-    setDraftFor(q.id, [...draftOf(q), { id: crypto.randomUUID(), text: "", answer_type: "yes_no" }]);
+    setDraftFor(q.id, [...draftOf(q), { id: uuid(), text: "", answer_type: "yes_no" }]);
   const updSubIn = (q: Q, sid: string, patch: Partial<SubItem>) =>
     setDraftFor(q.id, draftOf(q).map((s) => (s.id === sid ? { ...s, ...patch } : s)));
   const rmSubIn = (q: Q, sid: string) =>
@@ -150,7 +211,7 @@ export default function AdminQuestions() {
   async function saveChecklist(q: Q) {
     const items = draftOf(q)
       .filter((s) => s.text.trim())
-      .map((s) => ({ id: s.id, text: s.text.trim(), answer_type: s.answer_type }));
+      .map((s) => ({ id: s.id, text: s.text.trim(), answer_type: s.answer_type, good_answer: s.answer_type === "yes_no" ? (s.good_answer ?? "yes") : null }));
     await update(q.id, { checklist: items }); // optimistic + persist (update() handles both)
     setCheckDrafts((d) => { const n = { ...d }; delete n[q.id]; return n; }); // re-sync from saved
     setSavedFlash((s) => new Set(s).add(q.id));
@@ -407,6 +468,14 @@ export default function AdminQuestions() {
                 <button type="button" onClick={addQuestion} className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white">Save</button>
               </div>
 
+              <div className="flex flex-col gap-2 rounded-lg border border-slate-200 bg-white p-2 sm:flex-row sm:items-center sm:justify-between">
+                <FacilityChips value={draft.facility_types} onChange={(v) => setDraft({ ...draft, facility_types: v })} />
+                <label className="flex items-center gap-1.5 whitespace-nowrap text-[12px] text-slate-600">
+                  <input type="checkbox" checked={draft.is_default} onChange={(e) => setDraft({ ...draft, is_default: e.target.checked })} />
+                  Boilerplate (auto-add to new surveys)
+                </label>
+              </div>
+
               {/* Checklist sub-question editor */}
               {draft.answer_type === "checklist" && (
                 <div className="mt-1 rounded-lg border border-slate-200 bg-white p-3">
@@ -428,6 +497,7 @@ export default function AdminQuestions() {
                           className="flex-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm"
                         />
                         <Dropdown value={s.answer_type} options={subTypeOpts} onChange={(v) => updateSub(s.id, { answer_type: v })} className="w-40" />
+                        {s.answer_type === "yes_no" && <SubGood value={s.good_answer} onChange={(v) => updateSub(s.id, { good_answer: v })} />}
                         <button type="button" onClick={() => removeSub(s.id)} aria-label="Remove sub-question" className="shrink-0 rounded-lg border border-red-200 p-1.5 text-red-500 hover:bg-red-50">
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
@@ -512,6 +582,30 @@ export default function AdminQuestions() {
                   />
                 </div>
 
+                <div className="mt-2 flex flex-col gap-2 rounded-lg border border-slate-200 bg-white p-2 sm:flex-row sm:items-center sm:justify-between">
+                  <FacilityChips value={q.facility_types ?? []} onChange={(v) => update(q.id, { facility_types: v })} />
+                  <label className="flex items-center gap-1.5 whitespace-nowrap text-[12px] text-slate-600">
+                    <input type="checkbox" checked={q.is_default ?? false} onChange={(e) => update(q.id, { is_default: e.target.checked })} />
+                    Boilerplate (auto-add to new surveys)
+                  </label>
+                </div>
+
+                {["yes_no", "choice"].includes(q.answer_type) && (
+                  <div className="mt-2 flex flex-wrap items-center gap-2 rounded-lg border border-slate-200 bg-white p-2 text-[12px] text-slate-600">
+                    <span className="font-medium">Compliant answer:</span>
+                    {(["yes", "no"] as const).map((v) => {
+                      const cur = q.good_answer === "no" ? "no" : "yes";
+                      return (
+                        <button key={v} type="button" onClick={() => update(q.id, { good_answer: v })}
+                          className={`rounded px-2.5 py-1 text-[11px] font-semibold transition ${cur === v ? "bg-slate-900 text-white" : "border border-slate-300 text-slate-600 hover:bg-slate-100"}`}>
+                          {v === "yes" ? "Yes" : "No"}
+                        </button>
+                      );
+                    })}
+                    <span className="text-[10px] text-slate-400">— e.g. for &quot;Is there scrap on the floor?&quot; the compliant answer is No</span>
+                  </div>
+                )}
+
                 {/* Inline sub-question editor for existing checklist questions */}
                 {q.answer_type === "checklist" && (
                   <div className="mt-2 rounded-lg border border-slate-200 bg-white p-3">
@@ -542,6 +636,7 @@ export default function AdminQuestions() {
                             className="flex-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm"
                           />
                           <Dropdown value={s.answer_type} options={subTypeOpts} onChange={(v) => updSubIn(q, s.id, { answer_type: v })} className="w-40" />
+                          {s.answer_type === "yes_no" && <SubGood value={s.good_answer} onChange={(v) => updSubIn(q, s.id, { good_answer: v })} />}
                           <button type="button" onClick={() => rmSubIn(q, s.id)} aria-label="Remove sub-question" className="shrink-0 rounded-lg border border-red-200 p-1.5 text-red-500 hover:bg-red-50">
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>

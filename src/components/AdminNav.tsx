@@ -4,8 +4,8 @@
 // - Mobile (<sm): a single menu icon that opens a dropdown; PDF Editor is desktop-only (#6).
 // Closes on outside-click / Escape so it never traps focus on touch devices.
 
-import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { FileText, LogOut, User, Users } from "lucide-react";
 import { getSupabaseBrowser } from "@/src/lib/supabase-browser";
 
@@ -16,25 +16,9 @@ async function signOut() {
 
 const LINK =
   "inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100";
+const ITEM = "flex w-full cursor-pointer items-center gap-2 px-4 py-2.5 text-left text-sm text-slate-700 outline-none data-[highlighted]:bg-slate-100";
 
 export default function AdminNav() {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const onDown = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
-    document.addEventListener("mousedown", onDown);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("mousedown", onDown);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
-
   return (
     <>
       {/* Desktop: inline buttons */}
@@ -47,45 +31,29 @@ export default function AdminNav() {
         </button>
       </div>
 
-      {/* Mobile: profile avatar + dropdown */}
-      <div ref={ref} className="relative sm:hidden">
-        <button
-          type="button"
-          onClick={() => setOpen((o) => !o)}
-          aria-label="Profile menu"
-          aria-expanded={open}
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-white active:scale-95"
-        >
-          <User className="h-5 w-5" />
-        </button>
-        {open && (
-          <div className="absolute right-0 z-40 mt-1 w-52 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
-            <div className="border-b border-slate-100 px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-slate-400">
-              Admin
-            </div>
-            <Link
-              href="/admin/users"
-              onClick={() => setOpen(false)}
-              className="flex items-center gap-2 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-100"
-            >
-              <Users className="h-4 w-4" /> Staff &amp; Roles
-            </Link>
-            <Link
-              href="/admin/questions"
-              onClick={() => setOpen(false)}
-              className="flex items-center gap-2 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-100"
-            >
-              <FileText className="h-4 w-4" /> Question Bank
-            </Link>
-            <button
-              type="button"
-              onClick={signOut}
-              className="flex w-full items-center gap-2 border-t border-slate-100 px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-100"
-            >
-              <LogOut className="h-4 w-4" /> Sign out
+      {/* Mobile: profile avatar + Radix dropdown (portalled, viewport-aware) */}
+      <div className="sm:hidden">
+        <DropdownMenu.Root>
+          <DropdownMenu.Trigger asChild>
+            <button type="button" aria-label="Profile menu" className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-white active:scale-95">
+              <User className="h-5 w-5" />
             </button>
-          </div>
-        )}
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Portal>
+            <DropdownMenu.Content align="end" sideOffset={6} collisionPadding={8} className="z-50 w-52 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
+              <div className="border-b border-slate-100 px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-slate-400">Admin</div>
+              <DropdownMenu.Item asChild>
+                <Link href="/admin/users" className={ITEM}><Users className="h-4 w-4" /> Staff &amp; Roles</Link>
+              </DropdownMenu.Item>
+              <DropdownMenu.Item asChild>
+                <Link href="/admin/questions" className={ITEM}><FileText className="h-4 w-4" /> Question Bank</Link>
+              </DropdownMenu.Item>
+              <DropdownMenu.Item className={`${ITEM} border-t border-slate-100`} onSelect={signOut}>
+                <LogOut className="h-4 w-4" /> Sign out
+              </DropdownMenu.Item>
+            </DropdownMenu.Content>
+          </DropdownMenu.Portal>
+        </DropdownMenu.Root>
       </div>
     </>
   );

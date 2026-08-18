@@ -14,6 +14,67 @@ function extFor(name: string, type: string): string {
   return type.split("/")[1] || "jpg";
 }
 
+/**
+ * Recover the Storage object path from a URL the browser holds.
+ * Uploads hand the client a short-lived SIGNED url, so the raw object path has to be
+ * parsed back out of it to delete the object. Handles signed and public URL shapes,
+ * and tolerates a bare path being passed straight through.
+ */
+function objectPathFromUrl(url: string, bucket: string): string | null {
+  if (!url) return null;
+  if (!url.startsWith("http")) return url.replace(/^\/+/, ""); // already a bare path
+  try {
+    const { pathname } = new URL(url);
+    for (const marker of [`/object/sign/${bucket}/`, `/object/public/${bucket}/`, `/${bucket}/`]) {
+      const i = pathname.indexOf(marker);
+      if (i !== -1) return decodeURIComponent(pathname.slice(i + marker.length));
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const { survey_id: surveyId, url } = await req.json().catch(() => ({}));
+    if (!surveyId || !url) {
+      return NextResponse.json(
+        { error: "[INVALID_INPUT] survey_id and url are required" },
+        { status: 400 }
+      );
+    }
+    const path = objectPathFromUrl(String(url), BUCKET);
+    if (!path) {
+      return NextResponse.json({ error: "[INVALID_INPUT] unrecognised photo url" }, { status: 400 });
+    }
+    // Authorisation guard: every object is stored under `<survey_id>/...`, so a path that
+    // doesn't start with this survey's id belongs to another survey and must not be touched.
+    if (!path.startsWith(`${surveyId}/`)) {
+      return NextResponse.json({ error: "[FORBIDDEN] photo does not belong to this survey" }, { status: 403 });
+    }
+
+    const db = getSupabaseAdmin();
+    // Delete the DB row first: if Storage removal then fails the image is already gone from
+    // the report/UI, and the orphaned object is harmless (vs. a dangling row that still renders).
+    const { error: rowErr } = await db.from("photos").delete().eq("storage_url", path);
+    if (rowErr) {
+      console.error("[PHOTO_DELETE_ROW_ERR]", rowErr);
+      return NextResponse.json({ error: "[PHOTO_DELETE_ROW_ERR]" }, { status: 502 });
+    }
+    const { error: rmErr } = await db.storage.from(BUCKET).remove([path]);
+    if (rmErr) console.warn("[PHOTO_DELETE_OBJECT_WARN]", rmErr); // row gone; not fatal
+
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    console.error("[PHOTO_DELETE_ERR]", err);
+    return NextResponse.json(
+      { error: `[PHOTO_DELETE_ERR] ${err instanceof Error ? err.message : "Unknown"}` },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     const form = await req.formData();

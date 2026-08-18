@@ -5,7 +5,21 @@
 
 import { getSupabaseBrowser } from "./supabase-browser";
 
-const API = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
+// Same LAN-friendly resolution as survey-api: on a LAN host, a localhost base is
+// unreachable from the device, so derive the API host from the page instead.
+function resolveApiBase(): string {
+  const env = process.env.NEXT_PUBLIC_API_BASE?.replace(/\/$/, "");
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname;
+    const onLan = host !== "localhost" && host !== "127.0.0.1";
+    const envIsLocal = !env || /\/\/(localhost|127\.0\.0\.1)\b/.test(env);
+    if (onLan && envIsLocal) return `${window.location.protocol}//${host}:8000`;
+    if (env) return env;
+    return `${window.location.protocol}//${host}:8000`;
+  }
+  return env || "http://localhost:8000";
+}
+const API = resolveApiBase();
 
 async function authHeader(): Promise<Record<string, string>> {
   try {
@@ -21,6 +35,8 @@ async function authHeader(): Promise<Record<string, string>> {
 export interface Palette {
   ink: string; blue: string; lime: string; cream: string; card: string; line: string;
   muted: string; green: string; lime_g: string; amber: string; red: string; slate: string;
+  // Area-tree colours (building / floor / room) — must stay in sync with backend Palette.
+  area_building: string; area_floor: string; area_room: string;
 }
 export interface Fonts { heading: string; body: string }
 export interface Branding { brand: string; report_title: string; back_cover_line: string }
@@ -113,6 +129,7 @@ export function defaultTemplate(): ReportTemplate {
       ink: "#0b0b0b", blue: "#2f5cff", lime: "#c3f53c", cream: "#faf8f0", card: "#ffffff",
       line: "#dfdbcd", muted: "#6b6b6b", green: "#16a34a", lime_g: "#65a30d", amber: "#f59e0b",
       red: "#dc2626", slate: "#94a3b8",
+      area_building: "#1e3a5f", area_floor: "#0f766e", area_room: "#b45309",
     },
     fonts: { heading: "Work Sans", body: "Work Sans" },
     branding: {

@@ -19,6 +19,25 @@ export default function SurveyGate({
 }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  // Geolocation only works in a secure context (HTTPS or localhost). Over plain
+  // HTTP on a LAN IP (e.g. testing on a phone), the browser blocks it with no
+  // prompt — detect that so we can offer a testing bypass instead of a dead end.
+  const insecure = typeof window !== "undefined" && !window.isSecureContext;
+
+  // Testing-only: proceed without real GPS on an insecure origin. Records a
+  // placeholder visit so the server-side gate persists across reloads.
+  async function proceedWithoutGps() {
+    setBusy(true);
+    setErr(null);
+    try {
+      await recordVisit(surveyId, { lat: 0, lng: 0, accuracy: 0 });
+    } catch {
+      /* best-effort; still let the tester through */
+    } finally {
+      setBusy(false);
+      onLocated();
+    }
+  }
 
   function shareLocation() {
     setErr(null);
@@ -86,6 +105,23 @@ export default function SurveyGate({
           <p className="mt-4 flex items-center justify-center gap-1.5 text-center text-sm text-red-600">
             <AlertTriangle className="h-4 w-4 shrink-0" /> {err}
           </p>
+        )}
+
+        {insecure && (
+          <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-center">
+            <p className="text-xs text-amber-800">
+              Location needs a secure connection (HTTPS). This device is on plain HTTP, so the browser
+              won&apos;t prompt. Use HTTPS for the real flow — or continue without GPS for testing.
+            </p>
+            <button
+              onClick={proceedWithoutGps}
+              disabled={busy}
+              className="mt-2 inline-flex items-center gap-2 rounded-lg border border-amber-300 bg-white px-3 py-2 text-xs font-medium text-amber-800 hover:bg-amber-100 disabled:opacity-60"
+            >
+              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              Continue without location (testing)
+            </button>
+          </div>
         )}
       </div>
     </div>

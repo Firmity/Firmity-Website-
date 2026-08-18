@@ -52,8 +52,8 @@ const nextConfig = {
     ];
   },
   // Allow loading the dev server from other devices on your LAN (e.g. testing on a
-  // phone). Add each device's IP here. Dev-only; ignored in production.
-  allowedDevOrigins: ["192.168.29.252"],
+  // phone). Use the HOST only (no protocol/port). Dev-only; ignored in production.
+  allowedDevOrigins: ["192.168.1.62"],
 }
 
 const withMDX = createMDX({})
