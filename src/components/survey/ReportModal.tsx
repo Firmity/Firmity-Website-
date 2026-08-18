@@ -118,12 +118,33 @@ export default function ReportModal({
     // Fallback: copy the shareable link.
     if (report?.share_token) {
       const url = `${window.location.origin}/r/${report.share_token}`;
+      // navigator.clipboard needs a secure context (HTTPS); fall back to a
+      // temporary textarea + execCommand so copy still works over plain HTTP.
+      let ok = false;
       try {
-        await navigator.clipboard.writeText(url);
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(url);
+          ok = true;
+        }
+      } catch { /* fall through to legacy copy */ }
+      if (!ok) {
+        try {
+          const ta = document.createElement("textarea");
+          ta.value = url;
+          ta.style.position = "fixed";
+          ta.style.opacity = "0";
+          document.body.appendChild(ta);
+          ta.focus();
+          ta.select();
+          ok = document.execCommand("copy");
+          document.body.removeChild(ta);
+        } catch { /* ignore */ }
+      }
+      if (ok) {
         setCopied(true);
         setTimeout(() => setCopied(false), 1800);
-      } catch {
-        setShareErr("Couldn't share on this device.");
+      } else {
+        setShareErr("Couldn't copy the link on this device.");
       }
     } else {
       setShareErr("Sharing isn't available on this device.");
@@ -187,7 +208,9 @@ export default function ReportModal({
                 </p>
                 <p className="mt-1 text-xs text-amber-700">
                   This report was built from the survey data (scores, findings, photos) without the AI narrative.
-                  You can regenerate it once AI access is restored.
+                  {report.retry_after_seconds
+                    ? ` The AI quota is exhausted — try again in about ${report.retry_after_seconds}s.`
+                    : " You can regenerate it once AI access is restored."}
                 </p>
                 {onRegenerate && (
                   <button

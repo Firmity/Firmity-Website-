@@ -31,6 +31,12 @@ const PALETTE_ROLES: { key: keyof ReportTemplate["palette"]; label: string }[] =
   { key: "red", label: "Unsatisfactory" }, { key: "slate", label: "N/A" },
 ];
 
+// Area-tree colours are a distinct group (building / floor / room) shown separately.
+const AREA_ROLES: { key: keyof ReportTemplate["palette"]; label: string }[] = [
+  { key: "area_building", label: "Building" }, { key: "area_floor", label: "Floor" },
+  { key: "area_room", label: "Room / Area" },
+];
+
 // Icon set = real lucide components (stroke outlines, not filled). Rendering them to
 // PNG keeps their outline look in the PDF instead of a solid colour blob.
 type LucideCmp = typeof Star;
@@ -447,7 +453,7 @@ export default function AdminPdfEditor() {
             </div>
             <p className="mb-1 text-xs font-medium text-neutral-500">Sections</p>
             <div className="grid grid-cols-1 gap-1">
-              {([["exec_summary", "Executive summary"], ["buildings", "Per-building detail"], ["corrective", "Corrective action plan"], ["key_recs", "Key recommendations"], ["photos", "Photos"]] as [string, string][]).map(([k, label]) => (
+              {([["areas_surveyed", "Areas surveyed tree"], ["methodology", "How to read / methodology"], ["exec_summary", "Executive summary"], ["buildings", "Per-building detail"], ["corrective", "Corrective action plan"], ["key_recs", "Key recommendations"], ["excluded", "Excluded (N/A) summary"], ["appendix", "Submitted-form appendix"], ["glossary", "Glossary & disclaimer"], ["photos", "Photos"]] as [string, string][]).map(([k, label]) => (
                 <label key={k} className="flex items-center gap-1.5 text-xs text-neutral-600">
                   <input type="checkbox" checked={content.sections_on?.[k] ?? true}
                     onChange={(e) => setContent({ sections_on: { ...(content.sections_on ?? {}), [k]: e.target.checked } })} />
@@ -508,6 +514,12 @@ export default function AdminPdfEditor() {
             {PALETTE_ROLES.map(({ key, label }) => (
               <ColorRow key={key} label={label} value={tpl.palette[key]} onChange={(v) => setPalette(key, v)} />
             ))}
+            <div className="mt-2 border-t pt-2">
+              <p className="mb-1.5 text-[11px] font-semibold uppercase text-neutral-400">Area tree (building / floor / room)</p>
+              {AREA_ROLES.map(({ key, label }) => (
+                <ColorRow key={key} label={label} value={tpl.palette[key]} onChange={(v) => setPalette(key, v)} />
+              ))}
+            </div>
           </Section>
 
           {/* branding */}

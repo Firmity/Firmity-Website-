@@ -18,9 +18,12 @@ interface Props {
   keyFor: (area: string, qid: string) => string;
   onField: (area: string, questionId: string, field: "value" | "remark", val: string) => void;
   onPhoto: (area: string, questionId: string, file: File, subId?: string) => void;
+  onRemovePhoto?: (area: string, questionId: string, url: string, subId?: string) => void;
+  onEditChecklist?: (qid: string, checklist: { id: string; text: string; answer_type: string }[]) => void;
+  onRemoveQuestion?: (qid: string) => void;
 }
 
-function DomainGroup({ area, questions, answers, photos, keyFor, onField, onPhoto }: Props) {
+function DomainGroup({ area, questions, answers, photos, keyFor, onField, onPhoto, onRemovePhoto, onEditChecklist, onRemoveQuestion }: Props) {
   const sections = useMemo(() => {
     const map = new Map<string, Question[]>();
     for (const q of questions) {
@@ -53,6 +56,9 @@ function DomainGroup({ area, questions, answers, photos, keyFor, onField, onPhot
                   photoBaseKey={k}
                   onField={onField}
                   onPhoto={onPhoto}
+                  onRemovePhoto={onRemovePhoto}
+                  onEditChecklist={onEditChecklist}
+                  onRemoveQuestion={onRemoveQuestion}
                 />
               );
             })}

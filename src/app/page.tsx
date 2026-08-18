@@ -609,13 +609,29 @@ export default function FirmityHome() {
   return (
     <>
       <HomeJsonLd />
-      {/* Ambient page wash: ONE fixed, non-repeating gradient behind the whole
-          page. White sections below are translucent (bg-white/70…), so each one
-          reveals a different region of this as you scroll — a calm, varied warmth
-          instead of the same beige texture stamped on every section. */}
+      {/* Ambient page wash: ONE fixed, slow-moving beige/cream gradient behind the
+          whole page. White sections below are translucent (bg-white/60…), so each
+          one reveals a drifting region of this as you scroll — the movement shows
+          through wherever white is used, without touching each section. */}
+      <style>{`
+        @keyframes pageWash {
+          0%   { background-position: 0% 50%; }
+          50%  { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .page-wash { animation: none !important; }
+        }
+      `}</style>
       <div
         aria-hidden
-        className="pointer-events-none fixed inset-0 -z-10 bg-[#fdfbf7] bg-[radial-gradient(115%_80%_at_12%_0%,#f4ecdd_0%,rgba(253,251,247,0)_52%),radial-gradient(120%_95%_at_100%_100%,#eaeef4_0%,rgba(253,251,247,0)_48%)]"
+        className="page-wash pointer-events-none fixed inset-0 -z-10"
+        style={{
+          background:
+            "linear-gradient(120deg,#fdfbf7 0%,#f5eddd 24%,#f7f1e6 46%,#efe4d2 68%,#faf4ea 84%,#fdfbf7 100%)",
+          backgroundSize: "300% 300%",
+          animation: "pageWash 28s ease-in-out infinite",
+        }}
       />
       <Navigation />
       <main>

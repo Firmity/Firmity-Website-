@@ -4,6 +4,7 @@
 
 import { getSupabaseAdmin } from "@/src/lib/supabase-admin";
 import AdminNav from "@/src/components/AdminNav";
+import AdminCreateSurvey from "@/src/components/AdminCreateSurvey";
 import SurveysBoard, { type BoardRow, type Staff } from "@/src/components/SurveysBoard";
 
 export const dynamic = "force-dynamic"; // always fresh; never statically cached
@@ -11,10 +12,10 @@ export const dynamic = "force-dynamic"; // always fresh; never statically cached
 async function fetchData(): Promise<{ rows: BoardRow[]; staff: Staff[]; error: string | null }> {
   try {
     const db = getSupabaseAdmin();
-    const [{ data: surveys, error: e1 }, { data: staff, error: e2 }, { data: visits }] = await Promise.all([
+    const [{ data: surveys, error: e1 }, { data: staff, error: e2 }, { data: visits }, { data: reports }] = await Promise.all([
       db
         .from("surveys")
-        .select("id,facility_name,facility_type,status,domain_slugs,created_at,assigned_to,scheduled_at,preferred_dates,survey_code")
+        .select("id,facility_name,facility_type,status,domain_slugs,created_at,assigned_to,scheduled_at,preferred_dates,survey_code,first_answer_at")
         .order("created_at", { ascending: false })
         .limit(200),
       db.from("profiles").select("id,full_name,email").order("email"),
@@ -22,6 +23,12 @@ async function fetchData(): Promise<{ rows: BoardRow[]; staff: Staff[]; error: s
         .from("survey_visits")
         .select("survey_id,surveyor_name,lat,lng,captured_at")
         .order("captured_at", { ascending: false })
+        .limit(1000),
+      // Latest report per survey -> total survey duration (first_answer_at -> generated_at).
+      db
+        .from("reports")
+        .select("survey_id,generated_at")
+        .order("generated_at", { ascending: false })
         .limit(1000),
     ]);
     if (e1) throw e1;
@@ -31,7 +38,13 @@ async function fetchData(): Promise<{ rows: BoardRow[]; staff: Staff[]; error: s
     for (const v of (visits as { survey_id: string; surveyor_name: string | null; lat: number; lng: number; captured_at: string }[]) ?? []) {
       if (!latest.has(v.survey_id)) latest.set(v.survey_id, v);
     }
-    const rows = ((surveys as BoardRow[]) ?? []).map((r) => ({ ...r, visit: latest.get(r.id) ?? null }));
+    const latestReport = new Map<string, string>();
+    for (const r of (reports as { survey_id: string; generated_at: string }[]) ?? []) {
+      if (!latestReport.has(r.survey_id)) latestReport.set(r.survey_id, r.generated_at);
+    }
+    const rows = ((surveys as BoardRow[]) ?? []).map((r) => ({
+      ...r, visit: latest.get(r.id) ?? null, report_generated_at: latestReport.get(r.id) ?? null,
+    }));
     return { rows, staff: (staff as Staff[]) ?? [], error: null };
   } catch (e) {
     return { rows: [], staff: [], error: (e as Error).message };
@@ -48,7 +61,10 @@ export default async function SurveysDashboard() {
           <h1 className="text-2xl font-bold text-slate-900">Surveys</h1>
           <p className="text-sm text-slate-500">{rows.length} booking(s)</p>
         </div>
-        <AdminNav />
+        <div className="flex items-center gap-2">
+          <AdminCreateSurvey staff={staff} />
+          <AdminNav />
+        </div>
       </div>
 
       {error && (

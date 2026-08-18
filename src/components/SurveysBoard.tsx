@@ -46,7 +46,21 @@ export interface BoardRow {
   preferred_dates: Slot[];
   survey_code?: string | null;    // on-site code to share with the client
   visit?: VisitInfo | null;       // latest surveyor GPS check-in (internal audit)
+  first_answer_at?: string | null;      // survey timer start
+  report_generated_at?: string | null;  // latest report time -> total duration
 }
+
+// Human duration from whole seconds: "2h 14m", "47m", "3d 5h".
+function fmtDuration(totalSec: number): string {
+  if (totalSec < 60) return "under a minute";
+  const d = Math.floor(totalSec / 86400);
+  const h = Math.floor((totalSec % 86400) / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  if (d > 0) return `${d}d ${h}h`;
+  if (h > 0) return `${h}h ${m}m`;
+  return `${m}m`;
+}
+const tsMs = (iso?: string | null) => (iso ? new Date(iso).getTime() : NaN);
 
 interface CalEvent {
   surveyId: string;
@@ -331,6 +345,27 @@ export default function SurveysBoard({ rows, staff }: { rows: BoardRow[]; staff:
                   </div>
                 </Link>
                 <div className="flex shrink-0 items-center gap-2">
+                  {(() => {
+                    const start = tsMs(s.first_answer_at);
+                    const end = tsMs(s.report_generated_at);
+                    if (!Number.isNaN(start) && !Number.isNaN(end) && end >= start) {
+                      return (
+                        <span title="Total time: first answer → report generated"
+                          className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">
+                          <Clock className="h-3 w-3" /> {fmtDuration((end - start) / 1000)}
+                        </span>
+                      );
+                    }
+                    if (!Number.isNaN(start)) {
+                      return (
+                        <span title="Elapsed since the first answer was recorded"
+                          className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-600">
+                          <Clock className="h-3 w-3" /> {fmtDuration((Date.now() - start) / 1000)} so far
+                        </span>
+                      );
+                    }
+                    return null;
+                  })()}
                   <StatusBadge status={s.status} />
                   <DeleteSurveyButton surveyId={s.id} name={s.facility_name || "Unnamed facility"} />
                 </div>

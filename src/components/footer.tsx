@@ -92,7 +92,7 @@ import Image from "next/image"
 import { Linkedin, Instagram, Twitter, Facebook, Youtube } from "lucide-react"
 
 const SOCIALS = [
-  { Icon: Linkedin,  href: "#", label: "LinkedIn" },
+  { Icon: Linkedin,  href: "https://www.linkedin.com/showcase/109935940/admin/dashboard/", label: "LinkedIn" },
   { Icon: Instagram, href: "#", label: "Instagram" },
   { Icon: Twitter,   href: "#", label: "X / Twitter" },
   { Icon: Facebook,  href: "#", label: "Facebook" },
