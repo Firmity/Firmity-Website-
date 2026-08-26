@@ -6,6 +6,7 @@ import "./globals.css"
 import Script from "next/script"
 import { ScrollToTop } from "@/src/components/scroll-to-top"
 import { JsonLd } from "@/src/components/json-ld"
+import { MarketingWidgets } from "@/src/components/marketing-widgets"
 import { SITE, buildMetadata, organizationJsonLd, websiteJsonLd } from "@/src/lib/seo"
 import { getSiteSeo } from "@/src/lib/seo-store"
 
@@ -98,6 +99,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         <JsonLd data={websiteJsonLd()} />
         <ScrollToTop />
         {children}
+        {/* WhatsApp CTA + survey popup — self-gate to marketing pages only */}
+        <MarketingWidgets />
         <Analytics />
       </body>
     </html>

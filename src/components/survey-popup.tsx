@@ -94,7 +94,9 @@ export function SurveyPopup() {
       {hasBeenClosed && !isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-5 right-5 z-40 flex items-center gap-3 bg-[#111d35] hover:bg-[#1a2744] text-white pl-3.5 pr-4 py-3 rounded-[14px] shadow-[0_8px_32px_rgba(17,29,53,0.35)] transition-all duration-200 hover:scale-[1.03] hover:shadow-[0_12px_40px_rgba(17,29,53,0.4)]"
+          // bottom-24, not bottom-5: stacks above the WhatsApp button
+          // (marketing-widgets.tsx) instead of overlapping it.
+          className="fixed bottom-24 right-5 z-40 flex items-center gap-3 bg-[#111d35] hover:bg-[#1a2744] text-white pl-3.5 pr-4 py-3 rounded-[14px] shadow-[0_8px_32px_rgba(17,29,53,0.35)] transition-all duration-200 hover:scale-[1.03] hover:shadow-[0_12px_40px_rgba(17,29,53,0.4)]"
           aria-label="Book a free AI facility survey"
         >
           {/* Pulsing dot */}

@@ -1,0 +1,42 @@
+"use client"
+
+import { usePathname } from "next/navigation"
+import { SurveyPopup } from "@/src/components/survey-popup"
+import { WhatsAppButton } from "@/src/components/whatsapp-button"
+
+// Widgets that belong on public/marketing pages only — never on authenticated
+// or operational screens (admin, survey-taking, staff, blog-admin), which have
+// their own FABs/bottom nav and shouldn't be cluttered with lead-gen CTAs.
+//
+// Mounted once in the root layout (src/app/layout.tsx) rather than repeated
+// across every marketing page.tsx/layout.tsx. To add a new operational route,
+// add its prefix here — don't scatter pathname checks elsewhere.
+const EXCLUDED_PREFIXES = [
+  "/admin",
+  "/login",
+  "/staff-login",
+  "/staff-attendance",
+  "/profile",
+  "/settings",
+  "/my-surveys",
+  "/surveys",
+  "/survey",
+  "/blog-admin",
+  "/r",
+]
+
+export function MarketingWidgets() {
+  const pathname = usePathname() ?? "/"
+  const isExcluded = EXCLUDED_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))
+
+  if (isExcluded) return null
+
+  return (
+    <>
+      {/* Sticky bubble sits at bottom-24 (see survey-popup.tsx) so it stacks
+          above the WhatsApp button instead of overlapping it. */}
+      <SurveyPopup />
+      <WhatsAppButton />
+    </>
+  )
+}
