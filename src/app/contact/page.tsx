@@ -12,6 +12,7 @@
 import type React from "react"
 import { Navigation } from "@/src/components/navigation"
 import { Footer } from "@/src/components/footer"
+import { HowDidYouHearForm } from "@/src/components/how-did-you-hear-form"
 import { useState, useRef, useCallback, type FC } from "react"
 import {
   Mail,
@@ -42,6 +43,7 @@ interface FormState {
   manpower: string
   message: string
   requestType: string
+  website: string // honeypot — must stay empty, see handleSubmit
 }
 
 const INITIAL_FORM: FormState = {
@@ -52,7 +54,16 @@ const INITIAL_FORM: FormState = {
   manpower: "",
   message: "",
   requestType: "demo",
+  website: "",
 }
+
+// Bot resistance (2026-09-01 — added alongside the same fix on the brochure
+// form, src/components/brochure-download-form.tsx, after it was found being
+// spammed): the server (src/app/api/contact/route.ts) rejects requests
+// without a matching Origin/Referer. MIN_SUBMIT_MS is a client-side second
+// layer — rejects instantly-submitted forms before hitting the network,
+// since a real person can't fill this many fields in under ~1.5s.
+const MIN_SUBMIT_MS = 1500
 
 const REQUEST_TYPES: { value: string; label: string; Icon: FC<LucideProps> }[] = [
   { value: "demo",     label: "Schedule a Demo",  Icon: MonitorPlay },
@@ -64,7 +75,7 @@ const REQUEST_TYPES: { value: string; label: string; Icon: FC<LucideProps> }[] =
 const TEAM_SIZES = ["1-10", "11-50", "51-100", "100+"] as const
 
 const CHANNELS: { Icon: FC<LucideProps>; title: string; detail: string; sub: string }[] = [
-  { Icon: Mail,   title: "Email",    detail: "info@ufirm.in",           sub: "Reply within 24 hours" },
+  { Icon: Mail,   title: "Email",    detail: "demo@firmity.in",           sub: "Reply within 24 hours" },
   { Icon: Phone,  title: "Phone",    detail: "Available on request",     sub: "Mon–Sat, 9am–6pm IST" },
   { Icon: MapPin, title: "Office",   detail: "UFIRM Technologies (P) Ltd", sub: "Proudly Made in India" },
 ]
@@ -106,6 +117,10 @@ export default function ContactPage() {
   const leftRef = useRef<HTMLDivElement>(null)
   const [glow, setGlow] = useState({ x: 50, y: 30 })
 
+  // Bot resistance — see MIN_SUBMIT_MS above. Initial value is set once, at
+  // first render, which is effectively "when the form appeared".
+  const mountedAt = useRef(Date.now())
+
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const rect = leftRef.current?.getBoundingClientRect()
     if (!rect) return
@@ -125,6 +140,11 @@ export default function ContactPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    // Fail closed, quietly — no error shown, so a bot gets no signal about
+    // why it didn't "work". A real visitor never trips either check.
+    if (formData.website.trim().length > 0 || Date.now() - mountedAt.current < MIN_SUBMIT_MS) {
+      return
+    }
     if (!formData.manpower) { setError("Please select your team size."); return }
     setLoading(true)
     setError("")
@@ -247,6 +267,17 @@ export default function ContactPage() {
                   <p className="text-[13px] font-light text-[#4a5568] leading-[1.8] max-w-sm mx-auto mb-6">
                     Thank you — our team will be in touch within 24 hours to confirm your slot.
                   </p>
+
+                  {/* Re-ask attribution — same widget/backend as the homepage
+                      section (src/components/how-did-you-hear-form.tsx), tagged
+                      source="contact-form" so replies are traceable to this flow. */}
+                  <div className="border-t border-[#e2e8f0] mt-2 mb-6 pt-6 text-left">
+                    <p className="text-[13px] font-semibold text-[#1a202c] mb-4 text-center">
+                      Could you also please share with us how you got to know Firmity?
+                    </p>
+                    <HowDidYouHearForm source="contact-form" />
+                  </div>
+
                   <button
                     type="button"
                     onClick={() => setSubmitted(false)}
@@ -268,6 +299,23 @@ export default function ContactPage() {
                   </div>
 
                   <form onSubmit={handleSubmit} className="space-y-5">
+                    {/* Honeypot — hidden off-screen from real users (aria-hidden,
+                        tabIndex -1, autocomplete off); a bot filling every
+                        input blindly fills this too. Same pattern as
+                        brochure-download-form.tsx. */}
+                    <div className="absolute -left-[9999px] w-px h-px overflow-hidden" aria-hidden="true">
+                      <label htmlFor="contact-website">Website</label>
+                      <input
+                        id="contact-website"
+                        type="text"
+                        name="website"
+                        value={formData.website}
+                        onChange={handleChange}
+                        tabIndex={-1}
+                        autoComplete="off"
+                      />
+                    </div>
+
                     {/* Request type */}
                     <Field label="I want to" required>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">

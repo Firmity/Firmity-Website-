@@ -1,9 +1,33 @@
 import { NextResponse } from "next/server"
 import nodemailer from "nodemailer"
+import { isTrustedOrigin, FORBIDDEN_BODY } from "@/src/lib/request-guard"
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export async function POST(req: Request) {
+  // Bot guard — see src/lib/request-guard.ts. Applied 2026-09-01 across all
+  // three public lead-capture routes (contact/brochure/how-heard) after the
+  // brochure route was found being hit directly by bots.
+  if (!isTrustedOrigin(req)) {
+    return NextResponse.json(FORBIDDEN_BODY, { status: 403 })
+  }
+
   try {
-    const { fullName, email, phone, companyName, manpower, message, requestType } = await req.json()
+    const { fullName, email, phone, companyName, manpower, message, requestType, website } = await req.json()
+
+    // Honeypot — see how-did-you-hear-form.tsx / brochure-download-form.tsx
+    // comment for the same field. Silently "succeed" so a bot can't tell.
+    if (typeof website === "string" && website.trim().length > 0) {
+      return NextResponse.json({ success: true })
+    }
+
+    if (
+      typeof fullName !== "string" || fullName.trim().length === 0 ||
+      typeof email !== "string" || !EMAIL_RE.test(email.trim()) ||
+      typeof companyName !== "string" || companyName.trim().length === 0
+    ) {
+      return NextResponse.json({ success: false, error: "Missing or invalid fields" }, { status: 400 })
+    }
 
     const transporter = nodemailer.createTransport({
       service: "gmail",

@@ -2,7 +2,15 @@
 
 // ─── Home sections — Problems board · Benefits timeline · Pillars · Modules ───
 // Layout contract (matches the hero in src/app/page.tsx):
-// - Horizontal alignment: px-6 sm:px-10 lg:px-14 (NOT a centered max-w container)
+// - Horizontal alignment: px-6 sm:px-10 lg:px-16 (NOT a centered max-w
+//   container — these are edge-to-edge two-column grids, so the left text
+//   column's own padding IS its left inset). This must match the navbar/
+//   footer's container padding scale exactly (max-w-7xl mx-auto px-6
+//   sm:px-10 lg:px-16, see navigation.tsx/footer.tsx) — that's what keeps
+//   every section's heading left-aligned with the navbar logo. Was
+//   `lg:px-14` until 2026-09-01 (8px short of the navbar/footer's `lg:px-16`,
+//   user-reported as a visible left-alignment mismatch across Modules/
+//   WhyFirmity/Problems) — don't drift this back out of sync.
 // - Vertical scale: lg:min-h-[88vh] with flex column centering
 // - Type: DM Sans everywhere (no mono); serif (Playfair) for display lines only
 //
@@ -30,7 +38,7 @@ import {
 
 // ─── Shared layout tokens ─────────────────────────────────────────────────────
 
-const HERO_PX = "px-6 sm:px-10 lg:px-14"
+const HERO_PX = "px-6 sm:px-10 lg:px-16"
 const HERO_MINH = "lg:min-h-[88vh]"
 
 function SectionKicker({ text, light = false }: { text: string; light?: boolean }) {
@@ -110,7 +118,7 @@ const BENEFITS = [
     num: "01",
     tag: "Single source of truth",
     title: "Centralized records enable faster decision-making",
-    desc: "Bring every aspect of your facility operations onto one unified platform. From assets and work orders to vendor contracts, compliance records, and documentation, Firmity centralizes critical information—eliminating fragmented systems and enabling teams to make faster, more informed decisions.",
+    desc: "Assets, work orders, vendor contracts, and compliance records — all on one unified platform, eliminating fragmented systems.",
     img: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=900&q=80&fit=crop",
     imgAlt: "Modern office interior with organised workspaces",
   },
@@ -118,7 +126,7 @@ const BENEFITS = [
     num: "02",
     tag: "Zero missed deadlines",
     title: "Automated task alerts ensure nothing is missed",
-    desc: "Stay ahead of preventive maintenance schedules, AMC renewals, statutory compliance, inspections, and recurring tasks with intelligent automation. Firmity proactively notifies the right stakeholders at the right time, ensuring operational continuity without manual follow-ups.",
+    desc: "Preventive maintenance, AMC renewals, and compliance deadlines — Firmity notifies the right people at the right time, automatically.",
     img: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=900&q=80&fit=crop",
     imgAlt: "Engineer inspecting building infrastructure",
   },
@@ -126,62 +134,51 @@ const BENEFITS = [
     num: "03",
     tag: "One shared data layer",
     title: "Connected Teams. Connected Operations.",
-    desc: "Break down operational silos with a platform where every module works together seamlessly. Asset management, maintenance, inventory, visitor management, attendance, procurement, and compliance all share a unified data ecosystem—improving collaboration, accelerating workflows, and providing complete operational visibility across every property.",
+    desc: "Assets, maintenance, inventory, visitors, attendance, and compliance — every module shares one data layer, one shared source of visibility.",
     img: "https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=900&q=80&fit=crop",
     imgAlt: "Facility team coordinating around shared plans",
   },
 ]
 
 // Pillars — colors map to topic: blue = operational flow, amber = time/endurance,
-// green = environment. Same darkness so the band reads as one family.
+// green = environment. icon points at a pre-recolored PNG (public/images/pillar-*.png,
+// generated from the original public/images/pillar.png via a hue-shift so all three
+// share one consistent illustration style — regenerate the same way if pillar.png changes).
 interface PillarItem {
   numeral: string
   title: string
-  line: string
-  chips: string[]
-  /** Panel surface */
-  bg: string
-  /** Accent for column art, title, chips */
+  headline: string
+  desc: string
   accent: string
-  /** Dimmed accent for body copy */
-  accentSoft: string
+  icon: string
 }
 
 const PILLARS: PillarItem[] = [
-  { numeral: "I",   title: "Productivity",   line: "Work flows without follow-up.",              chips: ["Auto-run PPM", "Digital logs", "Less rework"],             bg: "#118AB2", accent: "#118AB2", accentSoft: "rgba(17, 138, 178, 0.85)" },
-  { numeral: "II",  title: "Longevity",      line: "Planned maintenance. Longer-living assets.",  chips: ["Preventive cycles", "Live monitoring", "Early alerts"],    bg: "#FFD166", accent: "#94621d", accentSoft: "rgba(148, 98, 29, 0.85)" },
-  { numeral: "III", title: "Sustainability", line: "Less waste. Less paper. Less energy.",        chips: ["Paperless workflows", "Usage visibility", "Smart access"], bg: "#6a9e10", accent: "#6a9e10", accentSoft: "rgba(106, 158, 16, 0.85)" },
-    
-    // bg: "#169873", accent: "#c2f9bb", accentSoft: "rgba(194, 249, 187, 0.85)" },
+  {
+    numeral: "I",
+    title: "Productivity",
+    headline: "Make every operation work smarter.",
+    desc: "Digitise workflows, automate routine tasks, and give teams the tools to get more done.",
+    accent: "#118AB2",
+    icon: "/images/pillar-productivity.png",
+  },
+  {
+    numeral: "II",
+    title: "Longevity",
+    headline: "Protect the life of your assets.",
+    desc: "Proactive maintenance, better visibility, and data-driven decisions keep facilities performing longer.",
+    accent: "#94621d",
+    icon: "/images/pillar-longevity.png",
+  },
+  {
+    numeral: "III",
+    title: "Sustainability",
+    headline: "Build efficiency into every operation.",
+    desc: "Reduce waste, optimise resources, and create more sustainable facility operations.",
+    accent: "#6a9e10",
+    icon: "/images/pillar-sustainability.png",
+  },
 ]
-
-// ─── Corinthian Column SVG (color parametrised per pillar) ────────────────────
-
-function CorinthianColumn({ height = 170, shaftHeight = 84, stroke = "#63b3ed" }: { height?: number; shaftHeight?: number; stroke?: string }) {
-  const baseY = 58
-  const topY = baseY + shaftHeight
-  const flutes: number[] = [35, 42, 49, 55, 61, 68, 75]
-
-  return (
-    <svg width="110" height={height} viewBox={`0 0 110 ${height}`} fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <rect x="5" y="8" width="100" height="6" fill={stroke} opacity="0.18" />
-      <rect x="10" y="14" width="90" height="3" fill={stroke} opacity="0.12" />
-      <rect x="12" y="17" width="86" height="5" stroke={stroke} strokeWidth="0.8" opacity="0.6" />
-      <path d="M22 22 Q18 28 22 34 Q26 40 22 46" stroke={stroke} strokeWidth="0.7" opacity="0.55" />
-      <path d="M88 22 Q92 28 88 34 Q84 40 88 46" stroke={stroke} strokeWidth="0.7" opacity="0.55" />
-      <path d="M30 46 Q35 36 40 46 Q45 36 50 46 Q55 36 60 46 Q65 36 70 46 Q75 36 80 46" stroke={stroke} strokeWidth="0.8" opacity="0.5" />
-      <path d="M26 50 Q31 42 36 50 Q41 42 46 50 Q51 42 56 50 Q61 42 66 50 Q71 42 76 50 Q81 42 86 50" stroke={stroke} strokeWidth="0.7" opacity="0.4" />
-      <rect x="26" y="54" width="58" height="4" stroke={stroke} strokeWidth="0.7" opacity="0.5" />
-      {flutes.map((x) => (
-        <line key={x} x1={x} y1={baseY} x2={x} y2={topY} stroke={stroke} strokeWidth={x === 55 ? "0.6" : "0.5"} opacity={x === 55 ? "0.3" : "0.22"} />
-      ))}
-      <rect x="30" y={baseY} width="50" height={shaftHeight} stroke={stroke} strokeWidth="0.9" opacity="0.45" />
-      <ellipse cx="55" cy={topY} rx="28" ry="4" stroke={stroke} strokeWidth="0.8" opacity="0.45" />
-      <rect x="15" y={topY + 5} width="80" height="6" stroke={stroke} strokeWidth="0.8" opacity="0.5" />
-      <rect x="8" y={topY + 11} width="94" height="5" stroke={stroke} strokeWidth="0.9" opacity="0.55" />
-    </svg>
-  )
-}
 
 // ─── 1) PROBLEMS — hero-scale, live "risk board" ──────────────────────────────
 
@@ -324,26 +321,51 @@ export function WhyFirmitySection() {
     return () => obs.disconnect()
   }, [])
 
-  const pct = BENEFITS.length > 1 ? (activePhoto / (BENEFITS.length - 1)) * 100 : 0
-
   return (
     <section className="bg-transparent sm:bg-white/60">
       <div ref={trackRef} className={`${HERO_PX} py-10 lg:py-14 w-full`}>
         <Reveal>
-          <div className="mb-8 lg:mb-12 lg:text-center">
+          <div className="mb-8 lg:mb-12">
             <SectionKicker text="Why Choose Firmity" />
-            <h2 className="font-serif text-[clamp(1.6rem,4vw,2.6rem)] font-light leading-[1.15] tracking-tight text-[#1a202c]">
+            <h2 className="font-serif text-[clamp(1.6rem,4vw,2.6rem)] font-light leading-[1.15] tracking-tight text-[#1a202c] mb-3">
               Built for <em className="not-italic text-[#2b6cb0]">operational clarity</em>
             </h2>
+            <p className="text-[13.5px] font-light leading-[1.8] text-[#4a5568] max-w-[460px]">
+              One platform that replaces scattered spreadsheets, WhatsApp threads, and paper logs — so every team works off the same live data.
+            </p>
           </div>
         </Reveal>
 
-        {/* ── DESKTOP: big photo + horizontal timeline ── */}
+        {/* ── DESKTOP: left = numbered list (text, left-aligned), right = cycling photo ── */}
         <div
-          className="hidden lg:block"
+          className="hidden lg:grid grid-cols-2 gap-14 items-center"
           style={{ opacity: drawn ? 1 : 0, transform: drawn ? "none" : "translateY(14px)", transition: "opacity 700ms ease, transform 700ms ease" }}
         >
-          <div className="relative mx-auto mb-10 h-[300px] max-w-4xl overflow-hidden rounded-[24px] bg-[#111d35]">
+          {/* Left — numbered timeline, left-aligned text */}
+          <div className="relative">
+            <div className="absolute left-[15px] top-2 bottom-2 w-px bg-[#e2e8f0]" aria-hidden />
+            <div className="space-y-6">
+              {BENEFITS.map(({ num, tag, title, desc }, i) => (
+                <button
+                  key={num}
+                  onMouseEnter={() => setActivePhoto(i)}
+                  onFocus={() => setActivePhoto(i)}
+                  onClick={() => setActivePhoto(i)}
+                  className="relative flex w-full gap-4 text-left"
+                >
+                  <span className={`relative z-10 flex h-[30px] w-[30px] flex-shrink-0 items-center justify-center rounded-full border text-[12px] font-medium transition-all duration-300 ${activePhoto === i ? "border-[#2b6cb0] bg-[#2b6cb0] text-white" : "border-[#2b6cb0]/40 bg-white text-[#2b6cb0]"}`}>{num}</span>
+                  <div>
+                    <span className={`mb-1 inline-block rounded-lg border px-2 py-[3px] text-[9px] font-medium uppercase tracking-[0.14em] transition-colors duration-300 ${activePhoto === i ? "border-[#2b6cb0]/40 text-[#2b6cb0]" : "border-[#2b6cb0]/20 text-[#2b6cb0]/55"}`}>{tag}</span>
+                    <h3 className={`mb-1 font-serif text-[15px] font-normal leading-snug transition-colors ${activePhoto === i ? "text-[#1a202c]" : "text-[#4a5568]"}`}>{title}</h3>
+                    <p className="text-[12.5px] font-light leading-[1.65] text-[#718096]">{desc}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Right — cycling photo panel */}
+          <div className="relative h-[420px] overflow-hidden rounded-[24px] bg-[#111d35]">
             {BENEFITS.map(({ img, imgAlt, tag }, i) => (
               <div key={img} className="absolute inset-0 transition-opacity duration-700 ease-out" style={{ opacity: activePhoto === i ? 1 : 0 }} aria-hidden={activePhoto !== i}>
                 <div
@@ -355,26 +377,6 @@ export function WhyFirmitySection() {
                 <span className="absolute bottom-5 left-6 rounded-lg bg-[#111d35]/60 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/90 backdrop-blur-sm">{tag}</span>
               </div>
             ))}
-          </div>
-
-          <div className="relative mx-auto max-w-5xl">
-            <div className="absolute left-0 right-0 top-[15px] h-px bg-[#e2e8f0]" aria-hidden />
-            <div className="absolute left-0 top-[15px] h-px bg-[#2b6cb0] transition-[width] duration-500 ease-out" style={{ width: `${pct}%` }} aria-hidden />
-            <div className="grid" style={{ gridTemplateColumns: `repeat(${BENEFITS.length}, minmax(0,1fr))` }}>
-              {BENEFITS.map(({ num, title, desc }, i) => (
-                <button
-                  key={num}
-                  onMouseEnter={() => setActivePhoto(i)}
-                  onFocus={() => setActivePhoto(i)}
-                  onClick={() => setActivePhoto(i)}
-                  className="group relative flex flex-col items-center px-3 text-center"
-                >
-                  <span className={`relative z-10 mb-3 flex h-8 w-8 items-center justify-center rounded-full border text-[12px] font-medium transition-all duration-300 ${activePhoto === i ? "border-[#2b6cb0] bg-[#2b6cb0] text-white" : "border-[#2b6cb0]/40 bg-white text-[#2b6cb0]"}`}>{num}</span>
-                  <h3 className={`mb-1 font-serif text-[15px] font-normal leading-snug transition-colors ${activePhoto === i ? "text-[#1a202c]" : "text-[#4a5568]"}`}>{title}</h3>
-                  <p className="max-w-[210px] text-[12px] font-light leading-[1.6] text-[#718096]">{desc}</p>
-                </button>
-              ))}
-            </div>
           </div>
         </div>
 
@@ -399,85 +401,43 @@ export function WhyFirmitySection() {
   )
 }
 
-// ─── 3) THREE PILLARS — expanding color-coded panels (V3) ─────────────────────
+// ─── 3) THREE PILLARS — static 3-up cards, pillar.png recolored per pillar ────
 
 export function PillarsSection() {
   return (
-    <section className="hidden sm:flex bg-white/60 flex-col justify-center">
-      <div className={`${HERO_PX} py-10 lg:py-14 w-full`}>
-        <Reveal className="hidden sm:block">
-          <SectionKicker text="Built on Three Pillars" />
-          <h2 className="font-serif text-[clamp(1.6rem,4vw,2.6rem)] font-light leading-[1.15] tracking-tight text-[#1a202c] mb-10 lg:mb-14">
+    <section className="bg-transparent sm:bg-white/60">
+      <div className={`${HERO_PX} py-14 lg:py-20 w-full`}>
+        <Reveal className="text-center mb-10 lg:mb-14">
+          <div className="flex items-center gap-3 mb-3 justify-center">
+            <div className="w-6 h-px bg-[#2b6cb0]/40" />
+            <span className="text-[#2b6cb0] text-[10px] font-semibold tracking-[0.2em] uppercase">Built on Three Pillars</span>
+            <div className="w-6 h-px bg-[#2b6cb0]/40" />
+          </div>
+          <h2 className="font-serif text-[clamp(1.6rem,4vw,2.6rem)] font-light leading-[1.15] tracking-tight text-[#1a202c] max-w-2xl mx-auto mb-3">
             The foundations of <em className="not-italic text-[#2b6cb0]">smarter facility management</em>
           </h2>
+          <p className="text-[13.5px] font-light leading-[1.8] text-[#4a5568] max-w-[460px] mx-auto">
+            Every module in Firmity is built around three principles — get more done, protect what you own, and waste less doing it.
+          </p>
         </Reveal>
 
-        {/* Hover a panel and it widens to reveal its detail; siblings compress.
-            Even spacing via equal flex-basis + identical gaps. */}
         <Reveal delay={140}>
-          <div className="flex flex-col md:flex-row gap-4 lg:gap-5 md:h-[280px]">
-            {PILLARS.map(({ numeral, title, line, chips, bg, accent, accentSoft }) => (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+            {PILLARS.map(({ numeral, title, headline, desc, accent, icon }) => (
               <div
                 key={numeral}
-                className="group relative flex-1 md:hover:flex-[2.2] basis-0 grow min-h-[190px] md:min-h-0 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] rounded-[20px] overflow-hidden cursor-default"
-                // style={{ background: bg }}
+                className="rounded-[20px] border border-[#eef3f9] bg-white/70 p-7 lg:p-8 flex flex-col items-center text-center transition-shadow duration-300 hover:shadow-[0_12px_32px_rgba(17,29,53,0.07)]"
               >
-                  <div
-    className="absolute inset-[10px] rounded-[16px] border"
-    style={{
-      background: `${accent}10`,
-      borderColor: `${accent}25`,
-      boxShadow:
-        "inset 0 1px 0 rgba(255,255,255,0.08), 0 10px 30px rgba(0,0,0,0.12)",
-    }}
-  />
-                {/* Ghost numeral */}
-                <span className="absolute top-5 right-6 font-serif text-[40px] leading-none pointer-events-none select-none" style={{ color: `${accent}22` }}>
-                  {numeral}
+                <img src={icon} alt="" className="w-[150px] h-auto mb-5 select-none" draggable={false} />
+                <span className="text-[10px] font-semibold tracking-[0.2em] uppercase mb-2" style={{ color: accent }}>
+                  {title}
                 </span>
-
-                <div
-  className="m-3 h-auto md:h-[calc(100%-24px)] rounded-[16px] border border-white/10 bg-white/5 shadow-inner flex flex-col md:flex-row items-center justify-center gap-5 px-6 py-8 md:py-0"
->
-                  {/* Column + title — always visible */}
-                  <div className="flex flex-col items-center text-center flex-shrink-0">
-                    <div className="transition-transform duration-500 group-hover:-translate-y-1.5">
-                      <CorinthianColumn height={120} shaftHeight={55} stroke={accent} />
-                    </div>
-                    <div className="text-[11px] font-semibold tracking-[0.2em] uppercase mt-3" style={{ color: accent }}>
-                      {title}
-                    </div>
-                  </div>
-
-                  {/* Detail — revealed on hover (always visible on mobile) */}
-                  <div className="md:w-0 md:opacity-0 md:group-hover:w-[230px] md:group-hover:opacity-100 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] overflow-hidden text-center md:text-left">
-                    <div className="md:w-[230px]">
-                      <p
-  className="font-serif text-[17px] font-light leading-snug mb-4"
-  style={{ color: accentSoft }}
->
-  {line}
-</p>
-                      <div className="flex flex-wrap justify-center md:justify-start gap-1.5">
-                        {chips.map((chip) => (
-                          <span
-                            key={chip}
-                            className="text-[9px] font-medium tracking-[0.08em] uppercase rounded-lg px-2.5 py-[5px] border"
-                            style={{ color: accentSoft, borderColor: `${accent}33` }}
-                          >
-                            {chip}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Bottom accent line sweeps on hover */}
-                <div
-                  className="absolute bottom-0 left-0 h-[3px] w-0 group-hover:w-full transition-all duration-500"
-                  style={{ background: accent }}
-                />
+                <h3 className="font-serif text-[1.15rem] font-normal leading-snug text-[#1a202c] mb-2">
+                  {headline}
+                </h3>
+                <p className="text-[12.5px] font-light leading-[1.7] text-[#718096]">
+                  {desc}
+                </p>
               </div>
             ))}
           </div>
@@ -645,7 +605,10 @@ function SlideshowLeft({
   return (
     <div
       className="relative overflow-hidden h-full flex flex-col"
-      style={{ background: isHero ? "#ffffff" : slide.bg, transition: "background 600ms ease", ["--ink" as string]: inkAccent(slide.accent) } as CSSProperties}
+      // isHero: translucent white (not flat #fff) so the page's fixed beige
+      // page-wash gradient shows through underneath — same treatment as the
+      // "Real Challenges, Real Solutions" (Problems) section's bg-white/60.
+      style={{ background: isHero ? "rgba(255,255,255,0.6)" : slide.bg, transition: "background 600ms ease", ["--ink" as string]: inkAccent(slide.accent) } as CSSProperties}
     >
       {/* Phone only: a clean light gradient tinted to the active slide's colour
           replaces the photo (photos hurt text legibility on small screens). The
@@ -688,8 +651,12 @@ function SlideshowLeft({
           {/* Kicker */}
           <div style={{ animation: "hsModUp 0.5s cubic-bezier(0.22,1,0.36,1) both" }}>
             <div className="flex items-center gap-3 mb-5">
-              <div className="w-5 h-px" style={{ background: slide.accent, transition: "background 600ms ease" }} />
-              <span className="text-[10px] font-semibold tracking-[0.22em] uppercase" style={{ color: slide.accent, transition: "color 600ms ease" }}>
+              {/* isHero: fixed to the "Big costs" blue (#2b6cb0), same as the
+                  Problems section accent — was the lighter slide.accent
+                  (#63b3ed). Module slides (isHero false) keep their own
+                  per-module accent, unaffected. */}
+              <div className="w-5 h-px" style={{ background: isHero ? "#2b6cb0" : slide.accent, transition: "background 600ms ease" }} />
+              <span className="text-[10px] font-semibold tracking-[0.22em] uppercase" style={{ color: isHero ? "#2b6cb0" : slide.accent, transition: "color 600ms ease" }}>
                 {slide.kicker}
               </span>
             </div>
@@ -700,7 +667,7 @@ function SlideshowLeft({
             {isHero ? (
               <h1 className="font-serif font-light text-[#111d35] leading-[1.1] tracking-tight mb-4" style={{ fontSize: "clamp(1.75rem,3.5vw,2.75rem)" }}>
                 The Complete<br />
-                <em className="not-italic" style={{ color: slide.accent }}>Facility Management</em><br />
+                <em className="not-italic" style={{ color: "#2b6cb0" }}>Facility Automation</em><br />
                 Software Suite
               </h1>
             ) : (
@@ -890,7 +857,7 @@ export function HeroSection() {
         <SlideshowLeft activeIndex={activeIndex} animKey={animKey} paused={paused} goTo={goTo} />
       </div>
 
-      <div ref={panelRef} className="hidden lg:block relative overflow-hidden bg-[#111d35]">
+      <div ref={panelRef} className="hidden lg:block relative overflow-hidden bg-[#f5eddd]">
 
         <div
           className="absolute inset-0 transition-opacity duration-700 ease-out"
@@ -900,59 +867,68 @@ export function HeroSection() {
             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
             style={{ backgroundImage: "url('https://images.unsplash.com/photo-1486325212027-8081e485255e?w=900&q=85&fit=crop&crop=top')" }}
           />
-          <div className="absolute inset-0 bg-[#111d35]/85" />
+          {/* EXPERIMENT (2026-09-01, user asked to preview a light treatment
+              here instead of the flat navy/85 overlay) — same beige-gradient
+              family as .page-wash / the mobile hero gradient above, just
+              opaque enough to keep the stat cards legible over the photo.
+              Easy to revert: swap this div back to `bg-[#111d35]/85` and
+              restore the card/text colors below to their white/[0.NN] values. */}
+          <div
+            className="absolute inset-0"
+            style={{ background: "linear-gradient(160deg, rgba(253,251,247,0.94) 0%, rgba(245,237,221,0.92) 55%, rgba(239,228,210,0.94) 100%)" }}
+          />
           <div className="relative z-10 p-4 sm:p-6 lg:p-7 flex flex-col gap-2.5 h-full">
             <div className="grid grid-cols-2 gap-2.5">
-              <div className="bg-white/[0.06] border border-white/[0.1] rounded-xl p-3 sm:p-3.5 backdrop-blur-sm">
-                <div className="text-[8.5px] text-white/[0.38] uppercase tracking-[0.14em] mb-1.5">Assets Tracked</div>
-                <div className="font-sans text-[20px] sm:text-[22px] font-light text-[#63b3ed] leading-none">{c1.display}</div>
-                <div className="text-[8px] text-[rgba(104,211,145,0.85)] mt-1">All active</div>
+              <div className="bg-white/70 border border-[#e2e8f0] rounded-xl p-3 sm:p-3.5 backdrop-blur-sm">
+                <div className="text-[8.5px] text-[#718096] uppercase tracking-[0.14em] mb-1.5">Assets Tracked</div>
+                <div className="font-sans text-[20px] sm:text-[22px] font-light text-[#2b6cb0] leading-none">{c1.display}</div>
+                <div className="text-[8px] text-[#38a169] mt-1">All active</div>
               </div>
-              <div className="bg-white/[0.06] border border-white/[0.1] rounded-xl p-3 sm:p-3.5 backdrop-blur-sm">
-                <div className="text-[8.5px] text-white/[0.38] uppercase tracking-[0.14em] mb-1.5">PPM Due</div>
-                <div className="font-sans text-[20px] sm:text-[22px] font-light text-[#fc8181] leading-none">{c2.display}</div>
-                <div className="text-[8px] text-[rgba(252,129,129,0.75)] mt-1">This week</div>
+              <div className="bg-white/70 border border-[#e2e8f0] rounded-xl p-3 sm:p-3.5 backdrop-blur-sm">
+                <div className="text-[8.5px] text-[#718096] uppercase tracking-[0.14em] mb-1.5">PPM Due</div>
+                <div className="font-sans text-[20px] sm:text-[22px] font-light text-[#c53030] leading-none">{c2.display}</div>
+                <div className="text-[8px] text-[#c53030]/75 mt-1">This week</div>
               </div>
             </div>
 
-            <div className="bg-white/[0.06] border border-white/[0.1] rounded-xl p-3 sm:p-3.5 backdrop-blur-sm">
-              <div className="text-[8.5px] text-white/[0.38] uppercase tracking-[0.14em] mb-2">Staff Attendance Today</div>
-              <div className="bg-white/[0.08] h-[2px] w-full rounded-full">
+            <div className="bg-white/70 border border-[#e2e8f0] rounded-xl p-3 sm:p-3.5 backdrop-blur-sm">
+              <div className="text-[8.5px] text-[#718096] uppercase tracking-[0.14em] mb-2">Staff Attendance Today</div>
+              <div className="bg-[#e2e8f0] h-[2px] w-full rounded-full">
                 <div
                   className="h-[2px] rounded-full bg-[#2b6cb0] transition-all duration-[1800ms]"
                   style={{ width: bar.width + "%" }}
                 />
               </div>
-              <div className="text-[8.5px] text-white/[0.3] mt-1.5">{bar.count} of 40 staff present</div>
+              <div className="text-[8.5px] text-[#a0aec0] mt-1.5">{bar.count} of 40 staff present</div>
             </div>
 
-            <div className="bg-white/[0.06] border border-white/[0.1] rounded-xl p-3 sm:p-3.5 backdrop-blur-sm grid grid-cols-2 gap-3">
+            <div className="bg-white/70 border border-[#e2e8f0] rounded-xl p-3 sm:p-3.5 backdrop-blur-sm grid grid-cols-2 gap-3">
               <div>
-                <div className="text-[8.5px] text-white/[0.38] uppercase tracking-[0.14em] mb-1.5">Open Tickets</div>
-                <div className="font-sans text-[20px] sm:text-[22px] font-light text-[#fbd38d] leading-none">{c3.display}</div>
-                <div className="text-[8px] text-[rgba(251,211,141,0.7)] mt-1">Awaiting action</div>
+                <div className="text-[8.5px] text-[#718096] uppercase tracking-[0.14em] mb-1.5">Open Tickets</div>
+                <div className="font-sans text-[20px] sm:text-[22px] font-light text-[#b7791f] leading-none">{c3.display}</div>
+                <div className="text-[8px] text-[#b7791f]/75 mt-1">Awaiting action</div>
               </div>
               <div>
-                <div className="text-[8.5px] text-white/[0.38] uppercase tracking-[0.14em] mb-1.5">Compliance</div>
-                <div className="font-sans text-[20px] sm:text-[22px] font-light text-[#63b3ed] leading-none">{c4.display}</div>
-                <div className="text-[8px] text-[rgba(99,179,237,0.65)] mt-1">On track</div>
+                <div className="text-[8.5px] text-[#718096] uppercase tracking-[0.14em] mb-1.5">Compliance</div>
+                <div className="font-sans text-[20px] sm:text-[22px] font-light text-[#2b6cb0] leading-none">{c4.display}</div>
+                <div className="text-[8px] text-[#3182ce]/75 mt-1">On track</div>
               </div>
             </div>
 
-            <div className="bg-white/[0.06] border border-white/[0.1] rounded-xl p-3 sm:p-3.5 backdrop-blur-sm flex-1">
-              <div className="text-[8.5px] text-white/[0.38] uppercase tracking-[0.14em] mb-2">Recent Activity</div>
-              <div className="divide-y divide-white/[0.05]">
+            <div className="bg-white/70 border border-[#e2e8f0] rounded-xl p-3 sm:p-3.5 backdrop-blur-sm flex-1">
+              <div className="text-[8.5px] text-[#718096] uppercase tracking-[0.14em] mb-2">Recent Activity</div>
+              <div className="divide-y divide-[#e2e8f0]">
                 <div className="flex items-center gap-2 py-[5px]">
-                  <div className="w-[5px] h-[5px] rounded-full flex-shrink-0 bg-[#68d391]" />
-                  <span className="text-[9px] sm:text-[9.5px] text-white/[0.45] font-light">PPM — HVAC Unit B2 completed</span>
+                  <div className="w-[5px] h-[5px] rounded-full flex-shrink-0 bg-[#38a169]" />
+                  <span className="text-[9px] sm:text-[9.5px] text-[#4a5568] font-light">PPM — HVAC Unit B2 completed</span>
                 </div>
                 <div className="flex items-center gap-2 py-[5px]">
-                  <div className="w-[5px] h-[5px] rounded-full flex-shrink-0 bg-[#fbd38d]" />
-                  <span className="text-[9px] sm:text-[9.5px] text-white/[0.45] font-light">AMC renewal due in 7 days — Block A</span>
+                  <div className="w-[5px] h-[5px] rounded-full flex-shrink-0 bg-[#d69e2e]" />
+                  <span className="text-[9px] sm:text-[9.5px] text-[#4a5568] font-light">AMC renewal due in 7 days — Block A</span>
                 </div>
                 <div className="flex items-center gap-2 py-[5px]">
-                  <div className="w-[5px] h-[5px] rounded-full flex-shrink-0 bg-[#90cdf4]" />
-                  <span className="text-[9px] sm:text-[9.5px] text-white/[0.45] font-light">Visitor: Mr. Muhammad Ali checked in — Gate 2</span>
+                  <div className="w-[5px] h-[5px] rounded-full flex-shrink-0 bg-[#3182ce]" />
+                  <span className="text-[9px] sm:text-[9.5px] text-[#4a5568] font-light">Visitor: Mr. Muhammad Ali checked in — Gate 2</span>
                 </div>
               </div>
             </div>
@@ -1039,7 +1015,7 @@ export function ModulesSection() {
 
   return (
     <section
-      className={"bg-[#111d35] grid grid-cols-1 lg:grid-cols-2 " + HERO_MINH}
+      className={"grid grid-cols-1 lg:grid-cols-2 " + HERO_MINH}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
@@ -1051,7 +1027,7 @@ export function ModulesSection() {
         @keyframes hsProgress { from { width: 0; } to { width: 100%; } }
       `}</style>
 
-      <div className={"" + HERO_PX + " py-16 lg:py-0 flex flex-col justify-center"}>
+      <div className={"bg-[#111d35] " + HERO_PX + " py-16 lg:py-0 flex flex-col justify-center"}>
         <span className="inline-block px-3 py-5 text-xs font-semibold text-[#63b3ed] rounded-full mb-4">
           FIRMITY UNIFIED PLATFORM
         </span>
@@ -1112,7 +1088,7 @@ export function ModulesSection() {
         </Reveal>
       </div>
 
-      <div className="hidden lg:flex bg-white border-l border-[#dbe5f0] items-center justify-center p-6 sm:p-10 lg:p-14">
+      <div className="hidden lg:flex bg-white/60 border-l border-[#dbe5f0] items-center justify-center p-6 sm:p-10 lg:p-14">
         <div className="w-full max-w-[520px]">
           <div key={active.slug} style={{ animation: "hsModuleFade 450ms cubic-bezier(0.22,1,0.36,1)" }}>
             <div className="min-h-[250px]">

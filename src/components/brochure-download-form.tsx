@@ -1,8 +1,20 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { Download, Loader2, CheckCircle, AlertCircle } from "lucide-react"
+
+// Bot resistance (2026-09-01 — this form was being hit repeatedly by bots
+// submitting fake leads): the server (src/app/api/brochure/route.ts) already
+// rejects requests without a matching Origin/Referer. These two are a
+// second, client-side layer for bots that DO render the page:
+//   - honeypot "website" field, hidden off-screen — a real visitor never
+//     touches it, a bot that blindly fills every input does. Server treats
+//     a non-empty value as spam and silently no-ops.
+//   - minimum time-to-submit — rejects instantly-submitted forms client-side
+//     before even hitting the network, since a real person can't read the
+//     fields and type into all four in under ~1.5s.
+const MIN_SUBMIT_MS = 1500
 
 export function BrochureDownloadForm() {
   const [loading, setLoading] = useState(false)
@@ -13,7 +25,9 @@ export function BrochureDownloadForm() {
     email: "",
     phone: "",
     city: "",
+    website: "", // honeypot — must stay empty
   })
+  const mountedAt = useRef(Date.now())
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -22,6 +36,13 @@ export function BrochureDownloadForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Fail closed, quietly — no error shown, so a bot gets no signal about
+    // why it didn't "work". A real visitor will never trip either check.
+    if (formData.website.trim().length > 0 || Date.now() - mountedAt.current < MIN_SUBMIT_MS) {
+      return
+    }
+
     setLoading(true)
     setError("")
 
@@ -34,7 +55,7 @@ export function BrochureDownloadForm() {
 
       if (response.ok) {
         setSuccess(true)
-        setFormData({ name: "", email: "", phone: "", city: "" })
+        setFormData({ name: "", email: "", phone: "", city: "", website: "" })
 
         const link = document.createElement("a")
         link.href = "/Pricing_FIRMITY FACILITY SOFTWARE UFIRM TECHNOLOGIES.pdf"
@@ -68,6 +89,23 @@ export function BrochureDownloadForm() {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+      {/* Honeypot — visually and semantically hidden from real users
+          (aria-hidden, tabIndex -1, off-screen, autocomplete off so browsers
+          don't offer to fill it), but present in the DOM for a bot that
+          blindly fills every <input> it finds. */}
+      <div className="absolute -left-[9999px] w-px h-px overflow-hidden" aria-hidden="true">
+        <label htmlFor="brochure-website">Website</label>
+        <input
+          id="brochure-website"
+          type="text"
+          name="website"
+          value={formData.website}
+          onChange={handleChange}
+          tabIndex={-1}
+          autoComplete="off"
+        />
+      </div>
+
       <div className="grid grid-cols-2 gap-3">
         <div className="flex flex-col gap-1">
           <label className="text-[10.5px] font-semibold text-[#4a5568] tracking-wide uppercase">Full Name</label>
@@ -144,7 +182,7 @@ export function BrochureDownloadForm() {
         )}
       </button>
 
-      <p className="text-[10.5px] text-[#a0aec0] text-center font-light">
+      <p className="text-[10.5px] text-[#718096] text-center font-light">
         No spam. Instant PDF download.
       </p>
     </form>

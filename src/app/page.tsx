@@ -316,6 +316,7 @@ import { HomeJsonLd } from "@/src/components/home-jsonld"
 import { BrochureDownloadForm } from "@/src/components/brochure-download-form"
 import { SurveyPopup } from "@/src/components/survey-popup"
 import { ClientsCarousel } from "@/src/components/clients-carousel"
+import { HowDidYouHearSection } from "@/src/components/how-did-you-hear-section"
 import {
   HeroSection,
   ProblemsSection,
@@ -324,7 +325,7 @@ import {
   ModulesSection,
 } from "@/src/components/home-sections"
 import Link from "next/link"
-import { ArrowRight, ChevronDown } from "lucide-react"
+import { ArrowRight, ChevronDown, Lock, Zap, FileText, Calendar } from "lucide-react"
 import { useState, useEffect } from "react"
 
 // ─── Inline video URL builder ─────────────────────────────────────────────────
@@ -447,8 +448,13 @@ function HomeBlogSection() {
   if (loaded && posts.length === 0) return null
 
   return (
-    <section className="bg-transparent sm:bg-[#f8fafc]/60 border-t border-[#eef3f9] py-14 px-6">
-      <div className="max-w-6xl mx-auto">
+    <section className="bg-transparent sm:bg-white/60 py-14">
+      {/* max-w-7xl + px-6 sm:px-10 lg:px-16 — was max-w-6xl + a flat px-6 that
+          never grew at larger breakpoints, so this section's left edge sat
+          noticeably left of the navbar logo / HowDidYouHearSection above it
+          on desktop. Matched to the same container scale as the navbar,
+          footer, and HowDidYouHearSection so all four line up. */}
+      <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16">
         {/* Header */}
         <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
           <div>
@@ -456,9 +462,12 @@ function HomeBlogSection() {
               <div className="w-5 h-px bg-[#2b6cb0]" />
               <span className="text-[#2b6cb0] text-[10px] font-semibold tracking-[0.2em] uppercase">Insights</span>
             </div>
-            <h2 className="font-serif text-[clamp(1.4rem,2.5vw,1.9rem)] font-light text-[#1a202c] tracking-tight">
+            <h2 className="font-serif text-[clamp(1.6rem,4vw,2.6rem)] font-light leading-[1.15] text-[#1a202c] tracking-tight mb-1">
               More facility management insights
             </h2>
+            <p className="text-[13.5px] font-light leading-[1.8] text-[#4a5568] max-w-[460px]">
+              Practical guides and playbooks from the Firmity team on maintenance, compliance, and running a tighter facility.
+            </p>
           </div>
           <Link
             href="/blog"
@@ -655,10 +664,10 @@ export default function FirmityHome() {
               <span className="text-[#2b6cb0] text-[10px] font-semibold tracking-[0.2em] uppercase">Trusted by Leading Companies</span>
               <div className="w-6 h-px bg-[#2b6cb0]" />
             </div>
-            <h2 className="font-serif text-[clamp(1.4rem,2.5vw,1.75rem)] font-light text-[#1a202c] tracking-tight mb-1">
+            <h2 className="font-serif text-[clamp(1.6rem,4vw,2.6rem)] font-light leading-[1.15] text-[#1a202c] tracking-tight mb-1">
               Companies Using Firmity
             </h2>
-            <p className="text-[13px] font-light text-[#a0aec0] mb-6">
+            <p className="text-[13.5px] font-light leading-[1.8] text-[#4a5568] mb-6">
               Join hundreds of facility managers transforming their operations
             </p>
           </div>
@@ -672,6 +681,11 @@ export default function FirmityHome() {
           </div>
         </section>
 
+        {/* ── HOW DID YOU HEAR ABOUT US — anonymous attribution pulse-check ──
+            Implementation lives in src/components/how-did-you-hear-section.tsx.
+            Re-asked again post-submit on /contact — see src/app/contact/page.tsx. */}
+        <HowDidYouHearSection />
+
         {/* ── BLOG PREVIEW — 4 latest posts, fetched client-side via /api/blog/latest ── */}
         <HomeBlogSection />
 
@@ -684,7 +698,7 @@ export default function FirmityHome() {
             Each module deep-links to /features#<slug>. */}
         <ModulesSection />
 
-        {/* ── THREE PILLARS — hero-aligned interactive tilt cards ──
+        {/* ── THREE PILLARS — static 3-up cards, pillar.png recolored per pillar ──
             Implementation lives in src/components/home-sections.tsx */}
         <PillarsSection />
 
@@ -699,7 +713,7 @@ export default function FirmityHome() {
             - Form top/bottom padding: py-4 on the form content div
             - Form heading size: text-[1.1rem]
         ── */}
-        <section className="bg-transparent sm:bg-white/60 border-t border-[#e2e8f0]">
+        <section>
           <div className="grid grid-cols-1 lg:grid-cols-2">
 
             {/* Left — video panel (inline player) */}
@@ -751,7 +765,7 @@ export default function FirmityHome() {
             </div>
 
             {/* Right — B2 floating card on light band */}
-            <div className="bg-[white] border-t lg:border-t-0 lg:border-l border-[#dbe5f0] flex flex-col items-center justify-center px-6 py-10 lg:py-14">
+            <div className="bg-transparent sm:bg-white/60 border-t lg:border-t-0 lg:border-l border-[#dbe5f0] flex flex-col items-center justify-center px-6 py-10 lg:py-14">
               <div className="w-full max-w-[340px]">
                 <div className="flex items-center gap-2 mb-1">
                   <div className="w-4 h-px bg-[#2b6cb0]" />
@@ -769,24 +783,34 @@ export default function FirmityHome() {
                   <BrochureDownloadForm />
                 </div>
 
-                {/* Trust chips */}
+                {/* Trust chips — lucide icons instead of emoji, darkened from #a0aec0 to #718096 for legibility */}
                 <div className="flex items-center justify-center gap-5 mt-4">
                   {[
-                    { icon: "\ud83d\udd12", label: "No spam" },
-                    { icon: "\u26a1", label: "Instant download" },
-                    { icon: "\ud83d\udcc4", label: "PDF brochure" },
+                    { Icon: Lock, label: "No spam" },
+                    { Icon: Zap, label: "Instant download" },
+                    { Icon: FileText, label: "PDF brochure" },
                   ].map(function(chip) {
+                    const ChipIcon = chip.Icon
                     return (
-                      <span key={chip.label} className="flex items-center gap-1.5 text-[10.5px] font-light text-[#a0aec0]">
-                        <span>{chip.icon}</span>{chip.label}
+                      <span key={chip.label} className="flex items-center gap-1.5 text-[10.5px] font-light text-[#718096]">
+                        <ChipIcon size={12} strokeWidth={1.75} className="text-[#a0aec0]" />
+                        {chip.label}
                       </span>
                     )
                   })}
                 </div>
 
-                <div className="mt-4 text-center">
-                  <span className="text-[11px] text-[#a0aec0] font-light">Prefer a live walkthrough? </span>
-                  <Link href="/contact" className="text-[11px] text-[#2b6cb0] font-semibold hover:underline">Book a Tech Demo →</Link>
+                {/* Secondary CTA — a bordered pill so it reads as clickable without
+                    competing with the solid "Download Brochure" button above it. */}
+                <div className="mt-5 flex items-center justify-center gap-2 text-center">
+                  <span className="text-[11px] text-[#718096] font-light">Prefer a live walkthrough?</span>
+                  <Link
+                    href="/contact"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-[#2b6cb0]/30 px-3 py-1 text-[11px] text-[#2b6cb0] font-semibold hover:border-[#2b6cb0] hover:bg-[#2b6cb0]/[0.06] transition-colors"
+                  >
+                    <Calendar size={11} strokeWidth={2} />
+                    Book a Tech Demo
+                  </Link>
                 </div>
               </div>
             </div>
@@ -797,41 +821,45 @@ export default function FirmityHome() {
         <FaqSection />
 
         {/* ── CTA ─────────────────────────────────────────────────────────────── */}
-        <section className="relative bg-[#0d1525] overflow-hidden">
+        {/* Was a solid dark navy band (bg-[#0d1525], white text) — converted to
+            translucent-over-beige-wash like the rest of the page, per request.
+            All text/border colors below were re-themed from white-on-dark to
+            dark-on-light accordingly; copy and structure are unchanged. */}
+        <section className="relative bg-transparent sm:bg-white/60 overflow-hidden">
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden" aria-hidden="true">
-            <span className="font-serif text-[clamp(40px,10vw,130px)] font-light text-[rgba(43,108,176,0.05)] tracking-[0.12em] whitespace-nowrap select-none">FIRMITY</span>
+            <span className="font-serif text-[clamp(40px,10vw,130px)] font-light text-[rgba(43,108,176,0.06)] tracking-[0.12em] whitespace-nowrap select-none">FIRMITY</span>
           </div>
           <div className="h-[3px] bg-gradient-to-r from-transparent via-[#2b6cb0] to-transparent" />
           <div className="relative z-10 max-w-4xl mx-auto px-6 sm:px-10 lg:px-16 py-16 sm:py-20 text-center">
             <div className="flex items-center gap-3 mb-4 justify-center">
-              <div className="w-6 h-px bg-white/20" />
-              <span className="text-[rgba(99,179,237,0.7)] text-[10px] font-semibold tracking-[0.2em] uppercase">Start Today</span>
-              <div className="w-6 h-px bg-white/20" />
+              <div className="w-6 h-px bg-[#2b6cb0]/30" />
+              <span className="text-[#2b6cb0] text-[10px] font-semibold tracking-[0.2em] uppercase">Start Today</span>
+              <div className="w-6 h-px bg-[#2b6cb0]/30" />
             </div>
-            <h2 className="font-serif text-[clamp(1.6rem,3.5vw,2.4rem)] font-light text-[#f0f4f8] tracking-tight leading-[1.12] mb-3">
+            <h2 className="font-serif text-[clamp(1.6rem,4vw,2.6rem)] font-light text-[#1a202c] tracking-tight leading-[1.15] mb-3">
               Ready to Transform Your<br />Facility Management?
             </h2>
-            <p className="text-[13.5px] font-light text-white/[0.45] mb-7 max-w-[380px] mx-auto">
-              Get 2 weeks free trial with unlimited training and 24/7 support
+            <p className="text-[13.5px] font-light text-[#4a5568] mb-7 max-w-[380px] mx-auto">
+              Everything you need to bring operations, assets, and compliance into one command centre.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center mb-7">
-              <Link href="/features" className="inline-flex items-center justify-center border border-white/20 text-white/70 hover:text-white hover:border-white/[0.4] px-7 py-3 text-[13px] font-light transition-all">
+              <Link href="/features" className="inline-flex items-center justify-center border border-[#cbd5e0] text-[#4a5568] hover:text-[#1a202c] hover:border-[#2b6cb0] px-7 py-3 text-[13px] font-light transition-all">
                 Explore Features
               </Link>
             </div>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-5 flex-wrap">
               {["No credit card required", "Unlimited training included", "24/7 support from day one"].map((item, i, arr) => (
                 <div key={item} className="flex items-center gap-3">
-                  <div className="flex items-center gap-1.5 text-[11px] text-white/[0.25]">
-                    <span className="text-[rgba(99,179,237,0.5)]">✓</span>{item}
+                  <div className="flex items-center gap-1.5 text-[11px] text-[#718096]">
+                    <span className="text-[#2b6cb0]">✓</span>{item}
                   </div>
-                  {i < arr.length - 1 && <div className="w-px h-3 bg-white/[0.08] hidden sm:block" />}
+                  {i < arr.length - 1 && <div className="w-px h-3 bg-[#dbe5f0] hidden sm:block" />}
                 </div>
               ))}
             </div>
           </div>
-          <div className="border-t border-white/[0.05] py-3 text-center">
-            <p className="text-[10px] text-white/[0.14] tracking-[0.06em]">
+          <div className="border-t border-[#eef3f9] py-3 text-center">
+            <p className="text-[10px] text-[#a0aec0] tracking-[0.06em]">
               Firmity is a registered software of UFIRM Technologies (P) Limited · Proudly Made in India
             </p>
           </div>

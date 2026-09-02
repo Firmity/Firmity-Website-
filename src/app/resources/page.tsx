@@ -195,7 +195,7 @@ export default function ResourcesPage() {
                     <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
                   </Link>
                   <a
-                    href="mailto:info@ufirm.in"
+                    href="mailto:demo@firmity.in"
                     className="inline-flex items-center justify-center gap-2 text-white/65 hover:text-white text-[12.5px] font-light px-6 py-3 rounded-xl border border-white/[0.18] hover:border-white/[0.45] transition-all"
                   >
                     <Mail size={13} /> Email Us

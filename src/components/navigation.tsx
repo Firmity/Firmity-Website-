@@ -66,7 +66,11 @@ export function Navigation() {
   return (
     // `relative` is required so the absolute-positioned dropdown is contained by this sticky bar
     <nav className="sticky top-0 z-50 bg-white border-b border-[#e8edf4] shadow-[0_1px_4px_rgba(17,29,53,0.06)] relative">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Padding scale matches the footer's container (px-6 sm:px-10 lg:px-16) —
+          not HERO_PX (px-6 sm:px-10 lg:px-14) — so the logo's left edge and the
+          Book Demo button's right edge line up with the footer content below,
+          per request. Kept in sync with the Industries dropdown panel below. */}
+      <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16">
         <div className="flex justify-between items-center h-16">
 
           {/* Logo */}
@@ -214,7 +218,7 @@ export function Navigation() {
           {/* Top accent line */}
                 <div className="h-[2px] bg-gradient-to-r from-[#2b6cb0] via-[#63b3ed] to-transparent" />
 
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 py-10">
             <div className="grid grid-cols-3 gap-0">
               {industryItems.map(({ label, href, accent, subItems }, colIdx) => (
                 <div

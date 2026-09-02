@@ -91,28 +91,39 @@ export function SurveyPopup() {
       )}
 
       {/* ── Sticky widget (appears after first close) ─────────────────────── */}
+      {/* Rail wrapper — same pattern as WhatsAppButton (whatsapp-button.tsx):
+          max-w-7xl + the navbar/footer padding scale, flex-justify-end, so the
+          widget's right edge tracks the Book Demo button/footer edge at any
+          viewport width instead of a raw `right-5`. bottom-24 (not bottom-5)
+          still stacks it above the WhatsApp button. */}
       {hasBeenClosed && !isOpen && (
-        <button
-          onClick={() => setIsOpen(true)}
-          // bottom-24, not bottom-5: stacks above the WhatsApp button
-          // (marketing-widgets.tsx) instead of overlapping it.
-          className="fixed bottom-24 right-5 z-40 flex items-center gap-3 bg-[#111d35] hover:bg-[#1a2744] text-white pl-3.5 pr-4 py-3 rounded-[14px] shadow-[0_8px_32px_rgba(17,29,53,0.35)] transition-all duration-200 hover:scale-[1.03] hover:shadow-[0_12px_40px_rgba(17,29,53,0.4)]"
-          aria-label="Book a free AI facility survey"
-        >
-          {/* Pulsing dot */}
-          <div className="relative flex-shrink-0">
-            <div className="w-7 h-7 rounded-lg bg-[#2b6cb0] flex items-center justify-center">
-              <ClipboardList size={13} className="text-white" />
-            </div>
-            <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2 border-[#111d35]">
-              <span className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-75" />
-            </span>
+        // bottom-24 (96px) was tuned for the old, larger WhatsApp button (56px
+        // @ bottom-5) — left a ~28px gap above it. WhatsApp is now 48px, so
+        // bottom-20 (80px) closes that down to ~12px without the two touching.
+        <div className="fixed inset-x-0 bottom-20 z-40 pointer-events-none">
+          <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 flex justify-end">
+            <button
+              onClick={() => setIsOpen(true)}
+              className="pointer-events-auto flex items-center gap-2.5 bg-[#111d35] hover:bg-[#1a2744] text-white pl-3 pr-3.5 py-2.5 rounded-xl shadow-[0_8px_32px_rgba(17,29,53,0.35)] transition-all duration-200 hover:scale-[1.03] hover:shadow-[0_12px_40px_rgba(17,29,53,0.4)]"
+              aria-label="Book a free AI facility survey"
+            >
+              {/* Pulsing dot */}
+              <div className="relative flex-shrink-0">
+                <div className="w-6 h-6 rounded-lg bg-[#2b6cb0] flex items-center justify-center">
+                  <ClipboardList size={11} className="text-white" />
+                </div>
+                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-emerald-400 rounded-full border-2 border-[#111d35]">
+                  <span className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-75" />
+                </span>
+              </div>
+              <div className="text-left">
+                <p className="text-[11px] font-semibold leading-none mb-1">Free AI Survey</p>
+                {/* Lightened from white/[0.55] — was reading too dim against the dark chip */}
+                <p className="text-[9.5px] text-white/[0.78] font-light leading-none">Book now →</p>
+              </div>
+            </button>
           </div>
-          <div className="text-left">
-            <p className="text-[12px] font-semibold leading-none mb-1">Free AI Survey</p>
-            <p className="text-[10.5px] text-white/[0.55] font-light leading-none">Book now →</p>
-          </div>
-        </button>
+        </div>
       )}
     </>
   )

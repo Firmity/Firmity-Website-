@@ -1,12 +1,17 @@
 "use client"
 
 import { usePathname } from "next/navigation"
-import { SurveyPopup } from "@/src/components/survey-popup"
 import { WhatsAppButton } from "@/src/components/whatsapp-button"
 
 // Widgets that belong on public/marketing pages only — never on authenticated
 // or operational screens (admin, survey-taking, staff, blog-admin), which have
 // their own FABs/bottom nav and shouldn't be cluttered with lead-gen CTAs.
+//
+// NOTE: <SurveyPopup /> is NOT rendered here — src/app/page.tsx (the actual
+// homepage) already mounts it directly, home-page-only, by original design.
+// Adding it here too would double-mount it on "/". It stays positioned at
+// bottom-24 (see survey-popup.tsx) purely so it doesn't overlap the WhatsApp
+// button below it when both happen to be on screen together.
 //
 // Mounted once in the root layout (src/app/layout.tsx) rather than repeated
 // across every marketing page.tsx/layout.tsx. To add a new operational route,
@@ -31,12 +36,5 @@ export function MarketingWidgets() {
 
   if (isExcluded) return null
 
-  return (
-    <>
-      {/* Sticky bubble sits at bottom-24 (see survey-popup.tsx) so it stacks
-          above the WhatsApp button instead of overlapping it. */}
-      <SurveyPopup />
-      <WhatsAppButton />
-    </>
-  )
+  return <WhatsAppButton />
 }
