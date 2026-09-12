@@ -4,18 +4,49 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { X, ArrowRight, ClipboardList, CheckCircle } from "lucide-react"
 
+// Once-per-browser-session: without this, navigating to "/" from any other
+// page remounts SurveyPopup and its 2.8s timer fires again, reopening the
+// popup every single time (reported 2026-09-06 — clicking "Our Solutions"
+// from another page always re-triggered it). Clicking around WITHIN the
+// homepage doesn't remount it, which is why it only ever misbehaved on
+// cross-page navigation.
+const SESSION_KEY_SHOWN = "firmity-survey-popup-shown"
+// Second key for the sticky "Free AI Survey" thumbnail (hasBeenClosed).
+// SurveyPopup only lives on "/" (see marketing-widgets.tsx's comment), so
+// every nav away and back fully unmounts/remounts it — hasBeenClosed is
+// local useState and was resetting to false on every remount. That was
+// invisible before the SESSION_KEY_SHOWN fix above (the popup reopened on
+// every remount anyway, so closing it again kept re-setting hasBeenClosed
+// to true) but became a regression once the popup was gated to once per
+// session: after that first close, later remounts skip the popup entirely
+// (correct) but also never re-set hasBeenClosed, so the thumbnail vanished
+// for the rest of the session (reported 2026-09-06 — "why did the popup
+// disappear... its thumbnail"). Persisting the closed flag the same way
+// keeps the thumbnail sticky across navigation without reintroducing the
+// repeat-popup bug.
+const SESSION_KEY_CLOSED = "firmity-survey-popup-closed"
+
 export function SurveyPopup() {
   const [isOpen, setIsOpen] = useState(false)
   const [hasBeenClosed, setHasBeenClosed] = useState(false)
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsOpen(true), 2800)
+    if (sessionStorage.getItem(SESSION_KEY_CLOSED)) {
+      setHasBeenClosed(true)
+      return
+    }
+    if (sessionStorage.getItem(SESSION_KEY_SHOWN)) return
+    const timer = setTimeout(() => {
+      setIsOpen(true)
+      sessionStorage.setItem(SESSION_KEY_SHOWN, "1")
+    }, 2800)
     return () => clearTimeout(timer)
   }, [])
 
   const handleClose = () => {
     setIsOpen(false)
     setHasBeenClosed(true)
+    sessionStorage.setItem(SESSION_KEY_CLOSED, "1")
   }
 
   const benefits = [
@@ -34,43 +65,48 @@ export function SurveyPopup() {
           onClick={handleClose}
         >
           <div
-            className="relative w-full sm:max-w-[440px] bg-white rounded-t-[28px] sm:rounded-[24px] overflow-hidden shadow-[0_32px_80px_rgba(17,29,53,0.28)]"
+            className="relative w-full sm:max-w-[380px] bg-white rounded-t-[24px] sm:rounded-[20px] overflow-hidden shadow-[0_32px_80px_rgba(17,29,53,0.28)]"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close */}
             <button
               onClick={handleClose}
               aria-label="Close"
-              className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-white/[0.12] hover:bg-white/[0.22] flex items-center justify-center transition-colors"
+              className="cursor-pointer absolute top-3.5 right-3.5 z-10 w-7 h-7 rounded-full bg-white/[0.12] hover:bg-white/[0.22] flex items-center justify-center transition-colors"
             >
-              <X size={15} className="text-white" />
+              <X size={14} className="text-white" />
             </button>
 
-            {/* Dark header */}
-            <div className="bg-[#111d35] px-8 pt-8 pb-7 relative overflow-hidden">
+            {/* Dark header — kicker/headline colors changed 2026-09-05 (were
+                text-[#63b3ed] on this bg-[#114dac], a ~3.4:1 contrast ratio —
+                fails WCAG AA's 4.5:1 minimum for text this small, which is
+                exactly why it read as "not visible" per request. #dbeafe
+                clears ~6.4:1 while keeping a faint blue tint instead of
+                going flat white. */}
+            <div className="bg-[#114dac] px-6 pt-6 pb-5 relative overflow-hidden">
               <div className="absolute -top-8 -right-8 w-40 h-40 bg-[#2b6cb0]/25 rounded-full blur-3xl pointer-events-none" />
               <div className="absolute bottom-0 left-0 w-32 h-24 bg-[#63b3ed]/10 rounded-full blur-2xl pointer-events-none" />
               <div className="relative">
-                <span className="inline-block text-[10.5px] font-semibold text-[#63b3ed] tracking-[0.22em] uppercase mb-4">
+                <span className="inline-block text-[10px] font-semibold text-[#dbeafe] tracking-[0.22em] uppercase mb-3">
                   Free · No Obligation
                 </span>
-                <h2 className="font-serif text-[1.55rem] font-light text-white leading-[1.2] mb-3">
+                <h2 className="font-serif text-[1.3rem] font-light text-white leading-[1.2] mb-2.5">
                   Book a Free<br />
-                  <span className="italic text-[#63b3ed]">AI Facility Health Survey</span>
+                  <span className="italic text-[#dbeafe]">AI Facility Health Survey</span>
                 </h2>
-                <p className="text-[13px] text-white/[0.58] font-light leading-relaxed">
+                <p className="text-[12px] text-white/[0.58] font-light leading-relaxed">
                   Get a professional, AI-powered assessment of your entire facility — across security, fire safety, HVAC, horticulture, and more.
                 </p>
               </div>
             </div>
 
             {/* Body */}
-            <div className="px-8 py-7">
-              <ul className="space-y-2.5 mb-7">
+            <div className="px-6 py-5">
+              <ul className="space-y-2 mb-5">
                 {benefits.map((b, i) => (
-                  <li key={i} className="flex items-start gap-2.5">
-                    <CheckCircle size={14} className="text-[#2b6cb0] flex-shrink-0 mt-0.5" />
-                    <span className="text-[13px] text-[#1e2d42] font-normal leading-relaxed">{b}</span>
+                  <li key={i} className="flex items-start gap-2">
+                    <CheckCircle size={13} className="text-[#2b6cb0] flex-shrink-0 mt-0.5" />
+                    <span className="text-[12px] text-[#000000] font-normal leading-relaxed">{b}</span>
                   </li>
                 ))}
               </ul>
@@ -78,11 +114,11 @@ export function SurveyPopup() {
               <Link
                 href="/facility-survey"
                 onClick={handleClose}
-                className="flex items-center justify-center gap-2 w-full bg-[#111d35] hover:bg-[#1a2744] text-white py-3.5 rounded-xl font-medium text-[14px] transition-colors mb-3"
+                className="flex items-center justify-center gap-2 w-full bg-[#114dac] hover:bg-[#0e3e8a] text-white py-3 rounded-[4px] font-medium text-[13px] transition-colors mb-2.5"
               >
-                Book Your Free Survey <ArrowRight size={15} />
+                Book Your Free Survey <ArrowRight size={14} />
               </Link>
-              <p className="text-center text-[11px] text-[#4a5568] font-medium">
+              <p className="text-center text-[10.5px] text-[#000000] font-medium">
                 Our team will connect with you within 24 hours.
               </p>
             </div>
@@ -104,7 +140,11 @@ export function SurveyPopup() {
           <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 flex justify-end">
             <button
               onClick={() => setIsOpen(true)}
-              className="pointer-events-auto flex items-center gap-2.5 bg-[#111d35] hover:bg-[#1a2744] text-white pl-3 pr-3.5 py-2.5 rounded-xl shadow-[0_8px_32px_rgba(17,29,53,0.35)] transition-all duration-200 hover:scale-[1.03] hover:shadow-[0_12px_40px_rgba(17,29,53,0.4)]"
+              // opacity-60 at rest, full opacity on hover/keyboard-focus —
+              // same treatment as WhatsAppButton (2026-09-04, per request:
+              // "make the free ai survey thumbnail... semi-transparent when
+              // they are not in focus or hovered").
+              className="cursor-pointer pointer-events-auto flex items-center gap-2.5 bg-[#114dac] hover:bg-[#0e3e8a] text-white pl-3 pr-3.5 py-2.5 rounded-[4px] shadow-[0_8px_32px_rgba(17,29,53,0.35)] opacity-60 hover:opacity-100 focus-visible:opacity-100 transition-all duration-200 hover:scale-[1.03] hover:shadow-[0_12px_40px_rgba(17,29,53,0.4)]"
               aria-label="Book a free AI facility survey"
             >
               {/* Pulsing dot */}
@@ -112,7 +152,7 @@ export function SurveyPopup() {
                 <div className="w-6 h-6 rounded-lg bg-[#2b6cb0] flex items-center justify-center">
                   <ClipboardList size={11} className="text-white" />
                 </div>
-                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-emerald-400 rounded-full border-2 border-[#111d35]">
+                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-emerald-400 rounded-full border-2 border-[#114dac]">
                   <span className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-75" />
                 </span>
               </div>

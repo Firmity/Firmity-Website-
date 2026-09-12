@@ -1,15 +1,21 @@
 "use client"
 
 // ─── "How did you hear about Firmity?" — shared capture widget ────────────────
-// Used in two places (per product spec):
+// Used in four places (per product spec):
 //   1. Standalone homepage section, before the Insights/blog block
 //      (see how-did-you-hear-section.tsx) — anonymous, no identity fields.
 //   2. Re-asked inline inside the /contact success card after a lead submits
 //      the main contact form (see src/app/contact/page.tsx).
+//   3. Re-asked inline after the homepage's embedded contact form succeeds
+//      (see overview-contact-form.tsx) — added 2026-09-04 for parity with #2,
+//      per request confirming this form should ask it too.
+//   4. Re-asked inline after a brochure download succeeds
+//      (see brochure-download-form.tsx) — added the same day, same reason.
 //
-// Both POST to the same /api/how-heard route; `source` tags which one fired so
+// All POST to the same /api/how-heard route; `source` tags which one fired so
 // the email to the team (RECEIVER_EMAIL, same inbox the contact form uses)
-// is traceable. Dropdown is a raw @radix-ui/react-select build (not the
+// is traceable — see that route's SOURCE_LABELS map, which must stay in sync
+// with this union. Dropdown is a raw @radix-ui/react-select build (not the
 // components/ui/select.tsx wrapper — that file imports "@/lib/utils", which
 // doesn't resolve in this src/-rooted project; safer not to depend on it).
 
@@ -35,14 +41,14 @@ const AI_ASSISTANT_VALUE = "AI Assistant (ChatGPT, Gemini, etc.)"
 
 interface HowDidYouHearFormProps {
   /** Tags the email to the team so replies are traceable to where the answer came from. */
-  source: "homepage" | "contact-form"
+  source: "homepage" | "contact-form" | "overview-form" | "brochure-form"
 }
 
 function OptionItem({ value }: { value: string }) {
   return (
     <SelectPrimitive.Item
       value={value}
-      className="relative flex items-center gap-2 pl-7 pr-3 py-2 rounded-lg text-[13px] text-[#1a202c] font-light leading-snug cursor-pointer select-none outline-none data-[highlighted]:bg-[#ebf3fc] data-[highlighted]:text-[#2b6cb0] data-[state=checked]:font-medium data-[state=checked]:text-[#2b6cb0]"
+      className="relative flex items-center gap-2 pl-7 pr-3 py-2 rounded-lg text-[13px] text-[#114dac] font-light leading-snug cursor-pointer select-none outline-none data-[highlighted]:bg-[#ebf3fc] data-[highlighted]:text-[#2b6cb0] data-[state=checked]:font-medium data-[state=checked]:text-[#2b6cb0]"
     >
       <span className="absolute left-2 flex items-center justify-center">
         <SelectPrimitive.ItemIndicator>
@@ -95,25 +101,25 @@ export function HowDidYouHearForm({ source }: HowDidYouHearFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="w-full">
-      <label className="block text-[11px] font-semibold tracking-[0.04em] text-[#1a202c] mb-1.5">
+      <label className="block text-[11px] font-semibold tracking-[0.04em] text-[#114dac] mb-1.5">
         How did you hear about Firmity?
       </label>
 
       <SelectPrimitive.Root value={howHeard} onValueChange={setHowHeard}>
         <SelectPrimitive.Trigger
           aria-label="How did you hear about Firmity?"
-          className="w-full flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl border border-[#cbd5e0] bg-white text-[13px] text-[#1a202c] font-light focus:outline-none focus:border-[#2b6cb0] focus:ring-1 focus:ring-[#2b6cb0] transition-colors data-[placeholder]:text-[#a0aec0]"
+          className="cursor-pointer w-full flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-[4px] border border-[#cbd5e0] bg-white text-[13px] text-[#114dac] font-light focus:outline-none focus:border-[#2b6cb0] focus:ring-1 focus:ring-[#2b6cb0] transition-colors data-[placeholder]:text-[#000000]"
         >
           <SelectPrimitive.Value placeholder="Select..." />
           <SelectPrimitive.Icon>
-            <ChevronDown size={15} className="text-[#718096] flex-shrink-0" />
+            <ChevronDown size={15} className="text-[#000000] flex-shrink-0" />
           </SelectPrimitive.Icon>
         </SelectPrimitive.Trigger>
         <SelectPrimitive.Portal>
           <SelectPrimitive.Content
             position="popper"
             sideOffset={6}
-            className="z-50 overflow-hidden rounded-xl border border-[#e2e8f0] bg-white shadow-[0_12px_32px_rgba(17,29,53,0.14)] w-[var(--radix-select-trigger-width)]"
+            className="z-50 overflow-hidden rounded-[4px] border border-[#e2e8f0] bg-white shadow-[0_12px_32px_rgba(17,29,53,0.14)] w-[var(--radix-select-trigger-width)]"
           >
             <SelectPrimitive.Viewport className="p-1.5 max-h-[300px]">
               {PRIMARY_SOURCES.map((v) => (
@@ -130,7 +136,7 @@ export function HowDidYouHearForm({ source }: HowDidYouHearFormProps) {
 
       {isOther && (
         <div className="animate-fade-up mt-4">
-          <label className="flex items-center gap-1 text-[11px] font-semibold tracking-[0.04em] text-[#1a202c] mb-1.5">
+          <label className="flex items-center gap-1 text-[11px] font-semibold tracking-[0.04em] text-[#114dac] mb-1.5">
             I learned about Firmity <span className="text-[#2b6cb0]">*</span>
           </label>
           <textarea
@@ -138,7 +144,7 @@ export function HowDidYouHearForm({ source }: HowDidYouHearFormProps) {
             onChange={(e) => setDetail(e.target.value)}
             required
             rows={3}
-            className="w-full px-3.5 py-2.5 rounded-xl border border-[#cbd5e0] bg-white text-[13px] text-[#1a202c] font-light placeholder:text-[#a0aec0] focus:outline-none focus:border-[#2b6cb0] focus:ring-1 focus:ring-[#2b6cb0] transition-colors resize-none"
+            className="w-full px-3.5 py-2.5 rounded-[4px] border border-[#cbd5e0] bg-white text-[13px] text-[#114dac] font-light placeholder:text-[#000000] focus:outline-none focus:border-[#2b6cb0] focus:ring-1 focus:ring-[#2b6cb0] transition-colors resize-none"
             placeholder="Please tell us how you learned about Firmity"
           />
         </div>
@@ -154,7 +160,7 @@ export function HowDidYouHearForm({ source }: HowDidYouHearFormProps) {
       <button
         type="submit"
         disabled={!canSubmit || submitting}
-        className="mt-4 w-full sm:w-auto sm:px-8 bg-[#111d35] hover:bg-[#1a2744] text-white px-6 py-3 rounded-xl text-[12.5px] font-semibold flex items-center justify-center gap-2 transition-all hover:shadow-[0_8px_24px_rgba(17,29,53,0.2)] disabled:opacity-40 disabled:cursor-not-allowed"
+        className="cursor-pointer mt-4 w-full sm:w-auto sm:px-8 bg-[#114dac] hover:bg-[#0e3e8a] text-white px-6 py-3 rounded-[4px] text-[12.5px] font-semibold flex items-center justify-center gap-2 transition-all hover:shadow-[0_8px_24px_rgba(17,29,53,0.2)] disabled:opacity-40 disabled:cursor-not-allowed"
       >
         {submitting ? (
           <>

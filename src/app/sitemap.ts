@@ -1,65 +1,77 @@
-import { MetadataRoute } from "next";
-import { listPageSeo } from "@/src/lib/seo-store";
-import { listPublished } from "@/src/lib/blog";
+import type { MetadataRoute } from "next"
+import { canonical } from "@/src/lib/seo"
+import { listPublished } from "@/src/lib/blog"
+import { ERP_GUIDES } from "@/src/lib/erp-guides"
 
-export const revalidate = 300;
+// ─── Sitemap — added 2026-09-04, expanded 2026-09-05 ───────────────────────
+// Backs the footer's "Sitemap" link (src/components/footer.tsx bottom bar,
+// per request to match Planon's own footer layout) — without this file, that
+// link would 404. Next.js's App Router convention: a `sitemap.ts` at src/app
+// root auto-generates a working /sitemap.xml route, no manual XML or extra
+// dependency needed.
+//
+// 2026-09-05: switched from a hardcoded non-www BASE_URL to canonical() from
+// src/lib/seo.ts — that's the single source of truth for the canonical host
+// (www) already used in every <link rel="canonical">, OG tag and JSON-LD
+// entry sitewide. The old constant duplicated that as a separate, drifted
+// non-www string, which would have advertised every sitemap URL under a
+// different origin than the one every other tag calls canonical.
+// request-guard.ts's PRODUCTION_ORIGINS still accepts both hosts at the
+// request-validation layer — that's a separate concern from which host we
+// advertise as canonical here.
+//
+// STATIC_ROUTES also grew from 10 to the full public route list: the 7
+// feature-module pages, /about, /pricing, /facility-survey(+/book), /search
+// and /event-booking were simply missing before (an oversight, not a
+// deliberate noindex — every one of them already has a PAGE_SEO entry in
+// seo.ts and, as of 2026-09-05, full metadata + JSON-LD wiring). Keep this
+// list in sync with PAGE_SEO in src/lib/seo.ts when a new public page ships.
+const STATIC_ROUTES = [
+  "",
+  "/about",
+  "/features",
+  "/pricing",
+  "/preventive-maintenance",
+  "/complaint-management",
+  "/asset-management",
+  "/inventory-management",
+  "/staff-attendance",
+  "/visitor-management",
+  "/facility-records",
+  "/resources",
+  ...ERP_GUIDES.map((g) => `/resources/guide/${g.slug}`),
+  "/blog",
+  "/contact",
+  "/facility-survey",
+  "/facility-survey/book",
+  "/event-booking",
+  "/search",
+  "/industries/manufacturing",
+  "/industries/educational",
+  "/industries/residential",
+  "/privacy",
+  "/terms",
+]
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = "https://www.firmity.in";
-  const lastModified = new Date();
+  const staticEntries: MetadataRoute.Sitemap = STATIC_ROUTES.map((route) => ({
+    url: canonical(route),
+    lastModified: new Date(),
+  }))
 
-  const routes: { path: string; changeFrequency: "daily" | "weekly" | "monthly" | "yearly"; priority: number }[] = [
-    { path: "/", changeFrequency: "weekly", priority: 1.0 },
-    { path: "/facility-survey", changeFrequency: "monthly", priority: 0.9 },
-    { path: "/facility-survey/book", changeFrequency: "monthly", priority: 0.8 },
-    { path: "/features", changeFrequency: "monthly", priority: 0.9 },
-    { path: "/pricing", changeFrequency: "monthly", priority: 0.8 },
-    { path: "/about", changeFrequency: "monthly", priority: 0.6 },
-    { path: "/resources", changeFrequency: "monthly", priority: 0.7 },
-    { path: "/blog", changeFrequency: "weekly", priority: 0.7 },
-    { path: "/contact", changeFrequency: "monthly", priority: 0.8 },
-    { path: "/industries/manufacturing", changeFrequency: "monthly", priority: 0.8 },
-    { path: "/industries/educational", changeFrequency: "monthly", priority: 0.8 },
-    { path: "/industries/residential", changeFrequency: "monthly", priority: 0.8 },
-    { path: "/preventive-maintenance", changeFrequency: "monthly", priority: 0.7 },
-    { path: "/asset-management", changeFrequency: "monthly", priority: 0.7 },
-    { path: "/complaint-management", changeFrequency: "monthly", priority: 0.7 },
-    { path: "/inventory-management", changeFrequency: "monthly", priority: 0.7 },
-    { path: "/facility-records", changeFrequency: "monthly", priority: 0.7 },
-    { path: "/visitor-management", changeFrequency: "monthly", priority: 0.7 },
-    { path: "/staff-attendance", changeFrequency: "monthly", priority: 0.7 },
-    { path: "/privacy", changeFrequency: "yearly", priority: 0.3 },
-    { path: "/terms", changeFrequency: "yearly", priority: 0.3 },
-  ];
-
-  // Apply Marketing Studio SEO overrides (priority / changefreq / noindex).
-  const overrides = new Map((await listPageSeo()).map((r) => [r.path, r]));
-
-  const staticEntries: MetadataRoute.Sitemap = routes
-    .filter((r) => !overrides.get(r.path)?.noindex) // drop pages marked noindex
-    .map((r) => {
-      const o = overrides.get(r.path);
-      return {
-        url: `${baseUrl}${r.path === "/" ? "" : r.path}`,
-        lastModified,
-        changeFrequency: (o?.sitemap_changefreq as (typeof r)["changeFrequency"]) || r.changeFrequency,
-        priority: o?.sitemap_priority ?? r.priority,
-      };
-    });
-
-  // Published blog posts (DB-driven).
-  let blogEntries: MetadataRoute.Sitemap = [];
+  // Individual blog posts are DB-driven and weren't in the sitemap at all
+  // before — append one entry per published post. Fails open to the static
+  // list only (never 500s the whole sitemap) if the DB read throws, same
+  // fail-open convention used by /api/search/route.ts.
   try {
-    const posts = await listPublished();
-    blogEntries = posts.map((p) => ({
-      url: `${baseUrl}/blog/${p.slug}`,
-      lastModified: p.published_at ? new Date(p.published_at) : lastModified,
-      changeFrequency: "monthly" as const,
-      priority: 0.6,
-    }));
-  } catch {
-    /* blog table not migrated yet — skip */
+    const posts = await listPublished()
+    const postEntries: MetadataRoute.Sitemap = posts.map((post) => ({
+      url: canonical(`/blog/${post.slug}`),
+      lastModified: new Date(post.updated_at || post.published_at || Date.now()),
+    }))
+    return [...staticEntries, ...postEntries]
+  } catch (err) {
+    console.error("[SITEMAP_ERR] listPublished failed, falling back to static routes only", err)
+    return staticEntries
   }
-
-  return [...staticEntries, ...blogEntries];
 }

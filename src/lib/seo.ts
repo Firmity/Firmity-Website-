@@ -30,6 +30,13 @@ export interface PageSeo {
 
 // The company's cross-cutting keyword themes (facility management + CMMS,
 // India/local, service-lines, AI facility audit). Reused across pages.
+// "facility ERP software" / "facility ERP" added 2026-09-05 (per request:
+// "make sure the sitemap and seo stuff is updated accordingly. this will
+// help us to get featured even if someone searches for erp and not
+// necessarily cmms only") — Firmity now has real ERP-framed content
+// (inventory & vendor ERP, payroll ERP, facility expense ERP — see
+// /features and /inventory-management) to back these terms up, sitewide,
+// not just on one page.
 const BASE_KEYWORDS = [
   "facility management software",
   "CMMS",
@@ -37,14 +44,16 @@ const BASE_KEYWORDS = [
   "computerised maintenance management system",
   "building management software",
   "AI facility management",
+  "facility ERP software",
+  "facility ERP",
 ];
 
 // path (no trailing slash, "/" for home) -> SEO. Only PUBLIC pages belong here.
 export const PAGE_SEO: Record<string, PageSeo> = {
   "/": {
-    title: "Firmity — Facility Management & CMMS Software in India",
+    title: "Firmity — Facility Management, CMMS & ERP Software in India",
     description:
-      "AI-powered facility management & CMMS platform for India — automate maintenance, assets, workforce and compliance with real-time operational visibility.",
+      "AI-powered facility management, CMMS & ERP platform for India — automate maintenance, assets, inventory, payroll, expenses, workforce and compliance with real-time operational visibility.",
     keywords: [...BASE_KEYWORDS, "facility maintenance software", "FM software India"],
   },
   "/about": {
@@ -54,10 +63,10 @@ export const PAGE_SEO: Record<string, PageSeo> = {
     keywords: [...BASE_KEYWORDS, "about Firmity", "UFIRM Technologies"],
   },
   "/features": {
-    title: "Features — Everything in One Facility Platform",
+    title: "Features — Facility Management, CMMS & ERP in One Platform",
     description:
-      "Preventive maintenance, asset tracking, complaint management, inventory, staff attendance and visitor management — every facility workflow in one Firmity platform.",
-    keywords: [...BASE_KEYWORDS, "CMMS features", "facility management features"],
+      "Preventive maintenance, assets, complaints, inventory & vendor ERP, visitor management, staff attendance, payroll ERP and facility expense ERP — every facility workflow in one Firmity platform.",
+    keywords: [...BASE_KEYWORDS, "CMMS features", "facility management features", "payroll ERP", "facility expense ERP", "inventory ERP"],
   },
   "/pricing": {
     title: "Pricing",
@@ -114,10 +123,10 @@ export const PAGE_SEO: Record<string, PageSeo> = {
     keywords: [...BASE_KEYWORDS, "asset management software", "asset tracking", "equipment register"],
   },
   "/inventory-management": {
-    title: "Inventory Management Software",
+    title: "Inventory & Vendor Management Software — Inventory ERP",
     description:
-      "Control facility spares and consumables with Firmity — stock levels, reorder alerts and usage tracking to avoid stockouts and overspending.",
-    keywords: [...BASE_KEYWORDS, "inventory management software", "facility spares", "stock control"],
+      "Control facility spares and consumables with Firmity's inventory & vendor ERP — stock levels, reorder alerts, purchase workflows and usage tracking to avoid stockouts and overspending.",
+    keywords: [...BASE_KEYWORDS, "inventory management software", "facility spares", "stock control", "inventory ERP", "vendor management ERP"],
   },
   "/staff-attendance": {
     title: "Staff Attendance & Workforce Management",
@@ -171,6 +180,10 @@ export const PAGE_SEO: Record<string, PageSeo> = {
   "/event-booking": {
     title: "Book an Event or Demo",
     description: "Schedule a Firmity demo or event slot with our facility management team.",
+  },
+  "/search": {
+    title: "Search Firmity",
+    description: "Search Firmity's pages, features and blog for facility management guides, modules and resources.",
   },
 };
 
@@ -260,7 +273,7 @@ export function organizationJsonLd() {
     url: SITE.url,
     logo: `${SITE.url}/firmity.png`,
     description:
-      "AI-powered facility management and CMMS platform for maintenance, assets, workforce and compliance.",
+      "AI-powered facility management, CMMS and ERP platform for maintenance, assets, inventory, payroll, expenses, workforce and compliance.",
     address: { "@type": "PostalAddress", addressCountry: "IN" },
     sameAs: [] as string[], // add social profile URLs when available
   };

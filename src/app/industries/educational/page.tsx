@@ -255,7 +255,7 @@ function FeatureSection({
     <div className={`grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center ${reverse ? "lg:[&>*:first-child]:order-2 lg:[&>*:last-child]:order-1" : ""}`}>
       <div>
         <SectionLabel color={labelColor}>{label}</SectionLabel>
-        <h2 className="font-serif text-[clamp(1.5rem,3vw,2rem)] font-light text-[#111d35] leading-snug mb-4">{heading}</h2>
+        <h2 className="font-serif text-[clamp(1.5rem,3vw,2rem)] font-light text-[#114dac] leading-snug mb-4">{heading}</h2>
         <p className="text-[14px] text-[#718096] font-light leading-relaxed mb-6">{body}</p>
         <ul className="space-y-3">
           {bullets.map((b, i) => <BulletPoint key={i}>{b}</BulletPoint>)}
@@ -373,7 +373,7 @@ export default function EducationalPage() {
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-12">
               <SectionLabel>What Firmity Delivers</SectionLabel>
-              <h2 className="font-serif text-[clamp(1.5rem,3vw,2rem)] font-light text-[#111d35]">
+              <h2 className="font-serif text-[clamp(1.5rem,3vw,2rem)] font-light text-[#114dac]">
                 Outcomes educational institutions measure
               </h2>
             </div>
@@ -475,7 +475,7 @@ export default function EducationalPage() {
               <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr]">
                 <div className="p-10 lg:p-14">
                   <p className="text-[11px] font-semibold text-amber-500 tracking-[0.2em] uppercase mb-4">Case Study</p>
-                  <h2 className="font-serif text-[clamp(1.4rem,2.5vw,1.9rem)] font-light text-[#111d35] leading-snug mb-4">
+                  <h2 className="font-serif text-[clamp(1.4rem,2.5vw,1.9rem)] font-light text-[#114dac] leading-snug mb-4">
                     How Shivalik Institute of Technology reduced campus complaints by 58% in one semester
                   </h2>
                   <p className="text-[13.5px] text-[#718096] font-light leading-relaxed mb-6">
@@ -538,7 +538,7 @@ export default function EducationalPage() {
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-12">
               <SectionLabel>Platform Capabilities</SectionLabel>
-              <h2 className="font-serif text-[clamp(1.5rem,3vw,2rem)] font-light text-[#111d35]">
+              <h2 className="font-serif text-[clamp(1.5rem,3vw,2rem)] font-light text-[#114dac]">
                 Everything your campus facility team needs
               </h2>
             </div>
@@ -555,7 +555,7 @@ export default function EducationalPage() {
                   <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-4 ${bg}`}>
                     <Icon size={16} className={iconCls} />
                   </div>
-                  <p className="text-[13.5px] font-semibold text-[#111d35] mb-1.5">{title}</p>
+                  <p className="text-[13.5px] font-semibold text-[#114dac] mb-1.5">{title}</p>
                   <p className="text-[12.5px] text-[#718096] font-light leading-relaxed">{desc}</p>
                 </div>
               ))}
@@ -577,7 +577,7 @@ export default function EducationalPage() {
                 <Link key={r.href} href={r.href}
                   className="group flex items-center justify-between p-6 rounded-[20px] border border-[#dbe5f0] hover:border-amber-300 hover:bg-amber-50 transition-all">
                   <div>
-                    <p className="text-[13.5px] font-semibold text-[#111d35] mb-1">{r.label}</p>
+                    <p className="text-[13.5px] font-semibold text-[#114dac] mb-1">{r.label}</p>
                     <p className="text-[12.5px] text-[#718096] font-light">{r.desc}</p>
                   </div>
                   <ArrowRight size={16} className="text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-4" />

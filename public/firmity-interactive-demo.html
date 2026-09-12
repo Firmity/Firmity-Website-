@@ -1,0 +1,2680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Firmity — Live Product Walkthrough</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --navy:#123152;
+    --navy-2:#1a4a78;
+    --blue:#1c6fb0;
+    --blue-bright:#2f8fd1;
+    --teal:#0e8a86;
+    --ink:#1b2430;
+    --ink-soft:#5c6b7a;
+    --line:#e2e7ec;
+    --paper:#f5f7f9;
+    --card:#ffffff;
+    --red:#d64545;
+    --orange:#e08a2c;
+    --green:#2f9e5e;
+    --purple:#8756c9;
+    --amber:#e0b02c;
+    --radius:10px;
+    --sidebar-w:64px;
+    --sidebar-w-expanded:236px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;overflow:hidden;}
+  body{
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+    display:flex;
+    flex-direction:column;
+  }
+
+  /* ---------- Intro strip (context for the visitor, not part of the app chrome) ---------- */
+  .intro{
+    background:var(--navy);
+    color:#dce8f5;
+    padding:14px 20px;
+    font-size:13.5px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    flex-wrap:wrap;
+    flex-shrink:0;
+  }
+  .intro strong{color:#fff;font-weight:600;}
+  .intro .tag{
+    background:rgba(255,255,255,.12);
+    border:1px solid rgba(255,255,255,.25);
+    padding:4px 10px;
+    border-radius:999px;
+    font-size:12px;
+    letter-spacing:.02em;
+    white-space:nowrap;
+  }
+
+  /* ---------- App shell ---------- */
+  .app{
+    display:flex;
+    position:relative;
+    zoom:0.72;
+    flex:1;
+    min-height:0; /* .app fills whatever's left below the two .intro banners
+                      (flex:1 on a flex-column body), instead of a hardcoded
+                      height that assumed .app alone filled the iframe —
+                      that guess ignored the banners and silently clipped
+                      the bottom ~98px of every view. min-height:0 lets it
+                      actually shrink to that remaining space rather than
+                      overflowing past it. */
+  }
+
+  /* Sidebar — collapsed icon rail by default; hovering the whole rail expands
+     it into an overlay drawer (position:absolute inner panel, so it floats
+     over .main instead of shoving the page layout sideways) showing each
+     module's label. Planner/Asset Management are "nav-group"s: clicking the
+     parent row expands an inline tree of sub-views in normal document flow
+     (NOT a floating flyout box) — per request, "a tree should open up and
+     not a floating modal." (2026-09-05) */
+  .sidebar{
+    width:var(--sidebar-w);
+    flex-shrink:0;
+    position:relative;
+    z-index:40;
+  }
+  .sidebar-inner{
+    position:absolute;top:0;left:0;bottom:0;
+    width:var(--sidebar-w);
+    background:#ffffff;
+    border-right:1px solid var(--line);
+    display:flex;
+    flex-direction:column;
+    padding:16px 0;
+    gap:2px;
+    overflow-x:hidden;
+    overflow-y:auto;
+    overscroll-behavior:contain;
+    white-space:nowrap;
+    transition:width .16s ease;
+  }
+  .sidebar:hover .sidebar-inner{
+    width:var(--sidebar-w-expanded);
+    box-shadow:0 12px 32px rgba(18,49,82,.14);
+  }
+  .logo-mark{
+    width:34px;height:34px;border-radius:8px;
+    background:linear-gradient(135deg,var(--blue),var(--teal));
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;font-weight:800;font-size:16px;
+    margin:0 0 18px 15px;
+    flex-shrink:0;
+  }
+  .nav-row{
+    display:flex;align-items:center;gap:12px;
+    height:42px;
+    padding-left:22px;padding-right:14px;
+    margin:0 0 2px;
+    border-radius:0;
+    color:#7c8794;
+    cursor:pointer;
+    position:relative;
+    transition:background .15s ease, color .15s ease;
+  }
+  .nav-row:hover{background:#eef3f8;color:var(--navy-2);}
+  .nav-row.active{background:#e7f0fb;color:var(--blue-bright);}
+  .nav-icon-box{width:20px;height:20px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+  .nav-icon-box svg{width:20px;height:20px;}
+  .nav-row .dot{
+    position:absolute;top:6px;left:32px;
+    width:6px;height:6px;border-radius:50%;
+    background:var(--red);
+    display:none;
+  }
+  .nav-row[data-hasnew="1"] .dot{display:block;}
+  .nav-label{
+    font-size:13.5px;font-weight:600;
+    opacity:0;max-width:0;overflow:hidden;
+    transition:opacity .1s ease, max-width .16s ease;
+  }
+  .sidebar:hover .nav-label{opacity:1;max-width:150px;}
+  .nav-chevron{
+    margin-left:auto;font-size:10px;color:#b7c0c9;flex-shrink:0;
+    opacity:0;transition:opacity .1s ease, transform .15s ease;
+  }
+  .sidebar:hover .nav-chevron{opacity:1;}
+  .nav-group.open .nav-row .nav-chevron{transform:rotate(90deg);}
+
+  /* Inline expandable tree — takes up real layout space when open, pushing
+     the icons below it down, rather than overlaying anything. */
+  .nav-tree{
+    max-height:0;overflow:hidden;
+    transition:max-height .2s ease;
+  }
+  .nav-group.open .nav-tree{max-height:230px;}
+  .tree-item{
+    display:flex;align-items:center;gap:8px;
+    height:36px;
+    padding-left:46px;padding-right:14px;
+    font-size:13px;color:var(--ink-soft);
+    cursor:pointer;
+    opacity:0;
+    transition:opacity .08s ease, background .15s ease, color .15s ease;
+  }
+  .sidebar:hover .tree-item{opacity:1;}
+  .tree-item:hover{background:#eef3f8;color:var(--navy-2);}
+  .tree-item.active{color:var(--blue-bright);font-weight:600;}
+  .tree-chevron{font-size:10px;color:#b7c0c9;flex-shrink:0;}
+
+  /* Main column */
+  .main{
+    flex:1;
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    height:100%;
+    min-height:0;
+  }
+
+  /* Topbar */
+  .topbar{
+    height:60px;
+    background:#fff;
+    border-bottom:1px solid var(--line);
+    display:flex;
+    align-items:center;
+    padding:0 22px;
+    gap:16px;
+    flex-shrink:0;
+  }
+  .hamburger{color:var(--ink-soft);font-size:18px;cursor:pointer;}
+  .location-pill{
+    display:flex;align-items:center;gap:8px;
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:8px 12px;
+    font-size:14px;
+    color:var(--ink);
+    background:#fbfcfd;
+    cursor:pointer;
+    min-width:200px;
+  }
+  .location-pill svg{width:15px;height:15px;color:var(--ink-soft);flex-shrink:0;}
+  .location-pill .caret{margin-left:auto;color:var(--ink-soft);font-size:11px;}
+  .topbar-right{
+    margin-left:auto;
+    display:flex;align-items:center;gap:20px;
+  }
+  .badge-icon{
+    position:relative;color:#7c8794;cursor:pointer;
+  }
+  .badge-icon svg{width:19px;height:19px;}
+  .badge-icon .count{
+    position:absolute;top:-8px;right:-10px;
+    background:var(--navy-2);
+    color:#fff;
+    font-size:10px;
+    font-weight:700;
+    padding:1px 5px;
+    border-radius:999px;
+    line-height:1.4;
+  }
+  .badge-icon.red .count{background:var(--red);}
+  .badge-icon.green .count{background:var(--green);}
+  .avatar-block{
+    display:flex;align-items:center;gap:8px;
+    cursor:pointer;
+    padding-left:16px;
+    border-left:1px solid var(--line);
+  }
+  .avatar-circ{
+    width:32px;height:32px;border-radius:50%;
+    background:var(--navy);
+    color:#fff;font-size:12px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .avatar-block .name{font-size:14px;font-weight:600;color:var(--ink);}
+  .avatar-block .caret{font-size:11px;color:var(--ink-soft);}
+
+  /* Content */
+  .content{
+    padding:22px 26px 60px;
+    flex:1;
+    min-height:0;
+    overflow-y:auto;
+    overscroll-behavior:contain;
+  }
+  .page-title-row{
+    display:flex;align-items:center;gap:10px;
+    margin-bottom:18px;
+  }
+  .page-title-row h1{
+    font-size:21px;margin:0;font-weight:700;color:var(--ink);
+  }
+  .info-btn{
+    width:22px;height:22px;border-radius:50%;
+    border:1.5px solid #b7c0c9;
+    color:#7c8794;
+    background:#fff;
+    font-size:12px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+  }
+  .info-btn:hover{border-color:var(--blue-bright);color:var(--blue-bright);}
+
+  .view{display:none;}
+  .view.active{display:block;}
+
+  /* Cards / grid */
+  .grid{
+    display:grid;
+    gap:16px;
+  }
+  .grid.cols-4{grid-template-columns:repeat(4,1fr);}
+  .grid.cols-5{grid-template-columns:repeat(5,1fr);}
+  @media (max-width:1100px){
+    .grid.cols-4{grid-template-columns:repeat(2,1fr);}
+    .grid.cols-5{grid-template-columns:repeat(2,1fr);}
+  }
+
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:16px 16px 18px;
+  }
+  .card h3{
+    font-size:14px;margin:0 0 12px;
+    color:var(--ink);
+    font-weight:700;
+    text-align:center;
+  }
+  .chart-wrap{position:relative;height:180px;}
+  .chart-wrap.tall{height:210px;}
+
+  .legend-row{
+    display:flex;justify-content:center;gap:14px;
+    margin-top:10px;flex-wrap:wrap;
+    font-size:11.5px;color:var(--ink-soft);
+  }
+  .legend-row span{display:inline-flex;align-items:center;gap:5px;}
+  .legend-row i{width:9px;height:9px;border-radius:2px;display:inline-block;}
+
+  table.mini{width:100%;border-collapse:collapse;font-size:13px;}
+  table.mini th{
+    text-align:left;color:var(--ink-soft);font-weight:600;
+    border-bottom:1px solid var(--line);padding:6px 4px;font-size:12px;
+  }
+  table.mini td{padding:7px 4px;border-bottom:1px solid #f0f2f5;color:var(--ink);}
+  table.mini tr:last-child td{border-bottom:none;}
+
+  .filter-bar{
+    display:flex;align-items:center;gap:14px;
+    background:#fff;border:1px solid var(--line);border-radius:var(--radius);
+    padding:10px 14px;margin:18px 0;flex-wrap:wrap;
+  }
+  .seg{
+    display:flex;background:#f1f4f7;border-radius:8px;padding:3px;gap:2px;
+  }
+  .seg button{
+    border:none;background:transparent;padding:7px 14px;border-radius:6px;
+    font-size:13px;color:var(--ink-soft);cursor:pointer;font-family:inherit;
+  }
+  .seg button.active{background:var(--teal);color:#fff;font-weight:600;}
+  .date-range{
+    margin-left:auto;
+    border:1px solid var(--line);border-radius:8px;
+    padding:8px 12px;font-size:13px;color:var(--ink);
+    display:flex;align-items:center;gap:8px;
+  }
+
+  /* Stat cards (Tasks / PPM) */
+  .stat-card{
+    background:#fff;border:1px solid var(--line);border-radius:var(--radius);
+    padding:18px 16px;text-align:center;
+  }
+  .stat-card .num{font-size:26px;font-weight:800;color:var(--ink);}
+  .stat-card .lbl{font-size:12.5px;color:var(--ink-soft);margin-top:4px;}
+  .stat-card.pending .num{color:var(--red);}
+  .stat-card.completed .num{color:var(--green);}
+  .stat-card.actionable .num{color:var(--blue-bright);}
+  .stat-card.onhold .num{color:var(--amber);}
+  .stat-card.total .num{color:var(--purple);}
+
+  /* Master config */
+  .tabs{
+    display:flex;gap:6px;background:#fff;border:1px solid var(--line);
+    border-radius:10px 10px 0 0;padding:10px 10px 0;
+  }
+  .tab{
+    padding:9px 16px;font-size:13.5px;color:var(--ink-soft);cursor:pointer;
+    border-bottom:2.5px solid transparent;font-weight:600;
+  }
+  .tab.active{color:var(--blue-bright);border-color:var(--blue-bright);}
+  .panel{
+    background:#fff;border:1px solid var(--line);border-top:none;
+    border-radius:0 0 10px 10px;padding:18px;
+  }
+  .panel-top{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+  .search-input{
+    flex:1;max-width:340px;
+    border:1px solid var(--line);border-radius:8px;
+    padding:9px 12px;font-size:13.5px;
+  }
+  .btn-primary{
+    margin-left:auto;
+    background:var(--navy-2);color:#fff;border:none;
+    padding:10px 16px;border-radius:8px;font-size:13.5px;font-weight:600;
+    cursor:pointer;display:flex;align-items:center;gap:6px;
+  }
+  .btn-primary:hover{background:var(--navy);}
+  table.full{width:100%;border-collapse:collapse;font-size:13.5px;}
+  table.full th{
+    text-align:left;padding:11px 10px;color:var(--ink-soft);
+    border-bottom:1px solid var(--line);font-weight:600;font-size:12.5px;
+  }
+  table.full td{padding:13px 10px;border-bottom:1px solid #f0f2f5;color:var(--ink);}
+  .pill-count{
+    background:#eef3f8;color:var(--navy-2);font-weight:700;font-size:12px;
+    padding:2px 10px;border-radius:999px;display:inline-block;
+  }
+  .row-actions{display:flex;gap:10px;color:#9aa4ae;}
+  .row-actions svg{width:16px;height:16px;cursor:pointer;}
+  .row-actions svg:hover{color:var(--blue-bright);}
+  .table-foot{
+    display:flex;align-items:center;gap:14px;margin-top:14px;
+    font-size:13px;color:var(--ink-soft);
+  }
+  .page-btn{
+    width:28px;height:28px;border:1px solid var(--line);border-radius:6px;
+    background:#fff;display:flex;align-items:center;justify-content:center;
+    color:var(--ink-soft);cursor:pointer;font-size:12px;
+  }
+
+  /* Row action buttons — icon + text label together (2026-09-05: icon-only
+     was ambiguous at a glance), used in every "Actions" table column. */
+  .row-actions{display:flex;gap:16px;}
+  .action-btn{
+    display:inline-flex;align-items:center;gap:5px;
+    font-size:12.5px;font-weight:600;color:var(--ink-soft);
+    cursor:pointer;
+  }
+  .action-btn svg{width:14px;height:14px;flex-shrink:0;}
+  .action-btn:hover{color:var(--blue-bright);}
+  .action-btn.delete:hover{color:var(--red);}
+
+  /* Status pills — asset Active/Inactive/Servicing text, and Open/In
+     dispatch/lease pills (Asset Management tables). */
+  .status-text{font-weight:700;font-size:12.5px;}
+  .status-text.active{color:var(--green);}
+  .status-text.inactive{color:var(--red);}
+  .status-text.servicing{color:var(--orange);}
+  .pill-status{
+    display:inline-block;border:1px solid var(--line);border-radius:6px;
+    padding:3px 10px;font-size:12px;font-weight:600;color:var(--ink-soft);
+    background:#f7f9fb;
+  }
+  .pill-status.open{color:var(--blue-bright);border-color:rgba(47,143,209,.35);background:#eaf4fb;}
+  .pill-status.in{color:var(--ink-soft);}
+  .pill-status.resolved{color:var(--green);border-color:rgba(47,158,94,.35);background:#eafaf1;}
+  .pill-status.closed{color:var(--ink-soft);}
+  .pill-status.progress{color:var(--orange);border-color:rgba(224,138,44,.35);background:#fdf3e7;}
+  .pill-status.hold{color:#a87a10;border-color:rgba(224,176,44,.35);background:#fbeecd;}
+  .pill-status.approved{color:var(--green);border-color:rgba(47,158,94,.35);background:#eafaf1;}
+  .pill-status.rejected{color:var(--red);border-color:rgba(214,69,69,.35);background:#fbe2e2;}
+  .pill-status.pending{color:#a87a10;border-color:rgba(224,176,44,.35);background:#fbeecd;}
+  .pill-status.lowstock{color:var(--red);border-color:rgba(214,69,69,.35);background:#fbe2e2;}
+  .pill-status.instock{color:var(--green);border-color:rgba(47,158,94,.35);background:#eafaf1;}
+
+  /* Row-click Detail Modal — reusable across Assets, Inventory Items, and
+     Complaints (the only three sub-modules the client brief calls out to
+     show "what happens when you click a row"). Wider than the generic
+     explainer modal, with its own in-modal tab bar reusing .tabs/.tab
+     visuals so it reads as one consistent product, not a bolted-on piece. */
+  .clickable-row{cursor:pointer;}
+  .clickable-row:hover td{background:#f7f9fb;}
+  .detail-modal-box{
+    background:#fff;border-radius:14px;max-width:740px;width:100%;
+    max-height:88vh;display:flex;flex-direction:column;
+    box-shadow:0 24px 60px rgba(18,49,82,.28);
+    animation:pop .18s ease;
+  }
+  .detail-modal-head{
+    display:flex;align-items:flex-start;justify-content:space-between;
+    padding:20px 24px 0;flex-shrink:0;gap:12px;
+  }
+  .detail-modal-head h2{margin:0 0 3px;font-size:17px;color:var(--ink);}
+  .detail-modal-head p{margin:0;font-size:12.5px;color:var(--ink-soft);}
+  .detail-modal-close{
+    width:28px;height:28px;border-radius:50%;border:none;background:#f1f4f7;
+    color:var(--ink-soft);font-size:14px;cursor:pointer;flex-shrink:0;
+  }
+  .detail-modal-close:hover{background:#e7ebef;}
+  .detail-tabs{
+    display:flex;gap:4px;padding:14px 24px 0;flex-shrink:0;
+    border-bottom:1px solid var(--line);flex-wrap:wrap;
+  }
+  .detail-tab{
+    padding:8px 14px;font-size:13px;color:var(--ink-soft);cursor:pointer;
+    border-bottom:2.5px solid transparent;font-weight:600;
+  }
+  .detail-tab.active{color:var(--blue-bright);border-color:var(--blue-bright);}
+  .detail-modal-body{padding:18px 24px 24px;overflow-y:auto;}
+  .kv-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px 26px;}
+  .kv-item label{display:block;font-size:10.5px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;}
+  .kv-item div{font-size:13.5px;color:var(--ink);}
+  .timeline{border-left:2px solid var(--line);margin:4px 0 0 6px;padding-left:16px;}
+  .timeline-item{position:relative;padding-bottom:16px;}
+  .timeline-item:last-child{padding-bottom:0;}
+  .timeline-item::before{content:"";position:absolute;left:-21px;top:3px;width:9px;height:9px;border-radius:50%;background:var(--blue-bright);}
+  .timeline-item .t-when{font-size:11.5px;color:var(--ink-soft);}
+  .timeline-item .t-what{font-size:13px;color:var(--ink);font-weight:600;margin-top:1px;}
+  .sla-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px;}
+  .sla-stat{background:#f7f9fb;border:1px solid var(--line);border-radius:8px;padding:12px 14px;text-align:center;}
+  .sla-stat .num{font-size:19px;font-weight:800;color:var(--ink);}
+  .sla-stat .lbl{font-size:11px;color:var(--ink-soft);margin-top:2px;}
+  .sla-stat.breach .num{color:var(--red);}
+  .sla-stat.ok .num{color:var(--green);}
+  .escalation-step{
+    display:flex;align-items:center;gap:12px;background:#f7f9fb;border:1px solid var(--line);
+    border-radius:8px;padding:10px 14px;margin-bottom:8px;
+  }
+  .escalation-step .lvl{
+    width:26px;height:26px;border-radius:50%;background:var(--navy-2);color:#fff;
+    font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .escalation-step .esc-body{flex:1;}
+  .escalation-step .esc-role{font-size:13px;font-weight:600;color:var(--ink);}
+  .escalation-step .esc-trigger{font-size:12px;color:var(--ink-soft);}
+  .escalation-step.hit{border-color:rgba(214,69,69,.4);background:#fdecec;}
+  .escalation-step.hit .lvl{background:var(--red);}
+  .escalation-step .esc-flag{margin-left:auto;font-size:11px;font-weight:700;color:var(--red);}
+
+  /* Static list views (Categories, PO, GRN, Vendors, Visitors, Employee,
+     Attendance, Leave, Expense…) — same table.full pattern as the rest of
+     the app, no per-row detail per the client brief (only Assets, Items
+     and Complaints open a detail view on click). */
+  .subnote{font-size:12.5px;color:var(--ink-soft);margin:0 0 14px;line-height:1.6;}
+
+  .hint-toast{
+    position:fixed;bottom:24px;left:50%;
+    transform:translateX(-50%) translateY(12px);
+    background:var(--navy);color:#fff;padding:11px 20px;border-radius:999px;
+    font-size:12.5px;font-weight:600;box-shadow:0 10px 28px rgba(18,49,82,.32);
+    z-index:200;opacity:0;pointer-events:none;
+    transition:opacity .25s ease, transform .25s ease;
+    display:flex;align-items:center;gap:8px;max-width:88%;
+  }
+  .hint-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .hint-toast .hint-icon{flex-shrink:0;font-size:14px;}
+
+  /* Excel-style export button — brand green, distinct from the plain
+     btn-ghost/btn-primary buttons (2026-09-05, per request: "export as
+     excel button should have the excel color and lettering"). */
+  .btn-excel{
+    background:#1d6f42;color:#fff;border:none;
+    padding:10px 14px;border-radius:8px;font-size:13.5px;font-weight:600;
+    cursor:pointer;display:flex;align-items:center;gap:7px;font-family:inherit;
+  }
+  .btn-excel:hover{background:#175c37;}
+  .btn-excel svg{width:15px;height:15px;}
+
+  /* Status badges on task cards — reuses the day-head .chip color logic so
+     a task's card badge and its day-summary chip always agree. */
+  .status-badge{
+    font-weight:700;padding:2px 8px;border-radius:999px;font-size:11px;
+  }
+  .status-badge.completed{background:#dff3e6;color:var(--green);}
+  .status-badge.actionable{background:#dcebfa;color:var(--blue-bright);}
+  .status-badge.onhold{background:#fbeecd;color:#a87a10;}
+  .status-badge.pending{background:#eef3f8;color:var(--navy-2);}
+  .status-badge.overdue{background:#fbe2e2;color:var(--red);}
+
+  /* Filters panel — Category/Frequency/Priority as toggle chips, matching
+     the reference product's own filter UI (2026-09-05). Kept visible by
+     default under the Tasks stat cards rather than behind an extra click. */
+  .filters-panel{
+    background:#fff;border:1px solid var(--line);border-radius:var(--radius);
+    padding:16px 18px;margin:18px 0;
+  }
+  .filters-head{
+    display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;
+  }
+  .filters-head span{font-size:13px;font-weight:700;color:var(--ink);}
+  .filters-reset{font-size:12.5px;color:var(--blue-bright);cursor:pointer;font-weight:600;}
+  .filters-grid{
+    display:grid;grid-template-columns:1fr 1fr;gap:18px 28px;
+  }
+  .filter-block label{
+    display:block;font-size:11.5px;font-weight:700;color:var(--ink-soft);
+    text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;
+  }
+  .filter-date-row{display:flex;align-items:center;gap:10px;}
+  .filter-date-row input{
+    border:1px solid var(--line);border-radius:8px;padding:8px 10px;
+    font-size:13px;color:var(--ink);font-family:inherit;flex:1;
+  }
+  .filter-chips{display:flex;flex-wrap:wrap;gap:8px;}
+  .chip-toggle{
+    border:1px solid var(--line);background:#fff;color:var(--ink-soft);
+    padding:7px 13px;border-radius:999px;font-size:12.5px;font-weight:600;
+    cursor:pointer;font-family:inherit;transition:all .12s ease;
+  }
+  .chip-toggle:hover{border-color:var(--blue-bright);color:var(--blue-bright);}
+  .chip-toggle.active{background:var(--navy-2);border-color:var(--navy-2);color:#fff;}
+  .filter-assigned-input{
+    border:1px solid var(--line);border-radius:8px;padding:9px 12px;
+    font-size:13px;color:var(--ink);width:100%;font-family:inherit;
+  }
+  .filters-actions{
+    display:flex;justify-content:flex-end;margin-top:16px;
+  }
+
+  /* Google-Calendar-style PPM month grid (2026-09-05 redesign — was a plain
+     bordered <table>). Each cell holds one clickable "chip" per assigned
+     staff member; clicking a chip opens the Task Details modal. */
+  .cal-head{
+    display:flex;align-items:center;gap:12px;margin-bottom:14px;
+  }
+  .cal-head h2{font-size:16px;font-weight:700;color:var(--ink);margin:0;}
+  .cal-nav{
+    display:flex;align-items:center;gap:4px;margin-left:6px;
+  }
+  .cal-nav button{
+    width:30px;height:30px;border:1px solid var(--line);background:#fff;
+    border-radius:8px;color:var(--ink-soft);cursor:pointer;font-size:14px;
+    display:flex;align-items:center;justify-content:center;font-family:inherit;
+  }
+  .cal-nav button:hover{border-color:var(--blue-bright);color:var(--blue-bright);}
+  .cal-today-btn{
+    border:1px solid var(--line);background:#fff;border-radius:8px;
+    padding:7px 14px;font-size:12.5px;font-weight:600;color:var(--ink-soft);
+    cursor:pointer;font-family:inherit;margin-left:2px;
+  }
+  .gcal{
+    background:#fff;border:1px solid var(--line);border-radius:var(--radius);
+    overflow:hidden;
+  }
+  .gcal-weekdays{
+    display:grid;grid-template-columns:repeat(7,1fr);
+    background:#f7f9fb;border-bottom:1px solid var(--line);
+  }
+  .gcal-weekdays div{
+    padding:9px 0;text-align:center;font-size:11.5px;font-weight:700;
+    color:var(--ink-soft);text-transform:uppercase;letter-spacing:.03em;
+  }
+  .gcal-grid{
+    display:grid;grid-template-columns:repeat(7,1fr);
+  }
+  .gcal-cell{
+    min-height:96px;border-right:1px solid #f0f2f5;border-bottom:1px solid #f0f2f5;
+    padding:6px 6px 8px;
+  }
+  .gcal-cell:nth-child(7n){border-right:none;}
+  .gcal-cell.empty{background:#fbfcfd;}
+  .gcal-daynum{
+    width:22px;height:22px;display:flex;align-items:center;justify-content:center;
+    font-size:12.5px;font-weight:700;color:var(--ink);border-radius:50%;
+    margin-bottom:5px;
+  }
+  .gcal-cell.today .gcal-daynum{background:var(--blue-bright);color:#fff;}
+  .gcal-chip{
+    display:flex;align-items:center;justify-content:space-between;gap:4px;
+    font-size:10.5px;font-weight:600;padding:2.5px 6px;border-radius:5px;
+    margin-bottom:3px;cursor:pointer;color:#fff;
+  }
+  .gcal-chip:hover{filter:brightness(0.92);}
+  .gcal-chip.p-shyam{background:var(--blue-bright);}
+  .gcal-chip.p-ram{background:var(--teal);}
+
+  /* Task Details modal (calendar chip click) — separate, wider modal from
+     the generic "what is this view" explainer modal below. */
+  .task-modal-box{
+    background:#fff;border-radius:14px;max-width:640px;width:100%;
+    max-height:85vh;display:flex;flex-direction:column;
+    box-shadow:0 24px 60px rgba(18,49,82,.28);
+    animation:pop .18s ease;
+  }
+  .task-modal-head{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:20px 24px 14px;border-bottom:1px solid var(--line);flex-shrink:0;
+  }
+  .task-modal-head h2{margin:0 0 4px;font-size:17px;color:var(--ink);}
+  .task-modal-head p{margin:0;font-size:13px;color:var(--ink-soft);}
+  .task-modal-close{
+    width:28px;height:28px;border-radius:50%;border:none;background:#f1f4f7;
+    color:var(--ink-soft);font-size:14px;cursor:pointer;flex-shrink:0;
+  }
+  .task-modal-close:hover{background:#e7ebef;}
+  .task-modal-body{padding:16px 24px 22px;overflow-y:auto;}
+  .task-block{margin-bottom:18px;}
+  .task-block:last-child{margin-bottom:0;}
+  .task-block h4{margin:0 0 8px;font-size:13.5px;color:var(--navy-2);}
+  table.checklist{width:100%;border-collapse:collapse;font-size:12.5px;}
+  table.checklist th{
+    text-align:left;color:var(--ink-soft);font-weight:600;font-size:11.5px;
+    border-bottom:1px solid var(--line);padding:6px 4px;
+  }
+  table.checklist th.remarks-th{display:flex;align-items:center;gap:5px;}
+  table.checklist td{padding:8px 4px;border-bottom:1px solid #f0f2f5;color:var(--ink);}
+  .whatsapp-note{
+    display:flex;align-items:flex-start;gap:8px;
+    background:#eafaf1;border:1px solid #cdeeda;border-radius:8px;
+    padding:10px 12px;margin:0 0 14px;font-size:12px;color:#1c5c37;line-height:1.5;
+  }
+  .whatsapp-note svg{width:16px;height:16px;flex-shrink:0;color:#25d366;margin-top:1px;}
+
+  /* Tasks page */
+  .day-group{margin-top:22px;}
+  .day-head{
+    display:flex;align-items:center;gap:10px;
+    background:#eef3f8;border-radius:8px;
+    padding:10px 14px;font-size:13.5px;font-weight:600;color:var(--navy-2);
+    margin-bottom:14px;flex-wrap:wrap;
+  }
+  .day-head .chip{
+    font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px;
+  }
+  .chip.completed{background:#dff3e6;color:var(--green);}
+  .chip.pending{background:#fbe2e2;color:var(--red);}
+  .chip.actionable{background:#dcebfa;color:var(--blue-bright);}
+  .chip.onhold{background:#fbeecd;color:#a87a10;}
+  .task-grid{
+    display:grid;grid-template-columns:repeat(auto-fill, minmax(230px,1fr));
+    gap:14px;
+  }
+  .task-card{
+    background:#fff;border:1px solid var(--line);border-radius:10px;
+    padding:14px;position:relative;
+  }
+  .task-topline{
+    display:flex;justify-content:space-between;align-items:flex-start;
+    font-size:11.5px;color:var(--ink-soft);margin-bottom:10px;
+  }
+  .overdue-badge{
+    background:#fbe2e2;color:var(--red);font-weight:700;
+    padding:2px 8px;border-radius:999px;font-size:11px;
+  }
+  .task-card h4{margin:0 0 3px;font-size:14px;color:var(--ink);}
+  .task-id{font-size:11.5px;color:#9aa4ae;margin-bottom:10px;}
+  .task-meta{font-size:12.5px;color:var(--ink-soft);display:grid;grid-template-columns:auto 1fr;gap:4px 8px;}
+  .task-meta b{color:var(--ink);font-weight:600;justify-self:end;}
+
+  /* PPM calendar */
+  .cal-controls{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+  .cal-select{
+    border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:13.5px;
+    background:#fff;
+  }
+  .cal-table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;}
+  .cal-table th{
+    background:#f7f9fb;color:var(--ink-soft);font-size:12.5px;font-weight:700;
+    padding:10px;border-bottom:1px solid var(--line);text-align:left;
+  }
+  .cal-table td{
+    vertical-align:top;border:1px solid #f0f2f5;padding:8px;width:14.28%;height:78px;font-size:12px;
+  }
+  .cal-daynum{font-weight:700;color:var(--ink);font-size:13px;margin-bottom:5px;}
+  .cal-person{display:flex;justify-content:space-between;font-size:11.5px;padding:1px 0;color:var(--ink-soft);}
+  .cal-person b{color:var(--ink);}
+
+  /* Modal */
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(18,30,45,.5);
+    display:none;align-items:center;justify-content:center;z-index:100;
+    padding:20px;
+  }
+  .modal-overlay.open{display:flex;}
+  .modal-box{
+    background:#fff;border-radius:14px;max-width:420px;width:100%;
+    padding:26px 26px 22px;
+    box-shadow:0 24px 60px rgba(18,49,82,.28);
+    animation:pop .18s ease;
+  }
+  @keyframes pop{from{transform:scale(.96);opacity:0;}to{transform:scale(1);opacity:1;}}
+  .modal-icon{
+    width:42px;height:42px;border-radius:10px;
+    background:linear-gradient(135deg,var(--blue),var(--teal));
+    display:flex;align-items:center;justify-content:center;color:#fff;margin-bottom:14px;
+  }
+  .modal-icon svg{width:21px;height:21px;}
+  .modal-box h2{margin:0 0 8px;font-size:18px;color:var(--ink);}
+  .modal-box p{margin:0 0 18px;font-size:14px;line-height:1.55;color:var(--ink-soft);}
+  .modal-box ul{margin:0 0 18px;padding-left:18px;font-size:13.5px;color:var(--ink-soft);line-height:1.6;}
+  .modal-actions{display:flex;justify-content:flex-end;gap:10px;}
+  .btn-ghost{
+    background:transparent;border:1px solid var(--line);color:var(--ink-soft);
+    padding:9px 16px;border-radius:8px;font-size:13.5px;cursor:pointer;font-family:inherit;
+  }
+  .btn-go{
+    background:var(--navy-2);color:#fff;border:none;
+    padding:9px 18px;border-radius:8px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit;
+  }
+  .btn-go:hover{background:var(--navy);}
+
+  @media (max-width:760px){
+    .grid.cols-4, .grid.cols-5{grid-template-columns:1fr 1fr;}
+    .content{padding:16px;}
+  }
+</style>
+</head>
+<body>
+
+<!-- Single compact banner (2026-09-09: the second "This demo tracks"
+     strip was dropped — it was pure decoration eating ~50px of the box's
+     fixed height budget for zero product value). -->
+<div class="intro" style="padding:8px 20px;">
+  <div><strong>You're inside a live mock of Firmity</strong> — click around the left-hand menu just like a facility manager would.</div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+    <div class="tag">Sample data only · nothing here is saved</div>
+  </div>
+</div>
+
+<div class="app">
+
+  <!-- SIDEBAR — collapsed icon rail; hover the rail to expand it and see
+       each module's name. Planner and Asset Management are "nav-group"s:
+       clicking the row expands an inline tree of sub-views, in normal
+       document flow (not a floating flyout). -->
+  <div class="sidebar">
+    <div class="sidebar-inner">
+      <div class="logo-mark">U</div>
+
+      <div class="nav-group" id="group-planner">
+        <div class="nav-row" id="nav-planner" data-hasnew="0">
+          <span class="nav-icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+          <span class="nav-label">Planner</span>
+          <span class="nav-chevron">▸</span>
+          <span class="dot"></span>
+        </div>
+        <div class="nav-tree">
+          <div class="tree-item" data-view="masterconfig"><span class="tree-chevron">▸</span><span>Master Config</span></div>
+          <div class="tree-item" data-view="tasks"><span class="tree-chevron">▸</span><span>Tasks</span></div>
+          <div class="tree-item" data-view="ppm"><span class="tree-chevron">▸</span><span>PPM Calendar</span></div>
+        </div>
+      </div>
+
+      <div class="nav-group" id="group-assetmgmt">
+        <div class="nav-row" id="nav-assetmgmt">
+          <span class="nav-icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>
+          <span class="nav-label">Asset Management</span>
+          <span class="nav-chevron">▸</span>
+        </div>
+        <div class="nav-tree">
+          <div class="tree-item" data-view="assetmaster"><span class="tree-chevron">▸</span><span>Assets Master</span></div>
+          <div class="tree-item" data-view="checkinout"><span class="tree-chevron">▸</span><span>Check IN &amp; OUT</span></div>
+          <div class="tree-item" data-view="servicerecords"><span class="tree-chevron">▸</span><span>Service Records</span></div>
+        </div>
+      </div>
+
+      <div class="nav-group" id="group-complaints">
+        <div class="nav-row" id="nav-complaints">
+          <span class="nav-icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>
+          <span class="nav-label">Complaint &amp; Helpdesk</span>
+          <span class="nav-chevron">▸</span>
+        </div>
+        <div class="nav-tree">
+          <div class="tree-item" data-view="complaints"><span class="tree-chevron">▸</span><span>Complaints</span></div>
+          <div class="tree-item" data-view="complaintcategories"><span class="tree-chevron">▸</span><span>Categories &amp; Workflow</span></div>
+          <div class="tree-item" data-view="complaintreports"><span class="tree-chevron">▸</span><span>Dashboard &amp; Reports</span></div>
+        </div>
+      </div>
+
+      <div class="nav-group" id="group-inventory">
+        <div class="nav-row" id="nav-inventory">
+          <span class="nav-icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></span>
+          <span class="nav-label">Inventory &amp; Vendor</span>
+          <span class="nav-chevron">▸</span>
+        </div>
+        <div class="nav-tree">
+          <div class="tree-item" data-view="invitems"><span class="tree-chevron">▸</span><span>Items</span></div>
+          <div class="tree-item" data-view="invpo"><span class="tree-chevron">▸</span><span>Purchase Orders</span></div>
+          <div class="tree-item" data-view="invgrn"><span class="tree-chevron">▸</span><span>GRN</span></div>
+          <div class="tree-item" data-view="invledger"><span class="tree-chevron">▸</span><span>Stock Ledger</span></div>
+          <div class="tree-item" data-view="invvendors"><span class="tree-chevron">▸</span><span>Vendors &amp; Rate Card</span></div>
+        </div>
+      </div>
+
+      <div class="nav-group" id="group-visitor">
+        <div class="nav-row" id="nav-visitor">
+          <span class="nav-icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg></span>
+          <span class="nav-label">Visitor Management</span>
+          <span class="nav-chevron">▸</span>
+        </div>
+        <div class="nav-tree">
+          <div class="tree-item" data-view="visitors"><span class="tree-chevron">▸</span><span>Visitors</span></div>
+          <div class="tree-item" data-view="visitorapprovals"><span class="tree-chevron">▸</span><span>Approvals</span></div>
+          <div class="tree-item" data-view="visitordept"><span class="tree-chevron">▸</span><span>Department Master</span></div>
+        </div>
+      </div>
+
+      <div class="nav-group" id="group-employee">
+        <div class="nav-row" id="nav-employee">
+          <span class="nav-icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+          <span class="nav-label">Employee Management</span>
+          <span class="nav-chevron">▸</span>
+        </div>
+        <div class="nav-tree">
+          <div class="tree-item" data-view="employees"><span class="tree-chevron">▸</span><span>Employee Master</span></div>
+          <div class="tree-item" data-view="attendance"><span class="tree-chevron">▸</span><span>Attendance</span></div>
+          <div class="tree-item" data-view="leave"><span class="tree-chevron">▸</span><span>Leave Management</span></div>
+        </div>
+      </div>
+
+      <div class="nav-group" id="group-payroll">
+        <div class="nav-row" id="nav-payroll">
+          <span class="nav-icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span>
+          <span class="nav-label">Payroll</span>
+          <span class="nav-chevron">▸</span>
+        </div>
+        <div class="nav-tree">
+          <div class="tree-item" data-view="payroll"><span class="tree-chevron">▸</span><span>Payroll Management</span></div>
+        </div>
+      </div>
+
+      <div class="nav-group" id="group-expense">
+        <div class="nav-row" id="nav-expense">
+          <span class="nav-icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
+          <span class="nav-label">Facility Expense</span>
+          <span class="nav-chevron">▸</span>
+        </div>
+        <div class="nav-tree">
+          <div class="tree-item" data-view="expenses"><span class="tree-chevron">▸</span><span>Expenses</span></div>
+          <div class="tree-item" data-view="expensetypes"><span class="tree-chevron">▸</span><span>Expense Types</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <div class="topbar">
+      <div class="hamburger">☰</div>
+      <div class="location-pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <span>Demo Property</span>
+        <span class="caret">▾</span>
+      </div>
+      <div class="topbar-right">
+        <div class="badge-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span class="count">54</span></div>
+        <div class="badge-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg><span class="count">29</span></div>
+        <div class="badge-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="count">72</span></div>
+        <div class="badge-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span class="count">158</span></div>
+        <div class="avatar-block">
+          <div class="avatar-circ">AD</div>
+          <span class="name">Admin</span>
+          <span class="caret">▾</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ===== DASHBOARD VIEW ===== -->
+      <div class="view active" id="view-dashboard">
+        <div class="page-title-row">
+          <h1>Overview</h1>
+          <div class="info-btn" data-explain="dashboard">i</div>
+        </div>
+
+        <div class="grid cols-4">
+          <div class="card">
+            <h3>Tasks</h3>
+            <div class="chart-wrap"><canvas id="chartTasks"></canvas></div>
+            <div class="legend-row">
+              <span><i style="background:#2f8fd1"></i>Actionable (71)</span>
+              <span><i style="background:#2f9e5e"></i>Completed (341)</span>
+              <span><i style="background:#d64545"></i>Pending (3090)</span>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Priority Tasks</h3>
+            <table class="mini">
+              <tr><th>#</th><th>Title</th><th>Value</th></tr>
+              <tr><td>1</td><td>SOS</td><td>3</td></tr>
+              <tr><td>2</td><td>High Priority</td><td>27</td></tr>
+              <tr><td>3</td><td>Medium Priority</td><td>17</td></tr>
+              <tr><td>4</td><td>Low Priority</td><td>3</td></tr>
+              <tr><td>5</td><td>On Hold</td><td>11</td></tr>
+            </table>
+          </div>
+          <div class="card">
+            <h3>Total Assets</h3>
+            <div class="chart-wrap"><canvas id="chartAssets"></canvas></div>
+          </div>
+          <div class="card">
+            <h3>Complaints</h3>
+            <div class="chart-wrap"><canvas id="chartComplaints"></canvas></div>
+            <div class="legend-row">
+              <span><i style="background:#2f8fd1"></i>Open (40)</span>
+              <span><i style="background:#2f9e5e"></i>In Progress (7)</span>
+              <span><i style="background:#e08a2c"></i>Resolved (29)</span>
+              <span><i style="background:#8756c9"></i>Closed (6)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-bar">
+          <div class="seg" id="rangeSeg">
+            <button data-range="today">Today</button>
+            <button data-range="week">Week</button>
+            <button data-range="month">Month</button>
+            <button class="active" data-range="year">Year</button>
+          </div>
+          <div class="date-range">📅 2025-09-04 → 2026-09-04</div>
+        </div>
+
+        <div class="grid cols-4">
+          <div class="card">
+            <h3>Attendance</h3>
+            <div class="chart-wrap"><canvas id="chartAttendance"></canvas></div>
+            <div class="legend-row">
+              <span><i style="background:#2f8fd1"></i>Present (0)</span>
+              <span><i style="background:#d64545"></i>Absent (1)</span>
+              <span><i style="background:#e0b02c"></i>Leave (1)</span>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Top 5 Expenses</h3>
+            <div class="chart-wrap tall"><canvas id="chartExpenses"></canvas></div>
+          </div>
+          <div class="card">
+            <h3>Top 5 Debits</h3>
+            <div class="chart-wrap tall"><canvas id="chartDebits"></canvas></div>
+          </div>
+          <div class="card">
+            <h3>Top 5 Credits</h3>
+            <div class="chart-wrap tall"><canvas id="chartCredits"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== MASTER CONFIG VIEW ===== -->
+      <div class="view" id="view-masterconfig">
+        <div class="page-title-row">
+          <h1>Master Configuration</h1>
+          <div class="info-btn" data-explain="masterconfig">i</div>
+        </div>
+
+        <div class="tabs">
+          <div class="tab active" data-tab="categories">Categories</div>
+          <div class="tab" data-tab="frequencies">Frequencies</div>
+          <div class="tab" data-tab="shift">Shift</div>
+        </div>
+
+        <div class="panel" id="tab-categories">
+          <div class="panel-top">
+            <input class="search-input" placeholder="Search" />
+            <button class="btn-primary">+ Add Category</button>
+          </div>
+          <table class="full">
+            <tr><th>Name</th><th>Sub-category</th><th>Actions</th></tr>
+            <tr><td>House keeping</td><td><span class="pill-count">08</span></td><td><div class="row-actions">
+      <span class="action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>Edit</span>
+      <span class="action-btn delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>Delete</span>
+    </div></td></tr>
+            <tr><td>Technical</td><td><span class="pill-count">02</span></td><td><div class="row-actions">
+      <span class="action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>Edit</span>
+      <span class="action-btn delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>Delete</span>
+    </div></td></tr>
+            <tr><td>Plumbing</td><td><span class="pill-count">00</span></td><td><div class="row-actions">
+      <span class="action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>Edit</span>
+      <span class="action-btn delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>Delete</span>
+    </div></td></tr>
+            <tr><td>Horticulture</td><td><span class="pill-count">00</span></td><td><div class="row-actions">
+      <span class="action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>Edit</span>
+      <span class="action-btn delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>Delete</span>
+    </div></td></tr>
+          </table>
+          <div class="table-foot">
+            <span>Rows per page: 10</span><span>1–4 of 4</span>
+            <span class="page-btn">«</span><span class="page-btn">‹</span><span>Page 1/1</span><span class="page-btn">›</span><span class="page-btn">»</span>
+          </div>
+        </div>
+
+        <div class="panel" id="tab-frequencies" style="display:none;">
+          <div class="panel-top">
+            <input class="search-input" placeholder="Search" />
+            <button class="btn-primary">+ Add Frequency</button>
+          </div>
+          <table class="full">
+            <tr><th>Name</th><th>Value</th><th>Unit</th><th>Actions</th></tr>
+            <tr><td>Once a Day</td><td>1</td><td>Days</td><td><div class="row-actions">
+      <span class="action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>Edit</span>
+      <span class="action-btn delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>Delete</span>
+    </div></td></tr>
+            <tr><td>Weekly</td><td>7</td><td>Days</td><td><div class="row-actions">
+      <span class="action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>Edit</span>
+      <span class="action-btn delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>Delete</span>
+    </div></td></tr>
+            <tr><td>Monthly</td><td>1</td><td>Months</td><td><div class="row-actions">
+      <span class="action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>Edit</span>
+      <span class="action-btn delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>Delete</span>
+    </div></td></tr>
+            <tr><td>Twice a day</td><td>1</td><td>Days</td><td><div class="row-actions">
+      <span class="action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>Edit</span>
+      <span class="action-btn delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>Delete</span>
+    </div></td></tr>
+          </table>
+          <div class="table-foot">
+            <span>Rows per page: 10</span><span>1–4 of 4</span>
+            <span class="page-btn">«</span><span class="page-btn">‹</span><span>Page 1/1</span><span class="page-btn">›</span><span class="page-btn">»</span>
+          </div>
+        </div>
+
+        <div class="panel" id="tab-shift" style="display:none;">
+          <div class="panel-top">
+            <input class="search-input" placeholder="Search" />
+            <button class="btn-primary">+ Add Shift</button>
+          </div>
+          <table class="full">
+            <tr><th>Shift Name</th><th>Time From</th><th>Time To</th><th>Actions</th></tr>
+            <tr><td>Night Shift</td><td>21:00:00</td><td>06:00:00</td><td><div class="row-actions">
+      <span class="action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>Edit</span>
+      <span class="action-btn delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>Delete</span>
+    </div></td></tr>
+            <tr><td>Morning shift</td><td>07:30:00</td><td>16:30:00</td><td><div class="row-actions">
+      <span class="action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>Edit</span>
+      <span class="action-btn delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>Delete</span>
+    </div></td></tr>
+            <tr><td>Evening Shift</td><td>17:02:00</td><td>20:02:00</td><td><div class="row-actions">
+      <span class="action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>Edit</span>
+      <span class="action-btn delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>Delete</span>
+    </div></td></tr>
+          </table>
+          <div class="table-foot">
+            <span>Rows per page: 10</span><span>1–3 of 3</span>
+            <span class="page-btn">«</span><span class="page-btn">‹</span><span>Page 1/1</span><span class="page-btn">›</span><span class="page-btn">»</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== TASKS VIEW ===== -->
+      <div class="view" id="view-tasks">
+        <div class="page-title-row">
+          <h1>Tasks</h1>
+          <div class="info-btn" data-explain="tasks">i</div>
+        </div>
+
+        <div class="grid cols-5">
+          <div class="stat-card total"><div class="num" id="statTotal">0</div><div class="lbl">Total Tasks</div></div>
+          <div class="stat-card completed"><div class="num" id="statCompleted">0</div><div class="lbl">Completed</div></div>
+          <div class="stat-card actionable"><div class="num" id="statActionable">0</div><div class="lbl">Actionable</div></div>
+          <div class="stat-card pending"><div class="num" id="statPending">0</div><div class="lbl">Pending</div></div>
+          <div class="stat-card onhold"><div class="num" id="statOnhold">0</div><div class="lbl">On Hold</div></div>
+        </div>
+
+        <div class="filter-bar">
+          <input class="search-input" style="max-width:280px" placeholder="Search by name or ID" />
+          <button class="btn-ghost" id="filterToggleBtn">⏷ Filter <span class="pill-count" style="margin-left:4px;">1</span></button>
+          <button class="btn-excel">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+            Export to Excel
+          </button>
+          <button class="btn-primary" style="margin-left:0">+ Add Task</button>
+        </div>
+
+        <!-- Filters panel — matches the reference product's own Tasks filter
+             UI (date range, category/frequency/priority chips, assigned-to
+             search) rather than the placeholder "Filter"/"Export" buttons
+             this used to have. Kept visible by default, toggled by the
+             "Filter" button above (2026-09-05). -->
+        <div class="filters-panel" id="filtersPanel">
+          <div class="filters-head">
+            <span>Filters</span>
+            <span class="filters-reset" id="filtersReset">✕ Reset All</span>
+          </div>
+          <div class="filters-grid">
+            <div class="filter-block">
+              <label>Date range</label>
+              <div class="filter-date-row">
+                <input type="text" value="04-09-2026" />
+                <span style="color:var(--ink-soft);font-size:12.5px;">to</span>
+                <input type="text" value="04-09-2026" />
+              </div>
+            </div>
+            <div class="filter-block">
+              <label>Assigned to</label>
+              <input class="filter-assigned-input" type="text" value="Shyam — 8888888888 — House Keeping" />
+            </div>
+            <div class="filter-block">
+              <label>Category</label>
+              <div class="filter-chips">
+                <button class="chip-toggle">House keeping</button>
+                <button class="chip-toggle">Technical</button>
+                <button class="chip-toggle">Plumbing</button>
+                <button class="chip-toggle">Horticulture</button>
+              </div>
+            </div>
+            <div class="filter-block">
+              <label>Frequency</label>
+              <div class="filter-chips">
+                <button class="chip-toggle">Once a Day</button>
+                <button class="chip-toggle">Weekly</button>
+                <button class="chip-toggle">Monthly</button>
+                <button class="chip-toggle">Twice a day</button>
+              </div>
+            </div>
+            <div class="filter-block" style="grid-column:1 / -1;">
+              <label>Priority</label>
+              <div class="filter-chips">
+                <button class="chip-toggle">SOS</button>
+                <button class="chip-toggle">High Priority</button>
+                <button class="chip-toggle">Medium Priority</button>
+                <button class="chip-toggle">Low Priority</button>
+                <button class="chip-toggle active">Completed</button>
+                <button class="chip-toggle">On Hold</button>
+              </div>
+            </div>
+          </div>
+          <div class="filters-actions">
+            <button class="btn-primary" style="margin-left:0">Apply Filter</button>
+          </div>
+        </div>
+
+        <div class="day-group">
+          <div class="day-head" id="dayHead">
+            📅 04-09-2026
+          </div>
+          <div class="task-grid" id="taskGrid"></div>
+        </div>
+      </div>
+
+      <!-- ===== PPM CALENDAR VIEW ===== -->
+      <div class="view" id="view-ppm">
+        <div class="page-title-row">
+          <h1>PPM Calendar</h1>
+          <div class="info-btn" data-explain="ppm">i</div>
+        </div>
+
+        <div class="grid cols-4" style="margin-bottom:18px;">
+          <div class="stat-card total"><div class="num">248</div><div class="lbl">Total Tasks</div></div>
+          <div class="stat-card completed"><div class="num">0</div><div class="lbl">Completed</div></div>
+          <div class="stat-card pending"><div class="num">248</div><div class="lbl">Pending</div></div>
+          <div class="stat-card actionable"><div class="num">0</div><div class="lbl">Actionable</div></div>
+        </div>
+
+        <!-- Google-Calendar-style month view (2026-09-05 redesign — was a
+             plain bordered HTML <table>). Click a person's chip on any day
+             to open their task checklist. -->
+        <div class="cal-head">
+          <h2>September 2026</h2>
+          <div class="cal-nav">
+            <button aria-label="Previous month">‹</button>
+            <button aria-label="Next month">›</button>
+          </div>
+          <button class="cal-today-btn">Today</button>
+        </div>
+        <div class="gcal">
+          <div class="gcal-weekdays">
+            <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>
+          </div>
+          <div class="gcal-grid" id="gcalGrid"></div>
+        </div>
+      </div>
+
+      <!-- ===== ASSETS MASTER VIEW ===== -->
+      <div class="view" id="view-assetmaster">
+        <div class="page-title-row">
+          <h1>Assets Master</h1>
+          <div class="info-btn" data-explain="assetmaster">i</div>
+        </div>
+
+        <div class="tabs">
+          <div class="tab active" data-assettab="owned">Owned assets <span class="pill-count" id="countOwned"></span></div>
+          <div class="tab" data-assettab="rented">Rented assets <span class="pill-count" id="countRented"></span></div>
+          <div class="tab" data-assettab="spare">Spare parts <span class="pill-count" id="countSpare"></span></div>
+        </div>
+
+        <div class="panel" id="assettab-owned">
+          <div class="panel-top">
+            <input class="search-input" placeholder="Search by name or ID" />
+            <button class="btn-ghost">⏷ Filter</button>
+            <button class="btn-ghost">⇪ Export</button>
+            <button class="btn-primary">+ Add asset</button>
+          </div>
+          <table class="full">
+            <tr><th>ID</th><th>Name</th><th>Location</th><th>Service due</th><th>Status</th><th>Actions</th></tr>
+            <tbody id="ownedBody"></tbody>
+          </table>
+        </div>
+
+        <div class="panel" id="assettab-rented" style="display:none;">
+          <div class="panel-top">
+            <input class="search-input" placeholder="Search by name or ID" />
+            <button class="btn-ghost">⏷ Filter</button>
+            <button class="btn-ghost">⇪ Export</button>
+            <button class="btn-primary">+ Rent asset</button>
+          </div>
+          <table class="full">
+            <tr><th>ID</th><th>Asset Name</th><th>Manufacturer</th><th>Lease</th><th>Location</th><th>Expiry date</th><th>Status</th><th>Actions</th></tr>
+            <tbody id="rentedBody"></tbody>
+          </table>
+        </div>
+
+        <div class="panel" id="assettab-spare" style="display:none;">
+          <div class="panel-top">
+            <input class="search-input" placeholder="Search by name or ID" />
+            <button class="btn-ghost">⏷ Filter</button>
+            <button class="btn-ghost">⇪ Export</button>
+            <button class="btn-primary">+ Add spare part</button>
+          </div>
+          <table class="full">
+            <tr><th>ID</th><th>Type</th><th>Asset</th><th>Expiry date</th><th>Status</th><th>Actions</th></tr>
+            <tbody id="spareBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== CHECK IN & OUT VIEW ===== -->
+      <div class="view" id="view-checkinout">
+        <div class="page-title-row">
+          <h1>Check IN &amp; OUT</h1>
+          <div class="info-btn" data-explain="checkinout">i</div>
+        </div>
+
+        <div class="tabs" style="border-radius:10px 10px 0 0;">
+          <div class="tab active" style="cursor:default;">Asset transfer</div>
+        </div>
+        <div class="panel">
+          <div class="panel-top">
+            <input class="search-input" placeholder="Search by name or ID" />
+            <button class="btn-ghost" style="margin-left:auto;">⏷ Filter</button>
+            <button class="btn-ghost">⇪ Export</button>
+          </div>
+          <table class="full">
+            <tr><th>ID</th><th>Name</th><th>Location</th><th>Dispatch</th><th>Expiry date</th><th>Status</th></tr>
+            <tbody id="transferBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== SERVICE RECORDS VIEW ===== -->
+      <div class="view" id="view-servicerecords">
+        <div class="page-title-row">
+          <h1>Service Records</h1>
+          <div class="info-btn" data-explain="servicerecords">i</div>
+        </div>
+
+        <h3 style="font-size:15px;margin:0 0 10px;color:var(--ink);">Service Over Due Assets</h3>
+        <div class="panel" style="border-top:1px solid var(--line);border-radius:var(--radius);margin-bottom:22px;">
+          <table class="full">
+            <tr><th>Id</th><th>Name</th><th>Service Due Date</th><th>Actions</th></tr>
+            <tbody id="overdueBody"></tbody>
+          </table>
+        </div>
+
+        <h3 style="font-size:15px;margin:0 0 10px;color:var(--ink);">Upcoming Services</h3>
+        <div class="panel" style="border-top:1px solid var(--line);border-radius:var(--radius);">
+          <div class="panel-top" style="margin-bottom:0;">
+            <input class="search-input" type="text" placeholder="Select Start Date" style="max-width:190px;" />
+            <input class="search-input" type="text" placeholder="Select End Date" style="max-width:190px;" />
+            <button class="btn-primary" style="margin-left:0;">Filter</button>
+            <button class="btn-ghost">Reset</button>
+          </div>
+          <p style="margin:16px 2px 4px;color:var(--ink-soft);font-size:13.5px;">All assets are healthy!</p>
+        </div>
+      </div>
+
+      <!-- ===== COMPLAINTS VIEW (row-click → detail) ===== -->
+      <div class="view" id="view-complaints">
+        <div class="page-title-row">
+          <h1>Complaints</h1>
+          <div class="info-btn" data-explain="complaints">i</div>
+        </div>
+        <div class="grid cols-5" style="margin-bottom:18px;">
+          <div class="stat-card total"><div class="num" id="cStatTotal">0</div><div class="lbl">Total</div></div>
+          <div class="stat-card actionable"><div class="num" id="cStatOpen">0</div><div class="lbl">Open</div></div>
+          <div class="stat-card onhold"><div class="num" id="cStatProgress">0</div><div class="lbl">In Progress</div></div>
+          <div class="stat-card completed"><div class="num" id="cStatResolved">0</div><div class="lbl">Resolved</div></div>
+          <div class="stat-card pending"><div class="num" id="cStatOverdue">0</div><div class="lbl">SLA Breached</div></div>
+        </div>
+        <div class="filter-bar">
+          <input class="search-input" style="max-width:280px" placeholder="Search by ticket or tracking ID" />
+          <button class="btn-ghost">⏷ Filter</button>
+          <button class="btn-excel">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+            Export to Excel
+          </button>
+          <button class="btn-primary" style="margin-left:0">+ Raise Complaint</button>
+        </div>
+        <p class="subnote">Click any ticket to open its full detail — activity, SLA timers, SLA history, and the escalation matrix that applies to it.</p>
+        <table class="full">
+          <tr><th>Ticket ID</th><th>Category</th><th>Location</th><th>Priority</th><th>Assigned To</th><th>Status</th><th>Raised On</th></tr>
+          <tbody id="complaintsBody"></tbody>
+        </table>
+      </div>
+
+      <!-- ===== COMPLAINT CATEGORIES & WORKFLOW VIEW (static) ===== -->
+      <div class="view" id="view-complaintcategories">
+        <div class="page-title-row">
+          <h1>Categories &amp; Workflow</h1>
+          <div class="info-btn" data-explain="complaintcategories">i</div>
+        </div>
+        <p class="subnote">Every category maps to a responder group and carries its own Response and Resolution SLA — this is the workflow engine that decides who a new ticket goes to, and when it escalates.</p>
+        <table class="full">
+          <tr><th>Category</th><th>Responder Group</th><th>Response SLA</th><th>Resolution SLA</th><th>Escalation Levels</th><th>Actions</th></tr>
+          <tbody id="complaintCategoriesBody"></tbody>
+        </table>
+      </div>
+
+      <!-- ===== COMPLAINT DASHBOARD & REPORTS VIEW (static) ===== -->
+      <div class="view" id="view-complaintreports">
+        <div class="page-title-row">
+          <h1>Dashboard &amp; Reports</h1>
+          <div class="info-btn" data-explain="complaintreports">i</div>
+        </div>
+        <div class="grid cols-4">
+          <div class="card">
+            <h3>Complaints by Status</h3>
+            <div class="chart-wrap"><canvas id="chartComplaintsStatus"></canvas></div>
+            <div class="legend-row">
+              <span><i style="background:#2f8fd1"></i>Open</span>
+              <span><i style="background:#e08a2c"></i>In Progress</span>
+              <span><i style="background:#2f9e5e"></i>Resolved</span>
+              <span><i style="background:#8756c9"></i>Closed</span>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Complaints by Category</h3>
+            <div class="chart-wrap"><canvas id="chartComplaintsCategory"></canvas></div>
+          </div>
+          <div class="card">
+            <h3>Turn Around Time (hrs)</h3>
+            <div class="chart-wrap"><canvas id="chartTAT"></canvas></div>
+          </div>
+          <div class="card">
+            <h3>Escalation Summary</h3>
+            <table class="mini">
+              <tr><th>Metric</th><th>Value</th></tr>
+              <tr><td>Escalated tickets</td><td>4</td></tr>
+              <tr><td>Reopened tickets</td><td>2</td></tr>
+              <tr><td>SLA breached</td><td>3</td></tr>
+              <tr><td>Overdue tickets</td><td>5</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== INVENTORY ITEMS VIEW (row-click → detail) ===== -->
+      <div class="view" id="view-invitems">
+        <div class="page-title-row">
+          <h1>Items</h1>
+          <div class="info-btn" data-explain="invitems">i</div>
+        </div>
+        <div class="filter-bar">
+          <input class="search-input" style="max-width:280px" placeholder="Search item by name" />
+          <button class="btn-ghost">⏷ Category</button>
+          <button class="btn-excel">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+            Export to Excel
+          </button>
+          <button class="btn-primary" style="margin-left:0">+ Add Item</button>
+        </div>
+        <p class="subnote">Click any item to see its specification, stock ledger, and requisition history.</p>
+        <table class="full">
+          <tr><th>Item</th><th>Category</th><th>Specification</th><th>Qty on Hand</th><th>Min. Threshold</th><th>Status</th></tr>
+          <tbody id="invItemsBody"></tbody>
+        </table>
+      </div>
+
+      <!-- ===== PURCHASE ORDERS VIEW (static) ===== -->
+      <div class="view" id="view-invpo">
+        <div class="page-title-row">
+          <h1>Purchase Orders</h1>
+          <div class="info-btn" data-explain="invpo">i</div>
+        </div>
+        <div class="grid cols-4" style="margin-bottom:18px;">
+          <div class="stat-card total"><div class="num">18</div><div class="lbl">Total Orders</div></div>
+          <div class="stat-card pending"><div class="num">4</div><div class="lbl">Pending Approval</div></div>
+          <div class="stat-card completed"><div class="num">12</div><div class="lbl">Approved</div></div>
+          <div class="stat-card onhold"><div class="num">2</div><div class="lbl">Rejected</div></div>
+        </div>
+        <div class="tabs">
+          <div class="tab active" data-potab="pending">Pending</div>
+          <div class="tab" data-potab="processed">Processed</div>
+        </div>
+        <div class="panel" id="potab-pending">
+          <div class="panel-top">
+            <input class="search-input" placeholder="Search by PO number or vendor" />
+            <button class="btn-primary">+ New Purchase Order</button>
+          </div>
+          <table class="full">
+            <tr><th>PO Number</th><th>Vendor</th><th>Property</th><th>Order Date</th><th>Amount</th><th>Actions</th></tr>
+            <tbody id="poPendingBody"></tbody>
+          </table>
+        </div>
+        <div class="panel" id="potab-processed" style="display:none;">
+          <div class="panel-top">
+            <input class="search-input" placeholder="Search by PO number or vendor" />
+            <button class="btn-ghost">⇪ Export</button>
+          </div>
+          <table class="full">
+            <tr><th>PO Number</th><th>Vendor</th><th>Order Date</th><th>Amount</th><th>Receipt %</th><th>Status</th><th>Actions</th></tr>
+            <tbody id="poProcessedBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== GRN VIEW (static) ===== -->
+      <div class="view" id="view-invgrn">
+        <div class="page-title-row">
+          <h1>Goods Receipt Note (GRN)</h1>
+          <div class="info-btn" data-explain="invgrn">i</div>
+        </div>
+        <div class="filter-bar">
+          <input class="search-input" style="max-width:280px" placeholder="Search by GRN or PO number" />
+          <button class="btn-excel">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+            Export
+          </button>
+          <button class="btn-primary" style="margin-left:0">+ New GRN</button>
+        </div>
+        <table class="full">
+          <tr><th>GRN Number</th><th>PO Number</th><th>Site</th><th>Received On</th><th>Created By</th><th>Qty Received</th><th>Status</th></tr>
+          <tbody id="grnBody"></tbody>
+        </table>
+      </div>
+
+      <!-- ===== STOCK LEDGER VIEW (static) ===== -->
+      <div class="view" id="view-invledger">
+        <div class="page-title-row">
+          <h1>Stock Ledger</h1>
+          <div class="info-btn" data-explain="invledger">i</div>
+        </div>
+        <input class="search-input" style="max-width:280px;margin-bottom:14px;display:block;" placeholder="Search item" />
+        <table class="full">
+          <tr><th>Item</th><th>Brand</th><th>Unit</th><th>Min. Stock</th><th>Stock In</th><th>Requisitioned</th><th>Handed Over</th><th>Balance</th><th>Status</th></tr>
+          <tbody id="ledgerBody"></tbody>
+        </table>
+      </div>
+
+      <!-- ===== VENDORS & RATE CARD VIEW (static) ===== -->
+      <div class="view" id="view-invvendors">
+        <div class="page-title-row">
+          <h1>Vendors &amp; Rate Card</h1>
+          <div class="info-btn" data-explain="invvendors">i</div>
+        </div>
+        <table class="full">
+          <tr><th>Vendor</th><th>Contact Person</th><th>Phone</th><th>GST No.</th><th>Rate Card Validity</th><th>Documents</th></tr>
+          <tbody id="vendorsBody"></tbody>
+        </table>
+      </div>
+
+      <!-- ===== VISITORS VIEW (static — no row-click per client brief) ===== -->
+      <div class="view" id="view-visitors">
+        <div class="page-title-row">
+          <h1>Visitors</h1>
+          <div class="info-btn" data-explain="visitors">i</div>
+        </div>
+        <div class="filter-bar">
+          <input class="search-input" style="max-width:280px" placeholder="Search by name or mobile" />
+          <button class="btn-ghost">⏷ Date range</button>
+          <button class="btn-excel">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+            Export
+          </button>
+        </div>
+        <table class="full">
+          <tr><th>Visitor</th><th>Mobile</th><th>Purpose</th><th>Contact Person</th><th>In Time</th><th>Out Time</th><th>Status</th></tr>
+          <tbody id="visitorsBody"></tbody>
+        </table>
+      </div>
+
+      <!-- ===== VISITOR APPROVALS VIEW (static) ===== -->
+      <div class="view" id="view-visitorapprovals">
+        <div class="page-title-row">
+          <h1>Approvals</h1>
+          <div class="info-btn" data-explain="visitorapprovals">i</div>
+        </div>
+        <table class="full">
+          <tr><th>Visitor</th><th>Requested By</th><th>Department</th><th>Meeting Status</th><th>Status</th><th>Actions</th></tr>
+          <tbody id="visitorApprovalsBody"></tbody>
+        </table>
+      </div>
+
+      <!-- ===== VISITOR DEPARTMENT MASTER VIEW (static) ===== -->
+      <div class="view" id="view-visitordept">
+        <div class="page-title-row">
+          <h1>Department Master</h1>
+          <div class="info-btn" data-explain="visitordept">i</div>
+        </div>
+        <table class="full">
+          <tr><th>Department</th><th>Branch Head</th><th>Mobile</th><th>Email</th><th>Actions</th></tr>
+          <tbody id="visitorDeptBody"></tbody>
+        </table>
+      </div>
+
+      <!-- ===== EMPLOYEE MASTER VIEW (static) ===== -->
+      <div class="view" id="view-employees">
+        <div class="page-title-row">
+          <h1>Employee Master</h1>
+          <div class="info-btn" data-explain="employees">i</div>
+        </div>
+        <div class="filter-bar">
+          <input class="search-input" style="max-width:280px" placeholder="Search by name, code or phone" />
+          <button class="btn-ghost">⏷ Filter</button>
+          <button class="btn-excel">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+            Export
+          </button>
+          <button class="btn-primary" style="margin-left:0">+ Add Employee</button>
+        </div>
+        <table class="full">
+          <tr><th>Code</th><th>Name</th><th>Department</th><th>Designation</th><th>Property</th><th>Status</th></tr>
+          <tbody id="employeesBody"></tbody>
+        </table>
+      </div>
+
+      <!-- ===== ATTENDANCE VIEW (static) ===== -->
+      <div class="view" id="view-attendance">
+        <div class="page-title-row">
+          <h1>Attendance</h1>
+          <div class="info-btn" data-explain="attendance">i</div>
+        </div>
+        <div class="grid cols-4" style="margin-bottom:18px;">
+          <div class="stat-card completed"><div class="num">142</div><div class="lbl">Present Today</div></div>
+          <div class="stat-card pending"><div class="num">6</div><div class="lbl">Absent Today</div></div>
+          <div class="stat-card onhold"><div class="num">3</div><div class="lbl">On Leave</div></div>
+          <div class="stat-card actionable"><div class="num">2</div><div class="lbl">Pending Approval</div></div>
+        </div>
+        <table class="full">
+          <tr><th>Employee</th><th>Date</th><th>Check-in</th><th>Check-out</th><th>Working Hours</th><th>Status</th></tr>
+          <tbody id="attendanceBody"></tbody>
+        </table>
+      </div>
+
+      <!-- ===== LEAVE MANAGEMENT VIEW (static) ===== -->
+      <div class="view" id="view-leave">
+        <div class="page-title-row">
+          <h1>Leave Management</h1>
+          <div class="info-btn" data-explain="leave">i</div>
+        </div>
+        <table class="full">
+          <tr><th>Employee</th><th>Leave Type</th><th>From</th><th>To</th><th>Status</th><th>Processed By</th></tr>
+          <tbody id="leaveBody"></tbody>
+        </table>
+      </div>
+
+      <!-- ===== PAYROLL VIEW (intentionally minimal — source doc gives no
+           further detail beyond "Payroll Management") ===== -->
+      <div class="view" id="view-payroll">
+        <div class="page-title-row">
+          <h1>Payroll Management</h1>
+          <div class="info-btn" data-explain="payroll">i</div>
+        </div>
+        <p class="subnote">Payroll runs off Attendance and Leave, and rolls up into the Facility Management reports.</p>
+        <table class="full">
+          <tr><th>Employee</th><th>Month</th><th>Net Pay</th><th>Status</th></tr>
+          <tbody id="payrollBody"></tbody>
+        </table>
+      </div>
+
+      <!-- ===== EXPENSES VIEW (static) ===== -->
+      <div class="view" id="view-expenses">
+        <div class="page-title-row">
+          <h1>Expenses</h1>
+          <div class="info-btn" data-explain="expenses">i</div>
+        </div>
+        <div class="filter-bar">
+          <input class="search-input" style="max-width:280px" placeholder="Search" />
+          <button class="btn-primary" style="margin-left:0">+ Add Expense</button>
+        </div>
+        <table class="full">
+          <tr><th>Type</th><th>Sub-type</th><th>Date From</th><th>Date To</th><th>Debit</th><th>Credit</th><th>Description</th></tr>
+          <tbody id="expensesBody"></tbody>
+        </table>
+      </div>
+
+      <!-- ===== EXPENSE TYPES VIEW (static) ===== -->
+      <div class="view" id="view-expensetypes">
+        <div class="page-title-row">
+          <h1>Expense Types</h1>
+          <div class="info-btn" data-explain="expensetypes">i</div>
+        </div>
+        <table class="full">
+          <tr><th>Expense Type</th><th>Sub-types</th><th>Actions</th></tr>
+          <tbody id="expenseTypesBody"></tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODAL — first-visit "what is this view" explainer -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-box">
+    <div class="modal-icon" id="modalIcon"></div>
+    <h2 id="modalTitle"></h2>
+    <p id="modalText"></p>
+    <ul id="modalList"></ul>
+    <div class="modal-actions">
+      <button class="btn-go" id="modalClose">Got it</button>
+    </div>
+  </div>
+</div>
+
+<!-- TASK DETAILS MODAL — opened by clicking a person's chip on the PPM
+     calendar. The Remarks column is Firmity's own built-in messaging
+     between supervisor and admin, not a note field — the WhatsApp-style
+     icon + banner make that explicit rather than leaving it ambiguous. -->
+<div class="modal-overlay" id="taskModalOverlay">
+  <div class="task-modal-box">
+    <div class="task-modal-head">
+      <div>
+        <h2 id="taskModalTitle">Task Details</h2>
+        <p id="taskModalSubtitle">Facility Member: Shyam</p>
+      </div>
+      <button class="task-modal-close" id="taskModalClose">✕</button>
+    </div>
+    <div class="task-modal-body" id="taskModalBody"></div>
+  </div>
+</div>
+
+<!-- Auto-dismissing hint toast — shown once, right after the viewer closes
+     a clickable-row view's explainer, so "click a row" isn't buried in text
+     they may have skimmed past. -->
+<div class="hint-toast" id="hintToast"><span class="hint-icon">👆</span><span id="hintToastText"></span></div>
+
+<!-- ROW-CLICK DETAIL MODAL — one reusable component driving the "click a
+     row → see what happens" interactivity for Assets, Inventory Items and
+     Complaints (the only three sub-modules called out for it). Which tabs
+     appear and what each renders comes entirely from DETAIL_CONFIGS below,
+     keyed by "kind" (asset / item / complaint). -->
+<div class="modal-overlay" id="detailModalOverlay">
+  <div class="detail-modal-box">
+    <div class="detail-modal-head">
+      <div>
+        <h2 id="detailModalTitle">Detail</h2>
+        <p id="detailModalSubtitle"></p>
+      </div>
+      <button class="detail-modal-close" id="detailModalClose">✕</button>
+    </div>
+    <div class="detail-tabs" id="detailModalTabs"></div>
+    <div class="detail-modal-body" id="detailModalBody"></div>
+  </div>
+</div>
+
+<script>
+/* ---------------- Task card data ----------------
+   Real-facility task names (not the "Task For Test"/"Testing QR" style
+   dummy rows this used to have), each carrying a real status so the stat
+   cards, the day-head chips, and each card's own badge all derive from one
+   source of truth instead of being separately hardcoded numbers that can
+   drift out of sync (2026-09-05). */
+const tasks = [
+  {id:2713,title:"Lobby floor deep cleaning",cat:"House keeping",assigned:"Shyam",loc:"Ground Floor Lobby",priority:"Medium",status:"completed"},
+  {id:2764,title:"AC filter replacement",cat:"Technical",assigned:"Ram",loc:"Wing B, 5th Floor",priority:"High",status:"pending",overdue:true},
+  {id:1582,title:"Leaking tap repair",cat:"Plumbing",assigned:"Shyam",loc:"Washroom, 3rd Floor",priority:"High",status:"actionable"},
+  {id:2772,title:"Garden hedge trimming",cat:"Horticulture",assigned:"Ram",loc:"Front Lawn",priority:"Low",status:"onhold"},
+  {id:2584,title:"Fire extinguisher inspection",cat:"Technical",assigned:"Ram",loc:"Basement",priority:"SOS",status:"pending"},
+  {id:2779,title:"Elevator lobby glass cleaning",cat:"House keeping",assigned:"Shyam",loc:"Ground Floor",priority:"Low",status:"completed"},
+  {id:2591,title:"Water tank chlorination",cat:"Plumbing",assigned:"Shyam",loc:"Terrace",priority:"Medium",status:"pending",overdue:true},
+  {id:1994,title:"Corridor pest control",cat:"House keeping",assigned:"Shyam",loc:"Floor 4",priority:"Medium",status:"pending",overdue:true},
+  {id:2592,title:"Generator load test",cat:"Technical",assigned:"Ram",loc:"DG Room",priority:"High",status:"actionable"},
+  {id:2601,title:"Cafeteria deep clean",cat:"House keeping",assigned:"Shyam",loc:"2nd Floor",priority:"Low",status:"onhold"},
+];
+
+const STATUS_LABEL = {completed:"Completed", actionable:"Actionable", onhold:"On Hold", pending:"Pending"};
+const counts = {total:tasks.length, completed:0, actionable:0, pending:0, onhold:0};
+tasks.forEach(t=>counts[t.status]++);
+document.getElementById("statTotal").textContent = counts.total;
+document.getElementById("statCompleted").textContent = counts.completed;
+document.getElementById("statActionable").textContent = counts.actionable;
+document.getElementById("statPending").textContent = counts.pending;
+document.getElementById("statOnhold").textContent = counts.onhold;
+
+document.getElementById("dayHead").innerHTML = `
+  📅 04-09-2026
+  <span class="chip completed">${counts.completed} Completed</span>
+  <span class="chip pending">${counts.pending} Pending</span>
+  <span class="chip actionable">${counts.actionable} Actionable</span>
+  <span class="chip onhold">${counts.onhold} On Hold</span>
+  <span style="margin-left:auto;color:#7c8794;">Total ${counts.total}</span>
+`;
+
+const taskGrid = document.getElementById("taskGrid");
+tasks.forEach(t=>{
+  const el = document.createElement("div");
+  el.className = "task-card";
+  const badgeClass = t.overdue ? "overdue" : t.status;
+  const badgeLabel = t.overdue ? "Overdue" : STATUS_LABEL[t.status];
+  el.innerHTML = `
+    <div class="task-topline"><span>${t.cat}</span><span class="status-badge ${badgeClass}">${badgeLabel}</span></div>
+    <h4>${t.title}</h4>
+    <div class="task-id">(${t.id})</div>
+    <div class="task-meta">
+      <span>Priority</span><b>${t.priority}</b>
+      <span>Assigned to</span><b>${t.assigned}</b>
+      <span>Location</span><b>${t.loc}</b>
+      <span>Due date</span><b>04-09-2026</b>
+    </div>`;
+  taskGrid.appendChild(el);
+});
+
+/* Filters panel — toggle visibility, toggle chip state, and a Reset that
+   clears every chip back to inactive (visual-only, matches the rest of
+   this demo — nothing here is a real query). */
+const filtersPanel = document.getElementById("filtersPanel");
+document.getElementById("filterToggleBtn").addEventListener("click", ()=>{
+  filtersPanel.style.display = filtersPanel.style.display === "none" ? "block" : "none";
+});
+document.querySelectorAll(".chip-toggle").forEach(chip=>{
+  chip.addEventListener("click", ()=> chip.classList.toggle("active"));
+});
+document.getElementById("filtersReset").addEventListener("click", ()=>{
+  document.querySelectorAll(".chip-toggle").forEach(chip=> chip.classList.remove("active"));
+});
+
+/* ---------------- PPM calendar (Google-Calendar-style grid) ---------------- */
+const weekData = {
+  1:{shyam:18,ram:6},2:{shyam:20,ram:6},3:{shyam:18,ram:5},4:{shyam:18,ram:5},
+  5:{shyam:18,ram:9},6:{shyam:18,ram:5},7:{shyam:18,ram:11},8:{shyam:18,ram:6},
+  9:{shyam:20,ram:6},10:{shyam:18,ram:5}
+};
+const TODAY_DAY = 4; // 04-09-2026, matches the rest of this demo's "today"
+const gcalGrid = document.getElementById("gcalGrid");
+let gcalHtml = "";
+// Sept 2026 starts Tuesday (day 1 = Tue, col index 1 of a Mon-first week), 30 days
+let cellDay = 1;
+const startCol = 1;
+for(let row=0; row<5; row++){
+  for(let col=0; col<7; col++){
+    if(row===0 && col<startCol){ gcalHtml += `<div class="gcal-cell empty"></div>`; continue; }
+    if(cellDay>30){ gcalHtml += `<div class="gcal-cell empty"></div>`; continue; }
+    const d = weekData[cellDay];
+    const isToday = cellDay===TODAY_DAY;
+    gcalHtml += `<div class="gcal-cell${isToday?" today":""}">`;
+    gcalHtml += `<div class="gcal-daynum">${cellDay}</div>`;
+    if(d){
+      gcalHtml += `<div class="gcal-chip p-shyam" data-person="shyam" data-day="${cellDay}"><span>Shyam</span><span>0/${d.shyam}</span></div>`;
+      gcalHtml += `<div class="gcal-chip p-ram" data-person="ram" data-day="${cellDay}"><span>Ram</span><span>0/${d.ram}</span></div>`;
+    }
+    gcalHtml += `</div>`;
+    cellDay++;
+  }
+}
+gcalGrid.innerHTML = gcalHtml;
+
+/* Task Details modal — opened by clicking a person's chip. Reuses a small
+   fixed set of sample checklists per person regardless of which day was
+   clicked (this is a walkthrough demo, not a live query). */
+const staffChecklists = {
+  shyam: [
+    { taskName:"Gents Wash Rooms", rows:[
+      {q:"Dust Bins to be check", remark:"—", status:"Pending"},
+      {q:"Floor Cleaning", remark:"—", status:"Pending"},
+      {q:"HRT Tissue roll to be check", remark:"—", status:"Pending"},
+      {q:"Shoe polish machine to be check", remark:"—", status:"Pending"},
+      {q:"W/C Cleaning", remark:"Supervisor: refilled, all clear ✅", status:"Completed"},
+    ]},
+    { taskName:"PPM Schedule for Washroom Cleaning", rows:[
+      {q:"Air Refreshner Check", remark:"—", status:"Pending"},
+      {q:"Basin area Cleaning", remark:"—", status:"Pending"},
+      {q:"Mirror Cleaning", remark:"—", status:"Pending"},
+    ]},
+  ],
+  ram: [
+    { taskName:"Corridor Cleaning — Floor 4", rows:[
+      {q:"Sweep &amp; mop corridor", remark:"Supervisor: photo shared in chat", status:"Completed"},
+      {q:"Window sill dusting", remark:"—", status:"Pending"},
+      {q:"Trash bin liners replaced", remark:"—", status:"Pending"},
+    ]},
+  ],
+};
+const WA_ICON = `<svg class="wa-icon" viewBox="0 0 24 24" fill="currentColor" style="width:12px;height:12px;color:#25d366;"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 20z"/><path d="M16.6 13.4c-.3-.1-1.6-.8-1.8-.9-.2-.1-.4-.1-.6.1-.2.3-.7.9-.8 1-.1.2-.3.2-.5.1-.3-.1-1.2-.4-2.2-1.4-.8-.7-1.4-1.6-1.5-1.9-.2-.3 0-.5.1-.6l.4-.5c.1-.1.2-.3.2-.4.1-.2 0-.3 0-.4l-.7-1.7c-.2-.4-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.3-.9.9-.9 2.1 0 1.2.9 2.4 1 2.6.1.2 1.8 2.7 4.3 3.8.6.3 1.1.4 1.5.5.6.2 1.2.2 1.6.1.5-.1 1.6-.6 1.8-1.3.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.6-.3z"/></svg>`;
+
+function openTaskModal(person, dayNum){
+  const name = person === "shyam" ? "Shyam" : "Ram";
+  document.getElementById("taskModalSubtitle").textContent = `Facility Member: ${name} · September ${dayNum}, 2026`;
+  const blocks = staffChecklists[person] || [];
+  document.getElementById("taskModalBody").innerHTML = `
+    <div class="whatsapp-note">
+      ${WA_ICON}
+      <span><strong>Remarks are exchanged through Firmity's own built-in messaging</strong> — a WhatsApp-style chat between the supervisor on-site and the admin back office, right inside the app. No external messenger or email hand-off needed.</span>
+    </div>
+    ${blocks.map(b=>`
+      <div class="task-block">
+        <h4>Task Name: ${b.taskName}</h4>
+        <table class="checklist">
+          <tr><th>Question</th><th class="remarks-th">${WA_ICON} Remarks</th><th>Status</th></tr>
+          ${b.rows.map(r=>`<tr><td>${r.q}</td><td>${r.remark}</td><td>${r.status}</td></tr>`).join("")}
+        </table>
+      </div>
+    `).join("")}
+  `;
+  document.getElementById("taskModalOverlay").classList.add("open");
+}
+document.querySelectorAll(".gcal-chip").forEach(chip=>{
+  chip.addEventListener("click", ()=> openTaskModal(chip.dataset.person, chip.dataset.day));
+});
+document.getElementById("taskModalClose").addEventListener("click", ()=>{
+  document.getElementById("taskModalOverlay").classList.remove("open");
+});
+document.getElementById("taskModalOverlay").addEventListener("click", (ev)=>{
+  if(ev.target.id==="taskModalOverlay") document.getElementById("taskModalOverlay").classList.remove("open");
+});
+
+/* ---------------- Navigation ---------------- */
+const views = document.querySelectorAll(".view");
+const explanations = {
+  dashboard: {
+    title:"Your property, at a glance",
+    text:"This is the home screen every facility manager lands on. It rolls up task completion, priority alerts, asset health, complaints, attendance and top expenses into one view — filterable by day, week, month or year.",
+    points:["Spot pending or overdue work before it piles up","Track which assets need service soonest","See where money is going, in real time"]
+  },
+  masterconfig: {
+    title:"Master Configuration",
+    text:"Before tasks can be scheduled anywhere else in Firmity, the building blocks are set up here.",
+    points:["Categories — the types of work your team does (housekeeping, technical, plumbing…)","Frequencies — how often recurring tasks repeat","Shift — the working hours your staff are scheduled against"]
+  },
+  tasks: {
+    title:"Tasks",
+    text:"Every task assigned across your property, grouped by due date. Search, filter by status, export a list, or add a new task on the fly.",
+    points:["Status counters update live: Total, Completed, Actionable, Pending, On Hold","Each card shows who it's assigned to, where, and when it's due"]
+  },
+  ppm: {
+    title:"PPM Calendar",
+    text:"A month-at-a-glance view of your Planned Preventive Maintenance schedule — how many tasks each staff member has due on every single day, styled like a familiar calendar app. Click any person's chip on a day to see their full checklist.",
+    points:["Switch month/year to plan ahead","Each chip shows tasks completed vs. tasks assigned for that person, that day","Remarks on a task are exchanged through Firmity's own built-in messaging — no WhatsApp or email hand-off required"]
+  },
+  assetmaster: {
+    title:"Assets Master",
+    text:"The full register of everything the property owns or rents — hardware, machinery, appliances — plus the spare parts kept on hand to service them.",
+    points:["Owned assets — anything the property holds outright, tracked by service-due date","Rented assets — leased-in equipment, tracked separately with lease status","Spare parts — stock kept for servicing those assets, tracked by expiry","Click any owned asset row to open its full detail — service history, warranty, AMC and documents"]
+  },
+  checkinout: {
+    title:"Check IN & OUT",
+    text:"Tracks physical movement of assets between locations or vendors — what's currently dispatched out versus checked back in.",
+    points:["\"Open\" dispatch = still out, awaiting return","\"In\" = checked back into this property"]
+  },
+  servicerecords: {
+    title:"Service Records",
+    text:"Surfaces which assets are overdue for service right now, and what's coming up next, so nothing gets missed.",
+    points:["Service Overdue Assets — needs attention today","Upcoming Services — filterable by date range, so you can plan ahead"]
+  },
+  complaints: {
+    title:"Complaints",
+    text:"Every ticket raised by an employee or guest — via QR scan or the portal — moves through Open → In Progress → On Hold → Resolved → Closed, with SLA timers running the whole way.",
+    points:["Click a ticket to see its detail, SLA timers, SLA history and the escalation matrix that applies to it","Resolution requires a remark and a mandatory post-work photo","A ticket can be reopened if the issue recurs"]
+  },
+  complaintcategories: {
+    title:"Categories & Workflow",
+    text:"Categories are how a new ticket finds its responder group. Each category carries its own Response and Resolution SLA, plus the escalation levels that fire if that SLA is breached.",
+    points:["Multiple responders can sit under one category","The Facility Manager can reassign a ticket manually at any time"]
+  },
+  complaintreports: {
+    title:"Dashboard & Reports",
+    text:"Management-facing rollup of complaint volume, resolution status, SLA performance and escalations across the property.",
+    points:["Filter by status, category or location","Turn Around Time tracks average hours from raised to resolved"]
+  },
+  invitems: {
+    title:"Items",
+    text:"The master list of everything trackable in stock, each carrying its own category, specification and minimum threshold.",
+    points:["Click an item to see its specification, stock ledger and requisition history","Items auto-flag Low Stock once quantity falls below the configured minimum"]
+  },
+  invpo: {
+    title:"Purchase Orders",
+    text:"POs move through an approval workflow — Pending Approval → Approved / Rejected — built from live rate-card pricing for every approved vendor.",
+    points:["Processed POs show receipt progress as a % against the ordered quantity","Every PO records an approver and a timestamp"]
+  },
+  invgrn: {
+    title:"Goods Receipt Note (GRN)",
+    text:"A GRN is raised against a specific PO to record what actually arrived — tracked against ordered, previously received and pending quantities.",
+    points:["A single PO can be received across multiple partial GRNs","Status is OK once fully received, Pending Receipt otherwise"]
+  },
+  invledger: {
+    title:"Stock Ledger",
+    text:"Every stock transaction — receipts via GRN, issues, adjustments — lands here automatically, giving a full chronological audit trail per item.",
+    points:["Running balance and In Stock / Low Stock flag shown per line","Searchable in real time"]
+  },
+  invvendors: {
+    title:"Vendors & Rate Card",
+    text:"Every approved vendor's contact, banking and tax details, plus the contract-based rate card used whenever a PO is raised against them.",
+    points:["Rate cards carry a validity period and need renewal once it lapses","PAN, GST certificate and brochure documents are attached per vendor"]
+  },
+  visitors: {
+    title:"Visitors",
+    text:"The visitor log — registered via QR self check-in or the guard portal — covering purpose of visit, host, and in/out times.",
+    points:["Mobile number and items being carried are captured at registration","Full visitor history is searchable and exportable by date range"]
+  },
+  visitorapprovals: {
+    title:"Approvals",
+    text:"Visitor entry requests awaiting sign-off from the host or department before the guard allows them through.",
+    points:["Approval/rejection is tracked per visitor, alongside meeting status"]
+  },
+  visitordept: {
+    title:"Department Master",
+    text:"The property-specific department list visitor requests are routed against, each with its own branch head contact.",
+    points:["Departments are scoped per property, not shared globally"]
+  },
+  employees: {
+    title:"Employee Master",
+    text:"The full facility staff register — profile, employment type, department, reporting manager, identification and bank details.",
+    points:["Searchable by name, code, phone, Aadhaar, PAN, UAN, PF, ESI or bank account","Active and inactive records both retained"]
+  },
+  attendance: {
+    title:"Attendance",
+    text:"Daily and monthly attendance — check-in/check-out time, working hours and status — per employee, with pending records awaiting approval.",
+    points:["Holiday marking and per-employee history included","Exportable as CSV"]
+  },
+  leave: {
+    title:"Leave Management",
+    text:"Leave requests against the configured leave types (Casual, Sick, Earned, Compensatory Off), with balances tracked per employee per financial year.",
+    points:["Approve/reject with a rejection remark where needed","Employee Leave Dashboard rolls up CL/SL/EL remaining across the team"]
+  },
+  payroll: {
+    title:"Payroll Management",
+    text:"Payroll processing for facility staff, tying together attendance and leave into a monthly pay run.",
+    points:["Rolls up into the Facility Management reports"]
+  },
+  expenses: {
+    title:"Expenses",
+    text:"Debit and credit entries logged against a configured expense type and sub-type, over a date range.",
+    points:["Feeds the Top 5 Expenses / Debits / Credits charts on the Overview dashboard"]
+  },
+  expensetypes: {
+    title:"Expense Type Master",
+    text:"The configuration layer behind Expenses — each type can carry multiple sub-types (e.g. Utilities → Electricity, Water).",
+    points:["Used to categorize every expense entry logged against the property"]
+  }
+};
+const icons = {
+  dashboard: `<path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>`,
+  masterconfig: `<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>`,
+  tasks: `<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>`,
+  ppm: `<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>`,
+  assetmaster: `<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>`,
+  checkinout: `<path d="M3 21V8l9-5 9 5v13"/><path d="M9 21v-8h6v8"/>`,
+  servicerecords: `<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82"/>`,
+  complaints: `<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>`,
+  complaintcategories: `<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>`,
+  complaintreports: `<path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>`,
+  invitems: `<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>`,
+  invpo: `<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>`,
+  invgrn: `<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>`,
+  invledger: `<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>`,
+  invvendors: `<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>`,
+  visitors: `<path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/>`,
+  visitorapprovals: `<path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/>`,
+  visitordept: `<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82"/>`,
+  employees: `<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>`,
+  attendance: `<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>`,
+  leave: `<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>`,
+  payroll: `<rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>`,
+  expenses: `<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>`,
+  expensetypes: `<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>`
+};
+const shownOnce = new Set();
+
+function showView(key){
+  views.forEach(v=>v.classList.remove("active"));
+  document.getElementById("view-"+key).classList.add("active");
+  if(lazyCharts[key]) lazyCharts[key].forEach(c=>c.resize());
+
+  document.querySelectorAll(".tree-item").forEach(t=>t.classList.remove("active"));
+  document.querySelectorAll(".nav-row.active").forEach(r=>r.classList.remove("active"));
+
+  const treeItem = document.querySelector(`.tree-item[data-view="${key}"]`);
+  if(treeItem){
+    treeItem.classList.add("active");
+    const group = treeItem.closest(".nav-group");
+    if(group){
+      group.classList.add("open");
+      group.querySelector(".nav-row").classList.add("active");
+    }
+  }
+
+  if(explanations[key] && !shownOnce.has(key)){
+    shownOnce.add(key);
+    openModal(key);
+  }
+}
+
+// Which sub-modules actually have clickable rows, and what to say about
+// it — used to surface a one-time hint right after the viewer dismisses
+// that view's explainer (per the client's brief, only these three).
+const CLICKABLE_HINTS = {
+  assetmaster: "Tip: click any asset row above to see its full detail.",
+  invitems: "Tip: click any item row above to see its full detail.",
+  complaints: "Tip: click any ticket row above to see its full detail.",
+};
+let hintTimer = null;
+function showHintToast(text){
+  const toast = document.getElementById("hintToast");
+  document.getElementById("hintToastText").textContent = text;
+  toast.classList.add("show");
+  clearTimeout(hintTimer);
+  hintTimer = setTimeout(()=> toast.classList.remove("show"), 4500);
+}
+
+let currentModalKey = null;
+function openModal(key){
+  currentModalKey = key;
+  const e = explanations[key];
+  document.getElementById("modalIcon").innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${icons[key]}</svg>`;
+  document.getElementById("modalTitle").textContent = e.title;
+  document.getElementById("modalText").textContent = e.text;
+  document.getElementById("modalList").innerHTML = e.points.map(p=>`<li>${p}</li>`).join("");
+  document.getElementById("modalOverlay").classList.add("open");
+}
+function closeModalAndMaybeHint(){
+  document.getElementById("modalOverlay").classList.remove("open");
+  if(CLICKABLE_HINTS[currentModalKey]) showHintToast(CLICKABLE_HINTS[currentModalKey]);
+}
+document.getElementById("modalClose").addEventListener("click", closeModalAndMaybeHint);
+document.getElementById("modalOverlay").addEventListener("click", (ev)=>{
+  if(ev.target.id==="modalOverlay") closeModalAndMaybeHint();
+});
+
+document.querySelectorAll(".info-btn").forEach(btn=>{
+  btn.addEventListener("click", ()=> openModal(btn.dataset.explain));
+});
+
+/* Nav groups (Planner, Asset Management) — clicking the parent row expands
+   an inline tree of sub-views in normal document flow. Independent groups
+   can be open at the same time; each toggles on its own click. */
+document.querySelectorAll(".nav-group").forEach(group=>{
+  const row = group.querySelector(".nav-row");
+  row.addEventListener("click", (ev)=>{
+    ev.stopPropagation();
+    group.classList.toggle("open");
+  });
+});
+document.querySelectorAll(".tree-item").forEach(item=>{
+  item.addEventListener("click", (ev)=>{
+    ev.stopPropagation();
+    showView(item.dataset.view);
+  });
+});
+
+/* "coming soon" rows — append once, not on every click */
+document.querySelectorAll(".nav-row[data-soon]").forEach(row=>{
+  row.addEventListener("click", ()=>{
+    const label = row.querySelector(".nav-label");
+    if(!label.textContent.includes("coming soon")) label.textContent += " (coming soon)";
+  });
+});
+
+/* ---------------- Asset Management data + rendering ---------------- */
+const EDIT_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>`;
+const DELETE_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>`;
+const VIEW_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+const ADD_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`;
+function editDeleteCell(){
+  return `<div class="row-actions"><span class="action-btn">${EDIT_ICON}Edit</span><span class="action-btn delete">${DELETE_ICON}Delete</span></div>`;
+}
+function viewAddCell(){
+  return `<div class="row-actions"><span class="action-btn">${VIEW_ICON}View</span><span class="action-btn">${ADD_ICON}Add</span></div>`;
+}
+function statusText(s){
+  return `<span class="status-text ${s.toLowerCase()}">${s}</span>`;
+}
+function pillStatus(v){
+  if(v==="-") return "-";
+  return `<span class="pill-status ${v.toLowerCase()}">${v}</span>`;
+}
+
+const ownedAssets = [
+  {id:5280,name:"Lift",loc:"Noida",due:"20-05-2026",status:"Inactive"},
+  {id:5286,name:"Smart TV",loc:"Ground floor",due:"28-05-2026",status:"Active"},
+  {id:5281,name:"Inverter",loc:"Noida",due:"31-05-2026",status:"Active"},
+  {id:4347,name:"Manual Sweeper",loc:"Demo Property",due:"01-06-2026",status:"Active"},
+  {id:5287,name:"Automatic Washing",loc:"Demo Property",due:"30-06-2026",status:"Active"},
+  {id:5288,name:"Microwave",loc:"Demo Property",due:"30-06-2026",status:"Active"},
+  {id:5289,name:"Multiparameter Patient Monitor",loc:"ICU – Bed 4, Sakra World Hospital, Bengaluru",due:"31-07-2026",status:"Active"},
+  {id:5290,name:"Air Conditioner",loc:"Demo Property",due:"15-07-2026",status:"Active"},
+  {id:4364,name:"Fogging Machine",loc:"Demo Property",due:"10-08-2026",status:"Active"},
+  {id:5291,name:"Water Pump",loc:"Demo Property",due:"20-08-2026",status:"Active"},
+];
+document.getElementById("ownedBody").innerHTML = ownedAssets.map(a=>
+  `<tr class="clickable-row" data-kind="asset" data-id="${a.id}"><td>${a.id}</td><td>${a.name}</td><td>${a.loc}</td><td>${a.due}</td><td>${statusText(a.status)}</td><td>${editDeleteCell()}</td></tr>`
+).join("");
+document.getElementById("countOwned").textContent = ownedAssets.length;
+wireClickableRows("ownedBody","asset");
+
+const rentedAssets = [
+  {id:4348,name:"ACB Transformer -1(1600 KVA)",mfr:"L&T",lease:"-",loc:"ACE Group",exp:"30-06-2026",status:"Active"},
+  {id:5281,name:"Inverter",mfr:"L&T",lease:"Open",loc:"Demo Property",exp:"31-05-2026",status:"Active"},
+  {id:5280,name:"Lift",mfr:"LTT",lease:"In",loc:"ACE Group",exp:"27-05-2026",status:"Active"},
+  {id:4347,name:"Manual Sweeper",mfr:"ROOTS MULTICLEAN LTD",lease:"-",loc:"Demo Property",exp:"30-06-2026",status:"Active"},
+];
+document.getElementById("rentedBody").innerHTML = rentedAssets.map(a=>
+  `<tr><td>${a.id}</td><td>${a.name}</td><td>${a.mfr}</td><td>${pillStatus(a.lease)}</td><td>${a.loc}</td><td>${a.exp}</td><td>${statusText(a.status)}</td><td>${editDeleteCell()}</td></tr>`
+).join("");
+document.getElementById("countRented").textContent = rentedAssets.length;
+
+const spareParts = [
+  {id:242,type:"Inverter Battery Bank (12V)",asset:"Inverter",exp:"05-05-2030",status:"Active"},
+  {id:241,type:"Inverter Charge Controller",asset:"Inverter",exp:"01-05-2027",status:"Servicing"},
+  {id:240,type:"Lift Motor Brush Set",asset:"Lift",exp:"—",status:"Active"},
+  {id:239,type:"AC Compressor Unit",asset:"Air Conditioner",exp:"15-07-2028",status:"Active"},
+  {id:238,type:"AC Air Filter",asset:"Air Conditioner",exp:"31-05-2026",status:"Servicing"},
+  {id:237,type:"Washing Machine Drive Belt",asset:"Automatic Washing",exp:"—",status:"Active"},
+  {id:236,type:"Fogging Machine Nozzle Kit",asset:"Fogging Machine",exp:"30-05-2026",status:"Inactive"},
+  {id:235,type:"Water Pump Seal Kit",asset:"Water Pump",exp:"30-11-2026",status:"Active"},
+  {id:234,type:"Patient Monitor Battery",asset:"Multiparameter Patient Monitor",exp:"20-03-2027",status:"Active"},
+  {id:233,type:"Sweeper Brush Roller",asset:"Manual Sweeper",exp:"—",status:"Servicing"},
+];
+document.getElementById("spareBody").innerHTML = spareParts.map(p=>
+  `<tr><td>${p.id}</td><td>${p.type}</td><td>${p.asset}</td><td>${p.exp}</td><td>${statusText(p.status)}</td><td>${editDeleteCell()}</td></tr>`
+).join("");
+document.getElementById("countSpare").textContent = spareParts.length;
+
+const transfers = [
+  {id:4348,name:"ACB Transformer -1(1600 KVA)",loc:"-",dispatch:"Open",exp:"-",status:"Inactive"},
+  {id:5290,name:"Air Conditioner",loc:"-",dispatch:"In",exp:"31-12-1899",status:"Inactive"},
+  {id:5287,name:"Automatic Washing",loc:"-",dispatch:"In",exp:"31-12-1899",status:"Inactive"},
+  {id:4364,name:"Fogging Machine",loc:"-",dispatch:"In",exp:"31-12-1899",status:"Inactive"},
+  {id:5281,name:"Inverter",loc:"-",dispatch:"In",exp:"31-12-1899",status:"Inactive"},
+  {id:5280,name:"Lift",loc:"-",dispatch:"In",exp:"31-12-1899",status:"Inactive"},
+  {id:4347,name:"Manual Sweeper",loc:"-",dispatch:"In",exp:"31-12-1899",status:"Inactive"},
+  {id:5288,name:"Microwave",loc:"-",dispatch:"In",exp:"31-12-1899",status:"Inactive"},
+];
+document.getElementById("transferBody").innerHTML = transfers.map(t=>
+  `<tr><td>${t.id}</td><td>${t.name}</td><td>${t.loc}</td><td>${pillStatus(t.dispatch)}</td><td>${t.exp}</td><td>${statusText(t.status)}</td></tr>`
+).join("");
+
+const overdueAssets = [
+  {id:4347,name:"Manual Sweeper",due:"2026-06-01"},
+  {id:5280,name:"Lift",due:"2026-05-20"},
+  {id:5281,name:"Inverter",due:"2026-05-31"},
+  {id:5286,name:"Smart TV",due:"2026-05-28"},
+  {id:5287,name:"Automatic Washing",due:"2026-06-30"},
+];
+document.getElementById("overdueBody").innerHTML = overdueAssets.map(a=>
+  `<tr><td>${a.id}</td><td>${a.name}</td><td style="color:var(--red);font-weight:600;">${a.due} ⚠️</td><td>${viewAddCell()}</td></tr>`
+).join("");
+
+/* Asset Master's own owned/rented/spare tab switcher (separate from the
+   Master Config tabs — same visual pattern, different data-attribute). */
+document.querySelectorAll(".tab[data-assettab]").forEach(tab=>{
+  tab.addEventListener("click", ()=>{
+    document.querySelectorAll(".tab[data-assettab]").forEach(t=>t.classList.remove("active"));
+    tab.classList.add("active");
+    ["owned","rented","spare"].forEach(k=>{
+      document.getElementById("assettab-"+k).style.display = k===tab.dataset.assettab ? "block" : "none";
+    });
+  });
+});
+
+/* Master config tabs — scoped to #view-masterconfig .tab[data-tab] only.
+   (2026-09-05: this used to be a bare ".tab" selector, which also matched
+   the new Assets Master tabs added below — clicking one of those threw,
+   since it has no data-tab attribute for "tab-"+undefined to resolve.) */
+document.querySelectorAll("#view-masterconfig .tab[data-tab]").forEach(tab=>{
+  tab.addEventListener("click", ()=>{
+    document.querySelectorAll("#view-masterconfig .tab[data-tab]").forEach(t=>t.classList.remove("active"));
+    tab.classList.add("active");
+    document.querySelectorAll("#view-masterconfig .panel").forEach(p=>p.style.display="none");
+    document.getElementById("tab-"+tab.dataset.tab).style.display="block";
+  });
+});
+
+/* Date-range segment (visual only) */
+document.querySelectorAll("#rangeSeg button").forEach(b=>{
+  b.addEventListener("click", ()=>{
+    document.querySelectorAll("#rangeSeg button").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active");
+  });
+});
+
+/* ================================================================
+   ROW-CLICK DETAIL MODAL — generic engine driving "click a row → see
+   what happens" for Assets, Inventory Items and Complaints (the only
+   three sub-modules the client brief calls out for this). Which tabs
+   render, and what each shows, is entirely data-driven below.
+   ================================================================ */
+function pill2(label, cls){ return `<span class="pill-status ${cls}">${label}</span>`; }
+function kvGrid(pairs){
+  return `<div class="kv-grid">${pairs.map(([k,v])=>`<div class="kv-item"><label>${k}</label><div>${v}</div></div>`).join("")}</div>`;
+}
+function wireClickableRows(tbodyId, kind){
+  document.querySelectorAll(`#${tbodyId} tr[data-kind]`).forEach(row=>{
+    row.addEventListener("click", ()=> openDetailModal(kind, row.dataset.id));
+  });
+}
+
+const DETAIL_TABS = {
+  asset: ["Overview","Service & AMC","Warranty","Documents","History"],
+  item: ["Overview","Stock Ledger","Requisition History"],
+  complaint: ["Details","SLA","SLA History","Escalation Matrix"],
+};
+
+function renderAssetTab(a, tab){
+  switch(tab){
+    case "Overview":
+      return kvGrid([
+        ["Asset ID", a.id], ["Name", a.name], ["Location", a.loc], ["Status", a.status],
+        ["Manufacturer", a.mfr || "Generic Manufacturers Ltd."], ["Date of Purchase", a.purchased || "12-01-2024"],
+        ["Movable", "Yes"], ["Rentable", "No"],
+      ]);
+    case "Service & AMC":
+      return kvGrid([
+        ["Last Service", a.lastService || "—"], ["Next / Due Service", a.due],
+        ["Service Status", a.status === "Inactive" ? "Overdue" : "On Track"],
+        ["AMC Contract", a.status === "Active" ? "AMC-2026-0417" : "Not on AMC"],
+        ["AMC Coverage", a.status === "Active" ? "Parts + Labour" : "—"], ["AMC Renewal", a.status === "Active" ? "31-03-2027" : "—"],
+      ]);
+    case "Warranty":
+      return kvGrid([
+        ["Warranty Status", "Expired"], ["Warranty Expiry", "12-01-2026"],
+        ["Warranty Card", "warranty_card.pdf"], ["Warranty Document", "warranty_doc.pdf"],
+      ]);
+    case "Documents":
+      return `<table class="mini"><tr><th>Document</th><th>Type</th></tr>
+        <tr><td>Purchase Invoice</td><td>PDF</td></tr>
+        <tr><td>Asset Image</td><td>JPG</td></tr>
+        <tr><td>Warranty Card</td><td>PDF</td></tr>
+        <tr><td>AMC Contract</td><td>PDF</td></tr></table>`;
+    case "History":
+      return `<div class="timeline">
+        <div class="timeline-item"><div class="t-when">${a.purchased || "12-01-2024"}</div><div class="t-what">Asset created and added to Asset Master</div></div>
+        <div class="timeline-item"><div class="t-when">${a.lastService || "—"}</div><div class="t-what">Last service completed</div></div>
+        <div class="timeline-item"><div class="t-when">${a.due}</div><div class="t-what">Next service due</div></div>
+      </div>`;
+  }
+}
+
+function renderItemTab(i, tab){
+  switch(tab){
+    case "Overview":
+      return kvGrid([
+        ["Item", i.name], ["Category", i.cat], ["Specification", i.spec],
+        ["Qty on Hand", i.qty], ["Min. Threshold", i.min], ["Status", i.status],
+      ]);
+    case "Stock Ledger":
+      return `<table class="mini"><tr><th>Date</th><th>Type</th><th>Qty</th><th>Balance</th></tr>
+        <tr><td>2026-08-20</td><td>Stock In (GRN)</td><td>+50</td><td>${i.qty + 20}</td></tr>
+        <tr><td>2026-08-28</td><td>Issued (Handover)</td><td>-15</td><td>${i.qty + 5}</td></tr>
+        <tr><td>2026-09-03</td><td>Issued (Handover)</td><td>-5</td><td>${i.qty}</td></tr></table>`;
+    case "Requisition History":
+      return `<div class="timeline">
+        <div class="timeline-item"><div class="t-when">2026-08-18</div><div class="t-what">Requisitioned by Supervisor — Qty 20</div></div>
+        <div class="timeline-item"><div class="t-when">2026-08-28</div><div class="t-what">Handed over — Qty 15, Pending 5</div></div>
+        <div class="timeline-item"><div class="t-when">2026-09-03</div><div class="t-what">Re-raised via Top 5 Frequently Requisitioned panel — Qty 5</div></div>
+      </div>`;
+  }
+}
+
+function renderComplaintTab(c, tab){
+  switch(tab){
+    case "Details":
+      return kvGrid([
+        ["Category", c.category], ["Location", c.loc], ["Priority", c.priority],
+        ["Assigned To", c.assigned], ["Status", COMPLAINT_STATUS[c.status].label], ["Raised On", c.raised],
+      ]) + `<h4 style="font-size:13px;color:var(--navy-2);margin:18px 0 8px;">Description</h4>
+      <p style="font-size:13px;color:var(--ink);line-height:1.6;margin:0 0 14px;">${c.desc}</p>
+      <h4 style="font-size:13px;color:var(--navy-2);margin:0 0 8px;">Comments &amp; Activity</h4>
+      <div class="timeline">${c.comments.map(cm=>`<div class="timeline-item"><div class="t-when">${cm.when} · ${cm.by}</div><div class="t-what">${cm.text}</div></div>`).join("")}</div>`;
+    case "SLA":
+      return `<div class="sla-grid">
+        <div class="sla-stat ${c.sla.responseBreached ? "breach" : "ok"}"><div class="num">${c.sla.responseUsed}</div><div class="lbl">Response (SLA ${c.sla.response})</div></div>
+        <div class="sla-stat ${c.sla.resolutionBreached ? "breach" : "ok"}"><div class="num">${c.sla.resolutionUsed}</div><div class="lbl">Resolution (SLA ${c.sla.resolution})</div></div>
+        <div class="sla-stat ${c.sla.resolutionBreached ? "breach" : "ok"}"><div class="num">${c.sla.resolutionBreached ? "Breached" : "On Track"}</div><div class="lbl">Overall SLA</div></div>
+      </div>
+      <p class="subnote" style="margin:0;">SLA is configured per complaint category and priority, follows the property's working hours, and pauses automatically whenever a ticket is placed On Hold — an escalation only fires once the SLA is actually breached.</p>`;
+    case "SLA History":
+      return `<div class="timeline">${c.slaHistory.map(h=>`<div class="timeline-item"><div class="t-when">${h.when}</div><div class="t-what">${h.event}</div></div>`).join("")}</div>`;
+    case "Escalation Matrix":
+      return c.escalation.map(e=>
+        `<div class="escalation-step${e.hit ? " hit" : ""}"><div class="lvl">${e.lvl}</div><div class="esc-body"><div class="esc-role">${e.role}</div><div class="esc-trigger">${e.trigger}</div></div>${e.hit ? '<span class="esc-flag">TRIGGERED</span>' : ""}</div>`
+      ).join("");
+  }
+}
+
+function findDetailRecord(kind, id){
+  if(kind === "asset") return ownedAssets.find(a => String(a.id) === String(id));
+  if(kind === "item") return invItems.find(i => String(i.id) === String(id));
+  if(kind === "complaint") return complaints.find(c => String(c.id) === String(id));
+}
+function renderDetailTab(kind, record, tab){
+  if(kind === "asset") return renderAssetTab(record, tab);
+  if(kind === "item") return renderItemTab(record, tab);
+  if(kind === "complaint") return renderComplaintTab(record, tab);
+}
+function detailTitle(kind, record){
+  if(kind === "asset") return {title:`Asset — ${record.name}`, subtitle:`ID ${record.id} · ${record.loc}`};
+  if(kind === "item") return {title:`Item — ${record.name}`, subtitle:`${record.cat} · ${record.spec}`};
+  if(kind === "complaint") return {title:`Ticket ${record.id}`, subtitle:`${record.category} · ${record.loc}`};
+}
+function openDetailModal(kind, id){
+  const record = findDetailRecord(kind, id);
+  if(!record) return;
+  const tabs = DETAIL_TABS[kind];
+  const {title, subtitle} = detailTitle(kind, record);
+  document.getElementById("detailModalTitle").textContent = title;
+  document.getElementById("detailModalSubtitle").textContent = subtitle;
+  document.getElementById("detailModalTabs").innerHTML = tabs.map((t,i)=>`<div class="detail-tab${i===0 ? " active" : ""}" data-dtab="${t}">${t}</div>`).join("");
+  document.getElementById("detailModalBody").innerHTML = renderDetailTab(kind, record, tabs[0]);
+  document.querySelectorAll("#detailModalTabs .detail-tab").forEach(tabEl=>{
+    tabEl.addEventListener("click", ()=>{
+      document.querySelectorAll("#detailModalTabs .detail-tab").forEach(t=>t.classList.remove("active"));
+      tabEl.classList.add("active");
+      document.getElementById("detailModalBody").innerHTML = renderDetailTab(kind, record, tabEl.dataset.dtab);
+    });
+  });
+  document.getElementById("detailModalOverlay").classList.add("open");
+}
+document.getElementById("detailModalClose").addEventListener("click", ()=>{
+  document.getElementById("detailModalOverlay").classList.remove("open");
+});
+document.getElementById("detailModalOverlay").addEventListener("click",(ev)=>{
+  if(ev.target.id==="detailModalOverlay") document.getElementById("detailModalOverlay").classList.remove("open");
+});
+
+/* ---------------- Complaint & Helpdesk data ---------------- */
+const COMPLAINT_STATUS = {
+  open:{label:"Open", cls:"open"}, progress:{label:"In Progress", cls:"progress"},
+  hold:{label:"On Hold", cls:"hold"}, resolved:{label:"Resolved", cls:"resolved"}, closed:{label:"Closed", cls:"closed"},
+};
+const complaints = [
+  {id:"CMP-2041",category:"House keeping",loc:"3rd Floor Washroom",priority:"High",assigned:"Shyam",status:"open",raised:"2026-09-02 09:14",
+   desc:"Washroom floor flooding near the sink, water pooling.",
+   comments:[{by:"Guest",when:"2026-09-02 09:14",text:"Raised via QR scan at Washroom, Floor 3."},{by:"Facility Manager",when:"2026-09-02 09:20",text:"Assigned to Shyam (House keeping)."}],
+   sla:{response:"30 min", resolution:"4 hrs", responseUsed:"18 min", resolutionUsed:"1h 40m", responseBreached:false, resolutionBreached:false},
+   slaHistory:[{when:"2026-09-02 09:14",event:"Ticket raised — SLA timer started"},{when:"2026-09-02 09:32",event:"Responded within SLA (18 min)"}],
+   escalation:[{lvl:1,role:"Supervisor",trigger:"On assignment",hit:false},{lvl:2,role:"Facility Manager",trigger:"Resolution SLA breached",hit:false},{lvl:3,role:"Regional Head",trigger:"48 hrs unresolved",hit:false}]},
+  {id:"CMP-2038",category:"Technical",loc:"DG Room",priority:"SOS",assigned:"Ram",status:"progress",raised:"2026-09-01 14:02",
+   desc:"Generator making abnormal noise during load test.",
+   comments:[{by:"Supervisor",when:"2026-09-01 14:10",text:"Ram dispatched on-site."},{by:"Ram",when:"2026-09-01 15:30",text:"Inspecting fuel line, ETA 1 hr."}],
+   sla:{response:"15 min", resolution:"2 hrs", responseUsed:"8 min", resolutionUsed:"2h 20m", responseBreached:false, resolutionBreached:true},
+   slaHistory:[{when:"2026-09-01 14:02",event:"Ticket raised — SLA timer started"},{when:"2026-09-01 14:10",event:"Responded within SLA (8 min)"},{when:"2026-09-01 16:02",event:"Resolution SLA breached — auto-escalated"}],
+   escalation:[{lvl:1,role:"Supervisor",trigger:"On assignment",hit:true},{lvl:2,role:"Facility Manager",trigger:"Resolution SLA breached",hit:true},{lvl:3,role:"Regional Head",trigger:"48 hrs unresolved",hit:false}]},
+  {id:"CMP-2029",category:"Plumbing",loc:"Terrace",priority:"Medium",assigned:"Shyam",status:"hold",raised:"2026-08-30 11:20",
+   desc:"Water tank chlorination pending — vendor part awaited.",
+   comments:[{by:"Shyam",when:"2026-08-30 16:00",text:"Waiting on chlorine dosing part from vendor, put on hold."}],
+   sla:{response:"30 min", resolution:"24 hrs", responseUsed:"22 min", resolutionUsed:"Paused at 4h 10m", responseBreached:false, resolutionBreached:false},
+   slaHistory:[{when:"2026-08-30 11:20",event:"Ticket raised — SLA timer started"},{when:"2026-08-30 16:00",event:"Placed On Hold — SLA timer paused"}],
+   escalation:[{lvl:1,role:"Supervisor",trigger:"On assignment",hit:false},{lvl:2,role:"Facility Manager",trigger:"Resolution SLA breached",hit:false}]},
+  {id:"CMP-2015",category:"House keeping",loc:"Ground Floor Lobby",priority:"Low",assigned:"Shyam",status:"resolved",raised:"2026-08-28 08:05",
+   desc:"Lobby floor deep cleaning requested before client visit.",
+   comments:[{by:"Shyam",when:"2026-08-28 10:40",text:"Cleaning complete, photo attached as evidence."},{by:"Facility Manager",when:"2026-08-28 11:00",text:"Verified and marked resolved."}],
+   sla:{response:"30 min", resolution:"4 hrs", responseUsed:"12 min", resolutionUsed:"2h 35m", responseBreached:false, resolutionBreached:false},
+   slaHistory:[{when:"2026-08-28 08:05",event:"Ticket raised — SLA timer started"},{when:"2026-08-28 10:40",event:"Resolved within SLA"}],
+   escalation:[{lvl:1,role:"Supervisor",trigger:"On assignment",hit:false}]},
+  {id:"CMP-1998",category:"Technical",loc:"Wing B, 5th Floor",priority:"High",assigned:"Ram",status:"closed",raised:"2026-08-20 09:00",
+   desc:"AC not cooling — filter replacement required.",
+   comments:[{by:"Ram",when:"2026-08-20 12:00",text:"Filter replaced, tested cooling — normal."},{by:"Facility Manager",when:"2026-08-20 12:30",text:"Marked resolved."},{by:"Supervisor",when:"2026-08-21 09:00",text:"Confirmed with occupant, closed."}],
+   sla:{response:"30 min", resolution:"6 hrs", responseUsed:"20 min", resolutionUsed:"3h 00m", responseBreached:false, resolutionBreached:false},
+   slaHistory:[{when:"2026-08-20 09:00",event:"Ticket raised — SLA timer started"},{when:"2026-08-20 12:00",event:"Resolved within SLA"},{when:"2026-08-21 09:00",event:"Closed by Supervisor"}],
+   escalation:[{lvl:1,role:"Supervisor",trigger:"On assignment",hit:false}]},
+];
+document.getElementById("complaintsBody").innerHTML = complaints.map(c=>
+  `<tr class="clickable-row" data-kind="complaint" data-id="${c.id}"><td>${c.id}</td><td>${c.category}</td><td>${c.loc}</td><td>${c.priority}</td><td>${c.assigned}</td><td>${pill2(COMPLAINT_STATUS[c.status].label, COMPLAINT_STATUS[c.status].cls)}</td><td>${c.raised}</td></tr>`
+).join("");
+document.getElementById("cStatTotal").textContent = complaints.length;
+document.getElementById("cStatOpen").textContent = complaints.filter(c=>c.status==="open").length;
+document.getElementById("cStatProgress").textContent = complaints.filter(c=>c.status==="progress").length;
+document.getElementById("cStatResolved").textContent = complaints.filter(c=>c.status==="resolved"||c.status==="closed").length;
+document.getElementById("cStatOverdue").textContent = complaints.filter(c=>c.sla.resolutionBreached).length;
+wireClickableRows("complaintsBody","complaint");
+
+const complaintCategories = [
+  {name:"House keeping", group:"House keeping Team (Shyam +3)", respSla:"30 min", resSla:"4 hrs", levels:2},
+  {name:"Technical", group:"Technical Team (Ram +2)", respSla:"15 min", resSla:"2 hrs", levels:3},
+  {name:"Plumbing", group:"Plumbing Team (Shyam +1)", respSla:"30 min", resSla:"24 hrs", levels:2},
+  {name:"Horticulture", group:"Horticulture Team (Ram)", respSla:"1 hr", resSla:"48 hrs", levels:1},
+];
+document.getElementById("complaintCategoriesBody").innerHTML = complaintCategories.map(c=>
+  `<tr><td>${c.name}</td><td>${c.group}</td><td>${c.respSla}</td><td>${c.resSla}</td><td>${c.levels}</td><td>${editDeleteCell()}</td></tr>`
+).join("");
+
+/* ---------------- Inventory & Vendor data ---------------- */
+const invItems = [
+  {id:9001,name:"HK Shirt — Red, Size 40 | Male",cat:"Uniform",spec:"Colour: Red · Size: 40 · Gender: Male",qty:17,min:30,status:"Low Stock"},
+  {id:9002,name:"Aglaonema Red",cat:"Plants",spec:"Pot size: 8 in",qty:42,min:15,status:"In Stock"},
+  {id:9003,name:"Areca Palm",cat:"Plants",spec:"Pot size: 12 in",qty:9,min:10,status:"Low Stock"},
+  {id:9004,name:"Bougainvillea",cat:"Plants",spec:"Pot size: 10 in",qty:26,min:12,status:"In Stock"},
+  {id:9005,name:"Hand Sanitizer 5L",cat:"Housekeeping Supplies",spec:"5 Litre Can",qty:60,min:20,status:"In Stock"},
+  {id:9006,name:"Harpic Toilet Cleaner",cat:"Housekeeping Supplies",spec:"1 Litre Bottle",qty:8,min:25,status:"Low Stock"},
+];
+document.getElementById("invItemsBody").innerHTML = invItems.map(i=>
+  `<tr class="clickable-row" data-kind="item" data-id="${i.id}"><td>${i.name}</td><td>${i.cat}</td><td>${i.spec}</td><td>${i.qty}</td><td>${i.min}</td><td>${pill2(i.status, i.status==="Low Stock"?"lowstock":"instock")}</td></tr>`
+).join("");
+wireClickableRows("invItemsBody","item");
+
+const poPending = [
+  {no:"PO-3312",vendor:"ROOTS MULTICLEAN LTD",property:"Demo Property",date:"2026-09-05",amount:"₹1,84,000"},
+  {no:"PO-3313",vendor:"L&T",property:"Demo Property",date:"2026-09-06",amount:"₹92,500"},
+  {no:"PO-3314",vendor:"Green Leaf Nursery",property:"Demo Property",date:"2026-09-07",amount:"₹14,200"},
+];
+const poProcessed = [
+  {no:"PO-3298",vendor:"ROOTS MULTICLEAN LTD",date:"2026-08-20",amount:"₹2,10,000",receipt:"100%",status:"Approved"},
+  {no:"PO-3301",vendor:"L&T",date:"2026-08-24",amount:"₹58,000",receipt:"60%",status:"Approved"},
+  {no:"PO-3305",vendor:"Uniform Traders",date:"2026-08-28",amount:"₹36,750",receipt:"0%",status:"Rejected"},
+];
+document.getElementById("poPendingBody").innerHTML = poPending.map(p=>
+  `<tr><td>${p.no}</td><td>${p.vendor}</td><td>${p.property}</td><td>${p.date}</td><td>${p.amount}</td><td><div class="row-actions"><span class="action-btn">${VIEW_ICON}Approve</span><span class="action-btn delete">${DELETE_ICON}Reject</span></div></td></tr>`
+).join("");
+document.getElementById("poProcessedBody").innerHTML = poProcessed.map(p=>
+  `<tr><td>${p.no}</td><td>${p.vendor}</td><td>${p.date}</td><td>${p.amount}</td><td>${p.receipt}</td><td>${pill2(p.status, p.status.toLowerCase())}</td><td><span class="action-btn">${VIEW_ICON}Print</span></td></tr>`
+).join("");
+document.querySelectorAll(".tab[data-potab]").forEach(tab=>{
+  tab.addEventListener("click", ()=>{
+    document.querySelectorAll(".tab[data-potab]").forEach(t=>t.classList.remove("active"));
+    tab.classList.add("active");
+    ["pending","processed"].forEach(k=>{
+      document.getElementById("potab-"+k).style.display = k===tab.dataset.potab ? "block" : "none";
+    });
+  });
+});
+
+const grns = [
+  {no:"GRN-1042",po:"PO-3298",site:"Demo Property",received:"2026-08-25",by:"Ram",qty:"200/200",status:"OK"},
+  {no:"GRN-1046",po:"PO-3301",site:"Demo Property",received:"2026-08-29",by:"Shyam",qty:"60/100",status:"Pending Receipt"},
+  {no:"GRN-1050",po:"PO-3312",site:"Demo Property",received:"2026-09-06",by:"Ram",qty:"0/150",status:"Pending Receipt"},
+];
+document.getElementById("grnBody").innerHTML = grns.map(g=>
+  `<tr><td>${g.no}</td><td>${g.po}</td><td>${g.site}</td><td>${g.received}</td><td>${g.by}</td><td>${g.qty}</td><td>${pill2(g.status, g.status==="OK"?"instock":"pending")}</td></tr>`
+).join("");
+
+const ledger = [
+  {item:"Harpic Toilet Cleaner",brand:"Harpic",unit:"Bottle",min:25,in:100,req:72,handed:60,balance:8,status:"Low Stock"},
+  {item:"Hand Sanitizer 5L",brand:"Lifebuoy",unit:"Can",min:20,in:80,req:15,handed:20,balance:60,status:"In Stock"},
+  {item:"HK Shirt — Red, Size 40",brand:"Uniform Traders",unit:"Piece",min:30,in:50,req:33,handed:33,balance:17,status:"Low Stock"},
+  {item:"Aglaonema Red",brand:"Green Leaf Nursery",unit:"Pot",min:15,in:60,req:18,handed:18,balance:42,status:"In Stock"},
+];
+document.getElementById("ledgerBody").innerHTML = ledger.map(l=>
+  `<tr><td>${l.item}</td><td>${l.brand}</td><td>${l.unit}</td><td>${l.min}</td><td>${l.in}</td><td>${l.req}</td><td>${l.handed}</td><td>${l.balance}</td><td>${pill2(l.status, l.status==="Low Stock"?"lowstock":"instock")}</td></tr>`
+).join("");
+
+const vendors = [
+  {name:"ROOTS MULTICLEAN LTD",contact:"Vikram Rao",phone:"9820012345",gst:"27AAECR1234F1Z5",validity:"01-01-2026 → 31-12-2026",docs:"PAN · GST · Brochure"},
+  {name:"L&T",contact:"Anita Menon",phone:"9880098765",gst:"29AABCL5678K1Z2",validity:"01-04-2026 → 31-03-2027",docs:"PAN · GST"},
+  {name:"Green Leaf Nursery",contact:"Suresh Kumar",phone:"9900011122",gst:"07AAFGL9012M1Z9",validity:"01-06-2026 → 30-11-2026",docs:"PAN · GST · Brochure"},
+];
+document.getElementById("vendorsBody").innerHTML = vendors.map(v=>
+  `<tr><td>${v.name}</td><td>${v.contact}</td><td>${v.phone}</td><td>${v.gst}</td><td>${v.validity}</td><td>${v.docs}</td></tr>`
+).join("");
+
+/* ---------------- Visitor Management data ---------------- */
+const visitorsData = [
+  {name:"Rajeev Malhotra",mobile:"9812345670",purpose:"Client Meeting",contact:"Anita (Sales)",inT:"09:42",outT:"11:10",status:"Approved"},
+  {name:"Priya Sharma",mobile:"9823456781",purpose:"Vendor Delivery",contact:"Stores Dept.",inT:"10:05",outT:"—",status:"Approved"},
+  {name:"Karan Verma",mobile:"9834567892",purpose:"Interview",contact:"HR Dept.",inT:"11:30",outT:"12:15",status:"Approved"},
+  {name:"Unknown Visitor",mobile:"—",purpose:"Walk-in Enquiry",contact:"Reception",inT:"12:50",outT:"—",status:"Pending"},
+];
+document.getElementById("visitorsBody").innerHTML = visitorsData.map(v=>
+  `<tr><td>${v.name}</td><td>${v.mobile}</td><td>${v.purpose}</td><td>${v.contact}</td><td>${v.inT}</td><td>${v.outT}</td><td>${pill2(v.status, v.status.toLowerCase())}</td></tr>`
+).join("");
+
+const visitorApprovalsData = [
+  {name:"Rajeev Malhotra",by:"Reception",dept:"Sales",meeting:"Confirmed",status:"Approved"},
+  {name:"Karan Verma",by:"Reception",dept:"HR",meeting:"Confirmed",status:"Approved"},
+  {name:"Unknown Visitor",by:"Reception",dept:"—",meeting:"Awaiting host",status:"Pending"},
+];
+document.getElementById("visitorApprovalsBody").innerHTML = visitorApprovalsData.map(v=>
+  `<tr><td>${v.name}</td><td>${v.by}</td><td>${v.dept}</td><td>${v.meeting}</td><td>${pill2(v.status, v.status.toLowerCase())}</td><td><div class="row-actions"><span class="action-btn">${VIEW_ICON}Approve</span><span class="action-btn delete">${DELETE_ICON}Reject</span></div></td></tr>`
+).join("");
+
+const visitorDeptData = [
+  {dept:"Sales", head:"Anita Menon", mobile:"9880012345", email:"anita.menon@demoproperty.in"},
+  {dept:"HR", head:"Rakesh Iyer", mobile:"9880023456", email:"rakesh.iyer@demoproperty.in"},
+  {dept:"Stores", head:"Suresh Kumar", mobile:"9880034567", email:"suresh.kumar@demoproperty.in"},
+];
+document.getElementById("visitorDeptBody").innerHTML = visitorDeptData.map(d=>
+  `<tr><td>${d.dept}</td><td>${d.head}</td><td>${d.mobile}</td><td>${d.email}</td><td>${editDeleteCell()}</td></tr>`
+).join("");
+
+/* ---------------- Employee Management data ---------------- */
+const employeesData = [
+  {code:"EMP-1042",name:"Shyam Kumar",dept:"House keeping",desig:"Supervisor",property:"Demo Property",status:"Active"},
+  {code:"EMP-1051",name:"Ram Prasad",dept:"Technical",desig:"Technician",property:"Demo Property",status:"Active"},
+  {code:"EMP-1063",name:"Anita Menon",dept:"Sales",desig:"Manager",property:"Demo Property",status:"Active"},
+  {code:"EMP-0987",name:"Deepak Rao",dept:"Technical",desig:"Technician",property:"Demo Property",status:"Inactive"},
+];
+document.getElementById("employeesBody").innerHTML = employeesData.map(e=>
+  `<tr><td>${e.code}</td><td>${e.name}</td><td>${e.dept}</td><td>${e.desig}</td><td>${e.property}</td><td>${statusText(e.status)}</td></tr>`
+).join("");
+
+const attendanceData = [
+  {name:"Shyam Kumar",date:"2026-09-04",inT:"08:58",outT:"18:05",hrs:"9h 07m",status:"Present"},
+  {name:"Ram Prasad",date:"2026-09-04",inT:"09:10",outT:"18:00",hrs:"8h 50m",status:"Present"},
+  {name:"Anita Menon",date:"2026-09-04",inT:"—",outT:"—",hrs:"—",status:"Leave"},
+  {name:"Deepak Rao",date:"2026-09-04",inT:"—",outT:"—",hrs:"—",status:"Absent"},
+];
+document.getElementById("attendanceBody").innerHTML = attendanceData.map(a=>{
+  const cls = a.status==="Present" ? "approved" : a.status==="Absent" ? "rejected" : "pending";
+  return `<tr><td>${a.name}</td><td>${a.date}</td><td>${a.inT}</td><td>${a.outT}</td><td>${a.hrs}</td><td>${pill2(a.status, cls)}</td></tr>`;
+}).join("");
+
+const leaveData = [
+  {name:"Anita Menon",type:"Casual Leave",from:"2026-09-04",to:"2026-09-04",status:"Approved",by:"Rakesh Iyer"},
+  {name:"Deepak Rao",type:"Sick Leave",from:"2026-08-29",to:"2026-08-30",status:"Approved",by:"Rakesh Iyer"},
+  {name:"Shyam Kumar",type:"Earned Leave",from:"2026-09-15",to:"2026-09-17",status:"Pending",by:"—"},
+];
+document.getElementById("leaveBody").innerHTML = leaveData.map(l=>
+  `<tr><td>${l.name}</td><td>${l.type}</td><td>${l.from}</td><td>${l.to}</td><td>${pill2(l.status, l.status.toLowerCase())}</td><td>${l.by}</td></tr>`
+).join("");
+
+/* ---------------- Payroll data (intentionally minimal) ---------------- */
+const payrollData = [
+  {name:"Shyam Kumar",month:"August 2026",net:"₹24,500",status:"Paid"},
+  {name:"Ram Prasad",month:"August 2026",net:"₹26,200",status:"Paid"},
+  {name:"Anita Menon",month:"August 2026",net:"₹58,000",status:"Paid"},
+  {name:"Deepak Rao",month:"August 2026",net:"₹25,800",status:"Processing"},
+];
+document.getElementById("payrollBody").innerHTML = payrollData.map(p=>
+  `<tr><td>${p.name}</td><td>${p.month}</td><td>${p.net}</td><td>${pill2(p.status, p.status==="Paid"?"approved":"pending")}</td></tr>`
+).join("");
+
+/* ---------------- Facility Expense data ---------------- */
+const expensesData = [
+  {type:"Utilities",sub:"Electricity",from:"2026-08-01",to:"2026-08-31",debit:"₹1,18,000",credit:"—",desc:"Monthly DISCOM bill"},
+  {type:"Consumables",sub:"Harpic",from:"2026-08-05",to:"2026-08-05",debit:"₹18,000",credit:"—",desc:"Housekeeping supply restock"},
+  {type:"Fuel",sub:"Diesel",from:"2026-08-10",to:"2026-08-10",debit:"₹3,000",credit:"—",desc:"DG backup refuel"},
+  {type:"Refund",sub:"Vendor Credit",from:"2026-08-15",to:"2026-08-15",debit:"—",credit:"₹4,000",desc:"Overbilled vendor credit note"},
+];
+document.getElementById("expensesBody").innerHTML = expensesData.map(e=>
+  `<tr><td>${e.type}</td><td>${e.sub}</td><td>${e.from}</td><td>${e.to}</td><td>${e.debit}</td><td>${e.credit}</td><td>${e.desc}</td></tr>`
+).join("");
+
+const expenseTypesData = [
+  {type:"Utilities",subs:"Electricity, Water, Gas"},
+  {type:"Consumables",subs:"Harpic, Sanitizer, Toiletries"},
+  {type:"Fuel",subs:"Diesel, Petrol"},
+  {type:"Maintenance",subs:"AMC, Spare Parts, Repairs"},
+];
+document.getElementById("expenseTypesBody").innerHTML = expenseTypesData.map(t=>
+  `<tr><td>${t.type}</td><td>${t.subs}</td><td>${editDeleteCell()}</td></tr>`
+).join("");
+
+/* ---------------- Charts ---------------- */
+Chart.defaults.font.family = "Inter, sans-serif";
+Chart.defaults.color = "#5c6b7a";
+/* Charts inside views hidden at load (Complaint Dashboard & Reports) need
+   a resize kick the first time their view becomes visible — Chart.js
+   sizes a canvas at creation time, and a display:none ancestor at that
+   point means it initially renders at zero size. */
+const lazyCharts = {};
+function registerLazy(viewKey, chart){ (lazyCharts[viewKey] = lazyCharts[viewKey] || []).push(chart); }
+
+new Chart(document.getElementById("chartTasks"), {
+  type:"pie",
+  data:{ labels:["Actionable","Completed","Pending"],
+    datasets:[{data:[71,341,3090], backgroundColor:["#2f8fd1","#2f9e5e","#d64545"], borderWidth:0}]},
+  options:{plugins:{legend:{display:false}}, maintainAspectRatio:false}
+});
+
+new Chart(document.getElementById("chartAssets"), {
+  type:"bar",
+  data:{ labels:["Service Overdue","Upcoming Services","Rented-Out Assets","Checked-Out Assets"],
+    datasets:[{data:[8,0,6,1], backgroundColor:["#2f8fd1","#2f8fd1","#e08a2c","#8756c9"], borderRadius:3}]},
+  options:{plugins:{legend:{display:false}}, maintainAspectRatio:false,
+    scales:{ x:{ticks:{font:{size:9.5}}}, y:{beginAtZero:true}}}
+});
+
+new Chart(document.getElementById("chartComplaints"), {
+  type:"doughnut",
+  data:{ labels:["Open","In Progress","Resolved","Closed"],
+    datasets:[{data:[40,7,29,6], backgroundColor:["#2f8fd1","#2f9e5e","#e08a2c","#8756c9"], borderWidth:0}]},
+  options:{plugins:{legend:{display:false}}, maintainAspectRatio:false, cutout:"62%"}
+});
+
+new Chart(document.getElementById("chartAttendance"), {
+  type:"doughnut",
+  data:{ labels:["Present","Absent","Leave"],
+    datasets:[{data:[0.001,1,1], backgroundColor:["#2f8fd1","#d64545","#e0b02c"], borderWidth:0}]},
+  options:{plugins:{legend:{display:false}}, maintainAspectRatio:false, cutout:"62%"}
+});
+
+function hbar(id, labels, data, color){
+  new Chart(document.getElementById(id), {
+    type:"bar",
+    data:{ labels, datasets:[{data, backgroundColor:color, borderRadius:3, barThickness:14}] },
+    options:{
+      indexAxis:"y",
+      plugins:{legend:{display:false}},
+      maintainAspectRatio:false,
+      scales:{ x:{beginAtZero:true, ticks:{font:{size:9.5}}}, y:{ticks:{font:{size:11}}} }
+    }
+  });
+}
+hbar("chartExpenses", ["Harpic","Diesel","Petrol","Petrol"], [18000,3000,3600,2400], "#e08a2c");
+hbar("chartDebits", ["Harpic","Demo1","Fogging Machine","Inverter","Fogging Machine"], [118000,600,400,300,200], "#d64545");
+hbar("chartCredits", ["Harpic","Diesel","Petrol","Petrol"], [19000,4000,3400,2200], "#2f9e5e");
+
+/* Complaint Dashboard & Reports charts — view is not visible at load, so
+   each is registered with registerLazy() and resized the first time its
+   view is shown (see the resize hook in showView() above). */
+const chartComplaintsStatus = new Chart(document.getElementById("chartComplaintsStatus"), {
+  type:"doughnut",
+  data:{ labels:["Open","In Progress","Resolved","Closed"],
+    datasets:[{data:[
+      complaints.filter(c=>c.status==="open").length,
+      complaints.filter(c=>c.status==="progress").length,
+      complaints.filter(c=>c.status==="resolved").length,
+      complaints.filter(c=>c.status==="closed").length,
+    ], backgroundColor:["#2f8fd1","#e08a2c","#2f9e5e","#8756c9"], borderWidth:0}]},
+  options:{plugins:{legend:{display:false}}, maintainAspectRatio:false, cutout:"62%"}
+});
+registerLazy("complaintreports", chartComplaintsStatus);
+
+const chartComplaintsCategory = new Chart(document.getElementById("chartComplaintsCategory"), {
+  type:"bar",
+  data:{ labels:["House keeping","Technical","Plumbing","Horticulture"],
+    datasets:[{data:[2,2,1,0], backgroundColor:"#2f8fd1", borderRadius:3}]},
+  options:{plugins:{legend:{display:false}}, maintainAspectRatio:false, scales:{ x:{ticks:{font:{size:9.5}}}, y:{beginAtZero:true}}}
+});
+registerLazy("complaintreports", chartComplaintsCategory);
+
+const chartTAT = new Chart(document.getElementById("chartTAT"), {
+  type:"bar",
+  data:{ labels:["House keeping","Technical","Plumbing","Horticulture"],
+    datasets:[{data:[2.1,3.4,5.2,8.0], backgroundColor:"#0e8a86", borderRadius:3}]},
+  options:{indexAxis:"y", plugins:{legend:{display:false}}, maintainAspectRatio:false, scales:{ x:{beginAtZero:true, ticks:{font:{size:9.5}}}}}
+});
+registerLazy("complaintreports", chartTAT);
+</script>
+</body>
+</html>

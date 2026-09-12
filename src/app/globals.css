@@ -186,28 +186,34 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* ── Core palette — extracted from logo ── */
+  /* ── Core palette (redefined 2026-09-04 — was black/steel-blue/gray, now
+     Planon-blue primary + black secondary text; see homepage_visual_polish
+     project memory for the full rationale). Most homepage JSX uses hardcoded
+     Tailwind arbitrary-value hexes rather than these var()s, so this block
+     is the source-of-truth reference + what the few components that DO
+     consume it (clients-carousel.tsx's border-border/hover:border-primary,
+     components/ui/*) actually render with. ── */
   --background:           #ffffff;
-  --foreground:           #1a202c;
+  --foreground:           #000000;   /* was #1a202c — body/default text is now black, not near-black */
   --card:                 #ffffff;
-  --card-foreground:      #1a202c;
+  --card-foreground:      #000000;
   --popover:              #ffffff;
-  --popover-foreground:   #1a202c;
-  --primary:              #2b6cb0;   /* logo steel blue */
+  --popover-foreground:   #000000;
+  --primary:              #114dac;   /* Planon blue — was #2b6cb0 (logo steel blue); #2b6cb0 stays in use as a secondary/lighter accent, unaffected */
   --primary-foreground:   #ffffff;
-  --secondary:            #2563a8;   /* hover state */
+  --secondary:            #0e3e8a;   /* hover state — darkened ~20% of --primary; was #2563a8 (a hover shade of the OLD steel blue, now stale) */
   --secondary-foreground: #ffffff;
   --muted:                #f8fafc;
-  --muted-foreground:     #718096;
-  --accent:               #2b6cb0;
+  --muted-foreground:     #000000;   /* was #718096 — grays became black */
+  --accent:               #114dac;
   --accent-foreground:    #ffffff;
   --destructive:          oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.577 0.245 27.325);
-  --border:               #e2e8f0;
+  --border:               #e2e8f0;   /* light hairline borders intentionally NOT swept into the gray→black change — see project memory */
   --input:                #e2e8f0;
-  --ring:                 #2b6cb0;
+  --ring:                 #114dac;
 
-  /* Charts */
+  /* Charts — left as-is, not part of the homepage black/gray redefinition */
   --chart-1: #2b6cb0;
   --chart-2: #4299e1;
   --chart-3: #38a169;
@@ -219,13 +225,13 @@
 
   /* Sidebar */
   --sidebar:              #f8fafc;
-  --sidebar-foreground:   #1a202c;
-  --sidebar-primary:      #2b6cb0;
+  --sidebar-foreground:   #000000;
+  --sidebar-primary:      #114dac;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent:       #edf2f7;
-  --sidebar-accent-foreground: #1a202c;
+  --sidebar-accent-foreground: #000000;
   --sidebar-border:       #e2e8f0;
-  --sidebar-ring:         #2b6cb0;
+  --sidebar-ring:         #114dac;
 }
 
 /* Dark mode kept available */

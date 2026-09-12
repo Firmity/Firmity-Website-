@@ -175,7 +175,7 @@ export default function ContactPage() {
           <div
             ref={leftRef}
             onMouseMove={handleMouseMove}
-            className="relative bg-[#111d35] overflow-hidden flex flex-col px-8 sm:px-12 lg:px-14 py-14 lg:py-16"
+            className="relative bg-[#114dac] overflow-hidden flex flex-col px-8 sm:px-12 lg:px-14 py-14 lg:py-16"
           >
             {/* Grain texture — SVG turbulence overlay */}
             <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-[0.032]" aria-hidden="true">
@@ -281,7 +281,7 @@ export default function ContactPage() {
                   <button
                     type="button"
                     onClick={() => setSubmitted(false)}
-                    className="inline-flex items-center gap-2 text-[12px] font-semibold text-[#2b6cb0] hover:gap-3.5 transition-all"
+                    className="cursor-pointer inline-flex items-center gap-2 text-[12px] font-semibold text-[#2b6cb0] hover:gap-3.5 transition-all"
                   >
                     Send another request <ArrowRight size={13} />
                   </button>
@@ -327,7 +327,7 @@ export default function ContactPage() {
                               type="button"
                               aria-pressed={active}
                               onClick={() => setField("requestType", value)}
-                              className={`flex flex-col items-center gap-1.5 px-2 py-3 rounded-xl border text-[10.5px] font-medium transition-all duration-200 ${
+                              className={`cursor-pointer flex flex-col items-center gap-1.5 px-2 py-3 rounded-[4px] border text-[10.5px] font-medium transition-all duration-200 ${
                                 active
                                   ? "bg-[#2b6cb0] border-[#2b6cb0] text-white shadow-[0_4px_14px_rgba(43,108,176,0.3)]"
                                   : "bg-white border-[#cbd5e0] text-[#4a5568] hover:border-[#2b6cb0] hover:text-[#2b6cb0]"
@@ -356,9 +356,14 @@ export default function ContactPage() {
                       </Field>
                     </div>
 
-                    {/* Team size */}
+                    {/* Team size — grid-cols-2 (was flex flex-wrap, 2026-09-05)
+                        to match the Full Name/Email/Phone/Company Name grid
+                        immediately above (sm:grid-cols-2), same fix applied
+                        to overview-contact-form.tsx (the homepage's copy of
+                        this same form) for parity. "people" dropped from the
+                        label per request — just the range. */}
                     <Field label="Team Size" required>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {TEAM_SIZES.map((size) => {
                           const active = formData.manpower === size
                           return (
@@ -367,13 +372,13 @@ export default function ContactPage() {
                               type="button"
                               aria-pressed={active}
                               onClick={() => setField("manpower", size)}
-                              className={`px-4 py-2 rounded-xl text-[11.5px] font-medium border transition-all duration-200 ${
+                              className={`cursor-pointer px-4 py-2 rounded-[4px] text-[11.5px] font-medium border transition-all duration-200 ${
                                 active
                                   ? "bg-[#2b6cb0] border-[#2b6cb0] text-white shadow-[0_4px_14px_rgba(43,108,176,0.3)]"
                                   : "bg-white border-[#cbd5e0] text-[#4a5568] hover:border-[#2b6cb0] hover:text-[#2b6cb0]"
                               }`}
                             >
-                              {size} people
+                              {size}
                             </button>
                           )
                         })}
@@ -387,7 +392,7 @@ export default function ContactPage() {
                         onChange={handleChange}
                         rows={3}
                         className={`${inputClass} resize-none`}
-                        placeholder="Tell us about your facility management needs..."
+                        placeholder="Tell us about your facility requirements..."
                       />
                     </Field>
 
@@ -401,12 +406,12 @@ export default function ContactPage() {
                     <button
                       type="submit"
                       disabled={loading}
-                      className="w-full bg-[#111d35] hover:bg-[#1a2744] text-white px-6 py-3.5 rounded-xl text-[12.5px] font-semibold flex items-center justify-center gap-2 transition-all hover:shadow-[0_8px_24px_rgba(17,29,53,0.25)] disabled:opacity-60 disabled:cursor-not-allowed"
+                      className="cursor-pointer w-full bg-[#114dac] hover:bg-[#1a2744] text-white px-6 py-3.5 rounded-[4px] text-[12.5px] font-semibold flex items-center justify-center gap-2 transition-all hover:shadow-[0_8px_24px_rgba(17,29,53,0.25)] disabled:opacity-60 disabled:cursor-not-allowed"
                     >
                       {loading ? (
                         <><Loader2 size={16} className="animate-spin" /> Sending...</>
                       ) : (
-                        <><Send size={15} /> Send Request</>
+                        <><Send size={15} /> Send Message</>
                       )}
                     </button>
 

@@ -3,10 +3,22 @@ import nodemailer from "nodemailer"
 import { isTrustedOrigin, FORBIDDEN_BODY } from "@/src/lib/request-guard"
 
 // Backend for the "How did you hear about Firmity?" widget (homepage section +
-// post-contact-form re-ask — see how-did-you-hear-form.tsx). Mirrors
+// post-contact-form/post-overview-form/post-brochure-download re-asks — see
+// how-did-you-hear-form.tsx for the full list of call sites). Mirrors
 // /api/contact's transporter setup exactly: same EMAIL_USER/EMAIL_PASS gmail
 // account, same RECEIVER_EMAIL inbox (firmity9@gmail.com today), so there's
 // one place to change delivery config for both forms.
+
+// Keep in sync with HowDidYouHearFormProps["source"] in how-did-you-hear-form.tsx.
+// Unrecognized values (shouldn't happen from our own call sites, but this is a
+// public route) fall back to "Homepage" rather than throwing.
+const SOURCE_LABELS: Record<string, string> = {
+  homepage: "Homepage",
+  "contact-form": "Post-Contact-Form",
+  "overview-form": "Post-Homepage-Contact-Form",
+  "brochure-form": "Post-Brochure-Download",
+}
+
 export async function POST(req: Request) {
   // Bot guard — see src/lib/request-guard.ts. This route has no PII fields
   // for a bot to harvest, but it can still be flooded to spam the inbox, so
@@ -25,7 +37,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: "Missing detail for 'Other'" }, { status: 400 })
     }
 
-    const sourceLabel = source === "contact-form" ? "Post-Contact-Form" : "Homepage"
+    const sourceLabel = SOURCE_LABELS[typeof source === "string" ? source : ""] ?? "Homepage"
 
     const transporter = nodemailer.createTransport({
       service: "gmail",

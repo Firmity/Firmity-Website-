@@ -3,7 +3,7 @@
 // the server page, so cards are in the initial HTML (SEO) while the category
 // filter stays interactive. Navigation/Footer live here (client boundary).
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Navigation } from "@/src/components/navigation";
 import { Footer } from "@/src/components/footer";
@@ -26,6 +26,21 @@ export function BlogIndex({ posts }: { posts: Card[] }) {
     () => ["All", ...Array.from(new Set(posts.map((p) => p.category).filter(Boolean)))],
     [posts],
   );
+
+  // Deep-link support (2026-09-04) — the footer's "Case Studies" link
+  // (src/components/footer.tsx) points at /blog?category=Case%20Study so it
+  // lands pre-filtered. Read via window.location.search in an effect rather
+  // than next/navigation's useSearchParams — that hook opts a Client
+  // Component out of static rendering and requires a Suspense boundary
+  // around it at build time, which this page doesn't have; this achieves
+  // the same result with no such requirement. If the requested category
+  // doesn't match any post's actual category (e.g. no post is currently
+  // tagged "Case Study" — see the CustomersSaySection DB caveat elsewhere),
+  // this simply filters to zero results rather than erroring.
+  useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get("category");
+    if (requested) setCategory(requested);
+  }, []);
 
   const visible = category === "All" ? posts : posts.filter((p) => p.category === category);
   const featured = visible[0];
@@ -61,15 +76,15 @@ export function BlogIndex({ posts }: { posts: Card[] }) {
           {/* Faint grid + top white fade to seat the navbar */}
           <div
             className="absolute inset-0 opacity-[0.04] pointer-events-none"
-            style={{ backgroundImage: "repeating-linear-gradient(0deg,#111d35 0,#111d35 1px,transparent 0,transparent 56px),repeating-linear-gradient(90deg,#111d35 0,#111d35 1px,transparent 0,transparent 56px)" }}
+            style={{ backgroundImage: "repeating-linear-gradient(0deg,#114dac 0,#114dac 1px,transparent 0,transparent 56px),repeating-linear-gradient(90deg,#114dac 0,#114dac 1px,transparent 0,transparent 56px)" }}
             aria-hidden="true"
           />
           <div className="relative max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 pt-14 pb-16">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-6 h-px bg-[#111d35]" />
+              <div className="w-6 h-px bg-[#114dac]" />
               <span className="text-[#1a2744] text-[10px] font-semibold tracking-[0.2em] uppercase">Blog</span>
             </div>
-            <h1 className="font-serif text-[clamp(1.8rem,4vw,2.6rem)] font-light text-[#111d35] leading-tight tracking-tight max-w-3xl">
+            <h1 className="font-serif text-[clamp(1.8rem,4vw,2.6rem)] font-light text-[#114dac] leading-tight tracking-tight max-w-3xl">
               Ideas for teams that <em className="not-italic text-[#2b6cb0]">run buildings better.</em>
             </h1>
             <p className="text-[13.5px] font-light text-[#1a2744]/75 leading-[1.85] max-w-2xl mt-3">
@@ -90,7 +105,7 @@ export function BlogIndex({ posts }: { posts: Card[] }) {
                     type="button"
                     aria-pressed={active}
                     onClick={() => setCategory(c)}
-                    className={`px-4 py-2 rounded-xl text-[11.5px] font-medium border transition-all duration-200 ${
+                    className={`cursor-pointer px-4 py-2 rounded-[4px] text-[11.5px] font-medium border transition-all duration-200 ${
                       active
                         ? "bg-[#2b6cb0] border-[#2b6cb0] text-white shadow-[0_4px_14px_rgba(43,108,176,0.3)]"
                         : "bg-white border-[#cbd5e0] text-[#4a5568] hover:border-[#2b6cb0] hover:text-[#2b6cb0]"
@@ -138,7 +153,7 @@ export function BlogIndex({ posts }: { posts: Card[] }) {
                       )}
                       <span className="text-[10.5px] font-light text-[#1a2744]/70">{featured.date}</span>
                     </div>
-                    <h2 className="font-serif text-[clamp(1.3rem,2.6vw,1.8rem)] font-light text-[#111d35] leading-snug tracking-tight mb-3 max-w-2xl group-hover:text-[#2b6cb0] transition-colors">
+                    <h2 className="font-serif text-[clamp(1.3rem,2.6vw,1.8rem)] font-light text-[#114dac] leading-snug tracking-tight mb-3 max-w-2xl group-hover:text-[#2b6cb0] transition-colors">
                       {featured.title}
                     </h2>
                     <p className="text-[13px] font-light text-[#1a2744]/80 leading-[1.8] max-w-2xl">{featured.description}</p>
@@ -162,7 +177,7 @@ export function BlogIndex({ posts }: { posts: Card[] }) {
                         />
                       )}
                       {!post.cover && <div className="absolute inset-0 bg-gradient-to-br from-[#1a2744] to-[#2b6cb0]" />}
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#111d35]/55 via-[#111d35]/10 to-transparent" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#114dac]/55 via-[#114dac]/10 to-transparent" />
                     </div>
                     <div className="flex items-center gap-2.5 mb-3">
                       <span className="text-[9px] font-semibold tracking-[0.14em] uppercase text-[#2b6cb0] border border-[#2b6cb0]/25 rounded-lg px-2 py-[3px]">
@@ -196,7 +211,7 @@ export function BlogIndex({ posts }: { posts: Card[] }) {
         </section>
 
         {/* NEWSLETTER */}
-        <section className="bg-[#111d35]">
+        <section className="bg-[#114dac]">
           <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 py-14 text-center">
             <div className="flex items-center gap-3 mb-3 justify-center">
               <Mail size={15} className="text-[#63b3ed]" strokeWidth={1.5} />

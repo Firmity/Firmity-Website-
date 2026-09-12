@@ -25,7 +25,7 @@ export default function PrivacyPage() {
       <Navigation />
       <main className="bg-white">
         {/* ── HERO ── */}
-        <section className="bg-[#111d35] relative overflow-hidden">
+        <section className="bg-[#114dac] relative overflow-hidden">
           <div
             className="absolute inset-0 opacity-[0.025] pointer-events-none"
             style={{ backgroundImage: "radial-gradient(circle at 60% 40%, #2b6cb0 0%, transparent 55%), radial-gradient(circle at 20% 80%, #1a2744 0%, transparent 50%)" }}
@@ -284,7 +284,7 @@ export default function PrivacyPage() {
         </article>
 
         {/* ── RELATED LINKS ── */}
-        <section className="bg-[#111d35]">
+        <section className="bg-[#114dac]">
           <div className="max-w-5xl mx-auto px-6 sm:px-10 lg:px-16 py-12 flex flex-col sm:flex-row items-center justify-between gap-6">
             <div>
               <p className="text-[11px] font-semibold tracking-[0.18em] text-[#63b3ed] uppercase mb-1">Related policies</p>

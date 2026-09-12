@@ -3,6 +3,7 @@
 import type React from "react"
 import { useState, useRef } from "react"
 import { Download, Loader2, CheckCircle, AlertCircle } from "lucide-react"
+import { HowDidYouHearForm } from "@/src/components/how-did-you-hear-form"
 
 // Bot resistance (2026-09-01 — this form was being hit repeatedly by bots
 // submitting fake leads): the server (src/app/api/brochure/route.ts) already
@@ -64,7 +65,10 @@ export function BrochureDownloadForm() {
         link.click()
         document.body.removeChild(link)
 
-        setTimeout(() => setSuccess(false), 5000)
+        // No auto-revert-to-form timeout here (there used to be one, 5s) —
+        // the success state now embeds the "How did you hear about Firmity?"
+        // re-ask (added 2026-09-04), which needs time to fill in. Matches
+        // /contact's own success state, which has no auto-timeout either.
       } else {
         throw new Error("Failed to submit form")
       }
@@ -77,12 +81,23 @@ export function BrochureDownloadForm() {
 
   if (success) {
     return (
-      <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-5 flex flex-col gap-2">
-        <div className="flex items-center gap-3">
-          <CheckCircle size={20} className="text-emerald-600 flex-shrink-0" />
-          <p className="font-semibold text-[13.5px] text-emerald-900">Download started!</p>
+      <div className="flex flex-col gap-4">
+        <div className="bg-emerald-50 border border-emerald-200 rounded-[4px] p-5 flex flex-col gap-2">
+          <div className="flex items-center gap-3">
+            <CheckCircle size={20} className="text-emerald-600 flex-shrink-0" />
+            <p className="font-semibold text-[13.5px] text-emerald-900">Download started!</p>
+          </div>
+          <p className="text-[12.5px] text-emerald-700 font-light pl-8">Check your downloads folder. We've also sent details to your email.</p>
         </div>
-        <p className="text-[12.5px] text-emerald-700 font-light pl-8">Check your downloads folder. We've also sent details to your email.</p>
+
+        {/* Re-ask attribution — same widget/backend as /contact's own success
+            state (src/components/how-did-you-hear-form.tsx), added 2026-09-04
+            for parity: this form previously skipped it entirely.
+            source="brochure-form" keeps replies traceable to this widget
+            specifically (see that route's SOURCE_LABELS map). */}
+        <div className="border-t border-[#e2e8f0] pt-4">
+          <HowDidYouHearForm source="brochure-form" />
+        </div>
       </div>
     )
   }
@@ -106,9 +121,18 @@ export function BrochureDownloadForm() {
         />
       </div>
 
+      {/* Field styling matched to HowDidYouHearForm (2026-09-04, per request:
+          "style the contact form and its fields exactly like Help us get to
+          know you better fields") — labels: uppercase/tracking-wide →
+          text-[11px] font-semibold tracking-[0.04em] text-[#114dac] (not
+          uppercase); inputs: border-[#e2e8f0]/bg-[#f8fafc]/no radius →
+          border-[#cbd5e0]/bg-white/rounded-[4px] with the same
+          focus:border+ring treatment, placeholder color unified to
+          text-[#000000] (was #c0ccd8, pre-dating the black→blue/gray color
+          pass). Button radius/hover-shadow matched too. */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="flex flex-col gap-1">
-          <label className="text-[10.5px] font-semibold text-[#4a5568] tracking-wide uppercase">Full Name</label>
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[11px] font-semibold tracking-[0.04em] text-[#114dac]">Full Name</label>
           <input
             type="text"
             name="name"
@@ -116,11 +140,11 @@ export function BrochureDownloadForm() {
             value={formData.name}
             onChange={handleChange}
             required
-            className="w-full px-3 py-2.5 text-[13px] border border-[#e2e8f0] bg-[#f8fafc] text-[#1a202c] placeholder:text-[#c0ccd8] focus:outline-none focus:border-[#2b6cb0] focus:bg-white transition-all"
+            className="w-full px-3.5 py-2.5 rounded-[4px] text-[13px] border border-[#cbd5e0] bg-white text-[#114dac] font-light placeholder:text-[#000000] focus:outline-none focus:border-[#2b6cb0] focus:ring-1 focus:ring-[#2b6cb0] transition-colors"
           />
         </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-[10.5px] font-semibold text-[#4a5568] tracking-wide uppercase">Work Email</label>
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[11px] font-semibold tracking-[0.04em] text-[#114dac]">Work Email</label>
           <input
             type="email"
             name="email"
@@ -128,11 +152,11 @@ export function BrochureDownloadForm() {
             value={formData.email}
             onChange={handleChange}
             required
-            className="w-full px-3 py-2.5 text-[13px] border border-[#e2e8f0] bg-[#f8fafc] text-[#1a202c] placeholder:text-[#c0ccd8] focus:outline-none focus:border-[#2b6cb0] focus:bg-white transition-all"
+            className="w-full px-3.5 py-2.5 rounded-[4px] text-[13px] border border-[#cbd5e0] bg-white text-[#114dac] font-light placeholder:text-[#000000] focus:outline-none focus:border-[#2b6cb0] focus:ring-1 focus:ring-[#2b6cb0] transition-colors"
           />
         </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-[10.5px] font-semibold text-[#4a5568] tracking-wide uppercase">Phone</label>
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[11px] font-semibold tracking-[0.04em] text-[#114dac]">Phone</label>
           <input
             type="tel"
             name="phone"
@@ -140,11 +164,11 @@ export function BrochureDownloadForm() {
             value={formData.phone}
             onChange={handleChange}
             required
-            className="w-full px-3 py-2.5 text-[13px] border border-[#e2e8f0] bg-[#f8fafc] text-[#1a202c] placeholder:text-[#c0ccd8] focus:outline-none focus:border-[#2b6cb0] focus:bg-white transition-all"
+            className="w-full px-3.5 py-2.5 rounded-[4px] text-[13px] border border-[#cbd5e0] bg-white text-[#114dac] font-light placeholder:text-[#000000] focus:outline-none focus:border-[#2b6cb0] focus:ring-1 focus:ring-[#2b6cb0] transition-colors"
           />
         </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-[10.5px] font-semibold text-[#4a5568] tracking-wide uppercase">City</label>
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[11px] font-semibold tracking-[0.04em] text-[#114dac]">City</label>
           <input
             type="text"
             name="city"
@@ -152,13 +176,13 @@ export function BrochureDownloadForm() {
             value={formData.city}
             onChange={handleChange}
             required
-            className="w-full px-3 py-2.5 text-[13px] border border-[#e2e8f0] bg-[#f8fafc] text-[#1a202c] placeholder:text-[#c0ccd8] focus:outline-none focus:border-[#2b6cb0] focus:bg-white transition-all"
+            className="w-full px-3.5 py-2.5 rounded-[4px] text-[13px] border border-[#cbd5e0] bg-white text-[#114dac] font-light placeholder:text-[#000000] focus:outline-none focus:border-[#2b6cb0] focus:ring-1 focus:ring-[#2b6cb0] transition-colors"
           />
         </div>
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-center gap-2">
+        <div className="bg-red-50 border border-red-200 rounded-[4px] p-3 flex items-center gap-2">
           <AlertCircle size={16} className="text-red-500 flex-shrink-0" />
           <p className="text-[12px] text-red-700">{error}</p>
         </div>
@@ -167,7 +191,7 @@ export function BrochureDownloadForm() {
       <button
         type="submit"
         disabled={loading}
-        className="w-full bg-[#111d35] text-white py-3 text-[13px] font-semibold flex items-center justify-center gap-2 hover:bg-[#1a2744] transition-colors disabled:opacity-60 disabled:cursor-not-allowed mt-1"
+        className="cursor-pointer w-full bg-[#114dac] hover:bg-[#0e3e8a] text-white py-3 rounded-[4px] text-[13px] font-semibold flex items-center justify-center gap-2 transition-all hover:shadow-[0_8px_24px_rgba(17,29,53,0.2)] disabled:opacity-60 disabled:cursor-not-allowed mt-1"
       >
         {loading ? (
           <>
@@ -182,7 +206,7 @@ export function BrochureDownloadForm() {
         )}
       </button>
 
-      <p className="text-[10.5px] text-[#718096] text-center font-light">
+      <p className="text-[10.5px] text-[#000000] text-center font-light">
         No spam. Instant PDF download.
       </p>
     </form>

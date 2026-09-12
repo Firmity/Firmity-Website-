@@ -8,11 +8,15 @@
 // Supported ids (must match /features anchor ids):
 // facility-records | preventive-maintenance | complaint-management |
 // asset-management | inventory-management | staff-attendance | visitor-management
+// payroll-management | facility-expense-management
+// (last two added 2026-09-04 for the homepage ModulesSection's new 8-item
+// list — src/components/home-sections.tsx, MODULES_LIST — neither has a
+// matching /features anchor yet, so the id is a placeholder ahead of that page.)
 
-import { FileText, Bell, CheckCircle2, QrCode } from "lucide-react"
+import { FileText, Bell, CheckCircle2, QrCode, IndianRupee, Receipt } from "lucide-react"
 
 export function ModuleVignette({ id }: { id: string }) {
-  const frame = "bg-[#111d35] border border-white/[0.08] rounded-[20px] p-4 sm:p-5 h-full flex flex-col gap-2.5"
+  const frame = "bg-[#114dac] border border-white/[0.08] rounded-[20px] p-4 sm:p-5 h-full flex flex-col gap-2.5"
   const label = "text-[8.5px] text-white/[0.35] uppercase tracking-[0.16em]"
   const row = "flex items-center gap-2 bg-white/[0.04] border border-white/[0.06] rounded-lg px-3 py-2"
   // Site convention: DM Sans everywhere — no mono typeface.
@@ -199,6 +203,50 @@ export function ModuleVignette({ id }: { id: string }) {
             </div>
           ))}
           <div className={`${mono} text-[#63b3ed]/60 mt-auto`}>24 visitors today · full audit trail retained</div>
+        </div>
+      )
+    case "payroll-management":
+      return (
+        <div className={frame}>
+          <div className={label}>Payroll Run — June</div>
+          {[
+            { name: "Base pay processed", value: "146 employees", state: "done" },
+            { name: "Attendance deductions applied", value: "auto-synced", state: "done" },
+            { name: "Payslips generated", value: "146 of 146", state: "done" },
+          ].map(({ name, value, state }) => (
+            <div key={name} className={row}>
+              <CheckCircle2 size={11} className={state === "done" ? "text-[#68d391] flex-shrink-0" : "text-white/[0.3] flex-shrink-0"} strokeWidth={1.5} />
+              <span className={`${mono} text-white/[0.6] flex-1 truncate`}>{name}</span>
+              <span className={`${mono} text-white/[0.35]`}>{value}</span>
+            </div>
+          ))}
+          <div className={`${mono} text-[#63b3ed]/60 mt-auto flex items-center gap-1.5`}>
+            <IndianRupee size={10} /> ₹18.4L disbursed · next cycle in 26 days
+          </div>
+        </div>
+      )
+    case "facility-expense-management":
+      return (
+        <div className={frame}>
+          <div className={label}>Expense Breakdown — This Month</div>
+          {[
+            { cat: "Maintenance & repairs", pct: 42, over: false },
+            { cat: "Vendor contracts", pct: 31, over: false },
+            { cat: "Utilities", pct: 19, over: true },
+          ].map(({ cat, pct, over }) => (
+            <div key={cat}>
+              <div className="flex justify-between mb-1">
+                <span className={`${mono} text-white/[0.55]`}>{cat}</span>
+                <span className={`${mono} ${over ? "text-[#fc8181]" : "text-white/[0.35]"}`}>{pct}%</span>
+              </div>
+              <div className="h-[4px] rounded-full bg-white/[0.06] overflow-hidden">
+                <div className="h-full rounded-full" style={{ width: `${pct}%`, background: over ? "#fc8181" : "#2b6cb0" }} />
+              </div>
+            </div>
+          ))}
+          <div className={`${mono} text-[#fbd38d]/80 mt-auto flex items-center gap-1.5`}>
+            <Receipt size={10} /> Utilities 9% over budget — flagged for review
+          </div>
         </div>
       )
     default:

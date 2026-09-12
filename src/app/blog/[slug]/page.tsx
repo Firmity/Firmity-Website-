@@ -85,7 +85,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       {post.category && (
         <p className="text-[11px] font-semibold text-[#2b6cb0] tracking-[0.16em] uppercase mb-3">{post.category}</p>
       )}
-      <h1 className="font-serif text-[clamp(1.9rem,4vw,2.8rem)] font-light text-[#111d35] leading-tight tracking-tight mb-3">
+      <h1 className="font-serif text-[clamp(1.9rem,4vw,2.8rem)] font-light text-[#114dac] leading-tight tracking-tight mb-3">
         {post.title}
       </h1>
       {post.subtitle && <p className="text-[16px] text-[#718096] font-light leading-relaxed mb-5">{post.subtitle}</p>}
@@ -93,7 +93,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       <div className="mb-8 space-y-2.5 border-b border-[#eef3f9] pb-6">
         {post.author && (
           <p className="text-[13px] text-[#4a5568]">
-            Article written by <span className="font-semibold text-[#111d35]">{post.author}</span>
+            Article written by <span className="font-semibold text-[#114dac]">{post.author}</span>
           </p>
         )}
         <a href="/blog/rss.xml" className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#2b6cb0] hover:underline">
@@ -105,7 +105,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
               const Ic = socialIcon(url);
               return (
                 <a key={i} href={url} target="_blank" rel="noreferrer" aria-label="Social profile"
-                  className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#111d35] text-white transition-colors hover:bg-[#2b6cb0]">
+                  className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#114dac] text-white transition-colors hover:bg-[#2b6cb0]">
                   <Ic size={14} />
                 </a>
               );

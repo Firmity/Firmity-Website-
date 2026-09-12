@@ -50,7 +50,7 @@ const FAQS: { question: string; answer: string }[] = [
 function FaqItem({ question, answer, open, onToggle }: { question: string; answer: string; open: boolean; onToggle: () => void }) {
   return (
     <div
-      className={`rounded-[20px] border transition-all duration-300 overflow-hidden ${
+      className={`rounded-[4px] border transition-all duration-300 overflow-hidden ${
         open ? "border-[#2b6cb0]/50 bg-white shadow-[0_8px_28px_rgba(17,29,53,0.08)]" : "border-[#cbd5e0] bg-white hover:border-[#2b6cb0]/40"
       }`}
     >
@@ -58,11 +58,11 @@ function FaqItem({ question, answer, open, onToggle }: { question: string; answe
         type="button"
         onClick={onToggle}
         aria-expanded={open}
-        className="w-full flex items-center justify-between gap-4 px-6 py-5 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2b6cb0] rounded-[20px]"
+        className="cursor-pointer w-full flex items-center justify-between gap-4 px-6 py-5 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2b6cb0] rounded-[4px]"
       >
         <span className="text-[13.5px] font-semibold text-[#1a202c]">{question}</span>
         <span
-          className={`w-8 h-8 rounded-xl border flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
+          className={`w-8 h-8 rounded-[4px] border flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
             open ? "border-[#2b6cb0] bg-[#2b6cb0] text-white rotate-180" : "border-[#cbd5e0] text-[#2b6cb0]"
           }`}
         >
@@ -91,7 +91,7 @@ export default function ResourcesPage() {
       <Navigation />
       <main className="bg-white">
         {/* ── HERO — dark navy ── */}
-        <section className="bg-[#111d35] relative overflow-hidden">
+        <section className="bg-[#114dac] relative overflow-hidden">
           <div
             className="absolute inset-0 opacity-[0.03] pointer-events-none"
             style={{ backgroundImage: "repeating-linear-gradient(0deg,#fff 0,#fff 1px,transparent 0,transparent 56px),repeating-linear-gradient(90deg,#fff 0,#fff 1px,transparent 0,transparent 56px)" }}
@@ -139,7 +139,10 @@ export default function ResourcesPage() {
         </section>
 
         {/* ── FAQ — interactive accordion ── */}
-        <section id="faq" className="bg-[#eef3f9] border-y border-[#dbe5f0] py-14 lg:py-20 scroll-mt-24">
+        {/* scroll-mt-16 (was scroll-mt-24, 2026-09-05) — kept in sync with
+            navigation.tsx's NAV_HEIGHT (64px), reverted together with the
+            navbar's own h-24→h-16 resize. */}
+        <section id="faq" className="bg-[#eef3f9] border-y border-[#dbe5f0] py-14 lg:py-20 scroll-mt-16">
           <div className="max-w-3xl mx-auto px-6 sm:px-10">
             <Reveal>
               <div className="flex items-center gap-3 mb-2 justify-center">
@@ -207,7 +210,7 @@ export default function ResourcesPage() {
         </section>
 
         {/* ── CTA ── */}
-        <section className="bg-[#111d35] border-t border-white/[0.06]">
+        <section className="bg-[#114dac] border-t border-white/[0.06]">
           <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 py-14 text-center">
             <Reveal>
               <h2 className="font-serif text-[clamp(1.4rem,2.8vw,1.9rem)] font-light text-[#f0f4f8] tracking-tight mb-2">

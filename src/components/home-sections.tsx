@@ -21,20 +21,40 @@
 // board, pillar panels, module showcase); narrative sections sit on white.
 
 import Link from "next/link"
-import { useEffect, useRef, useState, type CSSProperties, type FC } from "react"
+import { useEffect, useRef, useState, type CSSProperties, type FC, type FormEvent } from "react"
 import { Reveal } from "@/src/components/reveal"
 import { ModuleVignette } from "@/src/components/module-vignette"
 import {
   ArrowRight,
-  Home as HomeIcon,
-  Radio,
+  ChevronLeft,
+  ChevronRight,
   ClipboardList,
-  ShieldCheck,
+  Cog,
   Package,
   Users,
   Eye,
+  ListChecks,
+  IndianRupee,
+  Receipt,
+  Instagram,
+  Linkedin,
+  Youtube,
+  Loader2,
+  CheckCircle2,
+  AlertCircle,
   type LucideProps,
 } from "lucide-react"
+
+// Minimal inline X (formerly Twitter) mark — not sourced from lucide-react
+// because the package's "Twitter"/"X" export has changed across versions;
+// a static inline SVG avoids coupling this to whatever version is installed.
+function XIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M18.9 2H22l-7.5 8.6L23.3 22H16.9l-5-6.6L6.1 22H3l8-9.1L2.9 2h6.6l4.5 6L18.9 2Zm-1.1 18h1.7L7.3 3.9H5.5L17.8 20Z" />
+    </svg>
+  )
+}
 
 // ─── Shared layout tokens ─────────────────────────────────────────────────────
 
@@ -93,23 +113,80 @@ const PROBLEMS: { icon: ProblemIconName; label: string }[] = [
   { icon: "clipboard-x", label: "Untracked Work Orders" },
 ]
 
-interface ModuleItem {
+export interface ModuleListItem {
   id: string
   /** Anchor slug — must match section ids on /features. */
   slug: string
   title: string
   desc: string
+  /** Full-length marketing copy for this module's Hero-slideshow slide
+      (SlideshowLeft has room for it — no fixed-height card to overflow).
+      `desc` above stays short/condensed for the ExploreSection cards,
+      which DO have a fixed card height across the grid row (2026-09-06,
+      per request: condensed copy in the cards "so that the cards do not
+      expand unnecessarily and all stay the same height and width", full
+      copy "in the respective slides as well"). */
+  slideDesc: string
   Icon: FC<LucideProps>
 }
 
-const MODULES: ModuleItem[] = [
-  { id: "01", slug: "facility-records",       title: "Cloud-based Records",          desc: "Centralised, always-accessible records for every asset, vendor, and compliance document across your estate.", Icon: HomeIcon },
-  { id: "02", slug: "preventive-maintenance", title: "Planned Preventive Maintenance",        desc: "Schedule and auto-trigger PPM cycles. Extend asset lifespan through intelligent, timely interventions.",       Icon: Radio },
-  { id: "03", slug: "complaint-management",   title: "Complaint Management System",           desc: "QR-based ticket raising from any location. Assigned, tracked, and closed with a full audit trail.",              Icon: ClipboardList },
-  { id: "04", slug: "asset-management",       title: "Asset Management & Alerts",             desc: "Live asset registry with lifecycle alerts, AMC tracking, and warranty expiry notifications.",                     Icon: ShieldCheck },
-  { id: "05", slug: "inventory-management",   title: "Inventory Purchase & Stock",            desc: "Stock tracking, auto-reorder triggers, vendor management, and purchase approval workflows.",                      Icon: Package },
-  { id: "06", slug: "staff-attendance",       title: "Staff Attendance Management",           desc: "Face-recognition attendance, shift scheduling, and real-time presence tracking across all sites.",               Icon: Users },
-  { id: "07", slug: "visitor-management",     title: "Visitor Management",                    desc: "Digital gate entries, host approvals, badge printing, and full visitor logs — contactless and audit-ready.",      Icon: Eye },
+// Exported (2026-09-08) so src/app/features/page.tsx can import this exact
+// data instead of hand-maintaining a second, drifting copy of the same 8
+// modules — the features page's module-detail sections, sidebar nav, real
+// photography (MODULE_IMAGES) and "VIEW MODULE FEATURES" links (MODULE_PAGES)
+// all read from here now.
+// Single source of truth for "the 8 modules" — feeds ExploreSection's cards,
+// ModulesSection (unused, kept for backward compat), AND the Hero slideshow
+// (ALL_SLIDES below). Used to be THREE separately-hand-maintained lists that
+// drifted out of sync with each other (titles, ordering, module count) —
+// consolidated 2026-09-05 per request ("add [these 8 modules] to the
+// slideshow ... followed by Assets, Complaint, Inventory, Visitor, Employee,
+// Payroll, Facility Expense"), which is this exact order. Titles are the
+// 2026-09-05 ERP-suffixed rename (Inventory & Vendor Automation ERP, Payroll
+// Automation ERP, Facility Expense Automation ERP) — keep footer.tsx's own
+// SOLUTIONS const (a separate array, by necessity: it doesn't need the full
+// desc/Icon shape) in sync by hand if titles change again.
+export const MODULES_LIST: ModuleListItem[] = [
+  {
+    id: "01", slug: "preventive-maintenance", title: "Facility Task Automation", Icon: ListChecks,
+    desc: "Schedule, assign, and track work orders with automated triggers and real-time updates — zero manual follow-ups.",
+    slideDesc: "Streamline preventative maintenance and facility task management in one intelligent platform. Effortlessly schedule, assign, and track work orders with custom task frequencies, automated triggers, and real-time status updates. Firmity eliminates manual follow-ups and drives technician accountability.",
+  },
+  {
+    id: "02", slug: "asset-management", title: "Assets & Spares Automation", Icon: Cog,
+    desc: "QR-tagged assets give technicians instant access to history, AMC contracts, and spares — maximizing uptime.",
+    slideDesc: "Get access to end-to-end asset lifecycle & spare parts management. Track, schedule, and optimize enterprise equipment uptime. QR tagging of equipment gives field technicians immediate access to asset history, maintenance logs, warranty cards, AMC contracts. Automatically trigger maintenance schedules, monitor lifecycle metrics, manage asset spares, and transfers maximizing uptime and lowering total cost of ownership.",
+  },
+  {
+    id: "03", slug: "complaint-management", title: "Complaint & Helpdesk Automation", Icon: ClipboardList,
+    desc: "Scan-to-raise QR tickets auto-route to technicians, with live status boards and a full SLA audit trail.",
+    slideDesc: "Smart QR-Powered Helpdesk & Ticketing allows you to resolve facility issues faster with instant, location-based ticket creation. Building occupants simply scan a local QR code to submit detailed complaints complete with photos. Tickets are automatically routed to the concerned technician, while live status boards provide full operational visibility. Every action's audit trail ensures strict SLA compliance, and zero dropped issues from reporting to resolution.",
+  },
+  {
+    id: "04", slug: "inventory-management", title: "Inventory & Vendor Automation ERP", Icon: Package,
+    desc: "Automated PO generation and GRN tracking keep stock and vendors aligned with your general ledger.",
+    slideDesc: "Unify shop-floor maintenance with back-office ERP financial workflows through real-time visibility across your entire supply chain. Firmity automates inventory and vendor management, purchase order generation, Goods Receipt Notes, keeping stock levels, materials fully aligned with your general ledger. With a modern desktop and mobile interface, Firmity streamlines procurement and distribution with complete financial accuracy.",
+  },
+  {
+    id: "05", slug: "visitor-management", title: "Visitor Management Automation", Icon: Eye,
+    desc: "Contactless QR check-ins and pre-approved gate passes, with instant host alerts and occupancy tracking.",
+    slideDesc: "Streamline perimeter security with contactless QR check-ins and automated digital gate passes. Pre-approve guests, contractors, and deliveries to eliminate gate queues, or scan on-site for instant photo verification and automated host notifications. Issue temporary guest passes or permanent vendor credentials with real-time occupancy tracking, overstay alerts, and digital logbooks for total facility security.",
+  },
+  {
+    id: "06", slug: "staff-attendance", title: "Employee Management Automation", Icon: Users,
+    desc: "Touchless, geo-fenced facial-recognition attendance with digital leave and payroll-ready exports.",
+    slideDesc: "Unify workforce operations with touchless, geo-fenced based facial-recognition attendance and real-time site presence tracking. Firmity integrates digital leave requests, automated working hour calculations, and seamless digital employee onboarding to instant, payroll-ready attendance exports across all locations.",
+  },
+  {
+    id: "07", slug: "payroll-management", title: "Payroll Automation ERP", Icon: IndianRupee,
+    desc: "1-click payroll with automated TDS/PF/ESI deductions, maker-checker validation, and bank file generation.",
+    slideDesc: "Run multi-tier payroll in minutes with error-free, 1-click execution. Firmity automates complex gross-to-net calculations, tax deductions (TDS, PF, ESI, PT), overtime, and customizable allowance structures. With built-in maker-checker validations, automated full-and-final (F&F) settlements, direct bank file generation, and real-time ledger auto-posting directly into your core ERP general ledger, Firmity ensures 100% statutory compliance, auto-generated Form 16s, and zero financial leakage.",
+  },
+  {
+    id: "08", slug: "facility-expense-management", title: "Facility Expense Automation ERP", Icon: Receipt,
+    desc: "Policy-driven budget caps and maker-checker approvals, with audit-ready journals auto-posted to your ledger.",
+    slideDesc: "Master operational spending with policy-driven expense controls, and category-wise budget caps. Firmity automates vendor claims, travel advances while enforcing policy rules to automatically catch budget breaches before they occur.",
+  },
 ]
 
 // Timeline benefits — each paired with a photo for the cycling panel.
@@ -218,12 +295,12 @@ export function ProblemsSection() {
       <div className={`${HERO_PX} py-16 lg:py-0 flex flex-col justify-center`}>
         <Reveal direction="right">
           <SectionKicker text="Real Challenges, Real Solutions" />
-          <h2 className="font-serif text-[clamp(1.6rem,4vw,2.6rem)] font-light leading-[1.15] tracking-tight text-[#1a202c] mb-4">
+          <h2 className="font-serif text-[clamp(1.6rem,4vw,2.6rem)] font-light leading-[1.15] tracking-tight text-[#114dac] mb-4">
             Small gaps in daily operations.<br />
             <em className="not-italic text-[#2b6cb0]">Big costs</em> in time, money,<br />
             and compliance.
           </h2>
-          <p className="text-[13.5px] font-light leading-[1.8] text-[#4a5568] max-w-[400px]">
+          <p className="text-[13.5px] font-light leading-[1.8] text-[#000000] max-w-[400px]">
             A missed AMC renewal. An overlooked water tank cleaning. An untracked vendor payment.
             None of these feel urgent on the day — all of them compound into downtime, penalties,
             and audit failures. Watch how Firmity closes each one.
@@ -232,7 +309,7 @@ export function ProblemsSection() {
       </div>
 
       {/* Right — live risk board */}
-      <div className="hidden lg:flex items-center justify-center p-6 sm:p-10 lg:p-14 bg-[#111d35]">
+      <div className="hidden lg:flex items-center justify-center p-6 sm:p-10 lg:p-14 bg-[#114dac]">
         <Reveal direction="left" delay={120} className="w-full max-w-[480px]">
           <div className="border border-white/[0.1] rounded-[20px] overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.08] bg-white/[0.03]">
@@ -323,14 +400,15 @@ export function WhyFirmitySection() {
 
   return (
     <section className="bg-transparent sm:bg-white/60">
-      <div ref={trackRef} className={`${HERO_PX} py-10 lg:py-14 w-full`}>
+      {/* py-10 lg:py-14 → py-8 lg:py-10 (2026-09-04, inter-section spacing pass) */}
+      <div ref={trackRef} className={`${HERO_PX} py-8 lg:py-10 w-full`}>
         <Reveal>
           <div className="mb-8 lg:mb-12">
-            <SectionKicker text="Why Choose Firmity" />
-            <h2 className="font-serif text-[clamp(1.6rem,4vw,2.6rem)] font-light leading-[1.15] tracking-tight text-[#1a202c] mb-3">
+            {/* "Why Choose Firmity" kicker removed 2026-09-04 per request */}
+            <h2 className="font-serif text-[clamp(1.6rem,4vw,2.6rem)] font-light leading-[1.15] tracking-tight text-[#114dac] mb-3">
               Built for <em className="not-italic text-[#2b6cb0]">operational clarity</em>
             </h2>
-            <p className="text-[13.5px] font-light leading-[1.8] text-[#4a5568] max-w-[460px]">
+            <p className="text-[13.5px] font-light leading-[1.8] text-[#000000] max-w-[460px]">
               One platform that replaces scattered spreadsheets, WhatsApp threads, and paper logs — so every team works off the same live data.
             </p>
           </div>
@@ -351,13 +429,13 @@ export function WhyFirmitySection() {
                   onMouseEnter={() => setActivePhoto(i)}
                   onFocus={() => setActivePhoto(i)}
                   onClick={() => setActivePhoto(i)}
-                  className="relative flex w-full gap-4 text-left"
+                  className="cursor-pointer relative flex w-full gap-4 text-left"
                 >
                   <span className={`relative z-10 flex h-[30px] w-[30px] flex-shrink-0 items-center justify-center rounded-full border text-[12px] font-medium transition-all duration-300 ${activePhoto === i ? "border-[#2b6cb0] bg-[#2b6cb0] text-white" : "border-[#2b6cb0]/40 bg-white text-[#2b6cb0]"}`}>{num}</span>
                   <div>
                     <span className={`mb-1 inline-block rounded-lg border px-2 py-[3px] text-[9px] font-medium uppercase tracking-[0.14em] transition-colors duration-300 ${activePhoto === i ? "border-[#2b6cb0]/40 text-[#2b6cb0]" : "border-[#2b6cb0]/20 text-[#2b6cb0]/55"}`}>{tag}</span>
-                    <h3 className={`mb-1 font-serif text-[15px] font-normal leading-snug transition-colors ${activePhoto === i ? "text-[#1a202c]" : "text-[#4a5568]"}`}>{title}</h3>
-                    <p className="text-[12.5px] font-light leading-[1.65] text-[#718096]">{desc}</p>
+                    <h3 className={`mb-1 font-serif text-[15px] font-normal leading-snug transition-colors ${activePhoto === i ? "text-[#114dac]" : "text-[#000000]"}`}>{title}</h3>
+                    <p className="text-[12.5px] font-light leading-[1.65] text-[#000000]">{desc}</p>
                   </div>
                 </button>
               ))}
@@ -365,7 +443,7 @@ export function WhyFirmitySection() {
           </div>
 
           {/* Right — cycling photo panel */}
-          <div className="relative h-[420px] overflow-hidden rounded-[24px] bg-[#111d35]">
+          <div className="relative h-[420px] overflow-hidden rounded-[24px] bg-[#114dac]">
             {BENEFITS.map(({ img, imgAlt, tag }, i) => (
               <div key={img} className="absolute inset-0 transition-opacity duration-700 ease-out" style={{ opacity: activePhoto === i ? 1 : 0 }} aria-hidden={activePhoto !== i}>
                 <div
@@ -373,8 +451,8 @@ export function WhyFirmitySection() {
                   style={{ backgroundImage: `url('${img}')`, transform: activePhoto === i ? "scale(1.06)" : "scale(1)", transitionDuration: "6000ms" }}
                   role="img" aria-label={imgAlt}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#111d35]/85 via-[#111d35]/15 to-transparent" />
-                <span className="absolute bottom-5 left-6 rounded-lg bg-[#111d35]/60 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/90 backdrop-blur-sm">{tag}</span>
+                <div className="absolute inset-0 bg-gradient-to-t from-[#114dac]/85 via-[#114dac]/15 to-transparent" />
+                <span className="absolute bottom-5 left-6 rounded-lg bg-[#114dac]/60 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/90 backdrop-blur-sm">{tag}</span>
               </div>
             ))}
           </div>
@@ -389,8 +467,8 @@ export function WhyFirmitySection() {
                 <span className="relative z-10 flex h-[30px] w-[30px] flex-shrink-0 items-center justify-center rounded-full border border-[#2b6cb0]/40 bg-white text-[12px] font-medium text-[#2b6cb0]">{num}</span>
                 <div>
                   <span className="mb-1 inline-block rounded-lg border border-[#2b6cb0]/25 px-2 py-[3px] text-[9px] font-medium uppercase tracking-[0.14em] text-[#2b6cb0]">{tag}</span>
-                  <h3 className="mb-1 font-serif text-[1rem] font-normal leading-snug text-[#1a202c]">{title}</h3>
-                  <p className="text-[12.5px] font-light leading-[1.65] text-[#4a5568]">{desc}</p>
+                  <h3 className="mb-1 font-serif text-[1rem] font-normal leading-snug text-[#114dac]">{title}</h3>
+                  <p className="text-[12.5px] font-light leading-[1.65] text-[#000000]">{desc}</p>
                 </div>
               </div>
             ))}
@@ -406,17 +484,21 @@ export function WhyFirmitySection() {
 export function PillarsSection() {
   return (
     <section className="bg-transparent sm:bg-white/60">
-      <div className={`${HERO_PX} py-14 lg:py-20 w-full`}>
-        <Reveal className="text-center mb-10 lg:mb-14">
-          <div className="flex items-center gap-3 mb-3 justify-center">
-            <div className="w-6 h-px bg-[#2b6cb0]/40" />
-            <span className="text-[#2b6cb0] text-[10px] font-semibold tracking-[0.2em] uppercase">Built on Three Pillars</span>
-            <div className="w-6 h-px bg-[#2b6cb0]/40" />
-          </div>
-          <h2 className="font-serif text-[clamp(1.6rem,4vw,2.6rem)] font-light leading-[1.15] tracking-tight text-[#1a202c] max-w-2xl mx-auto mb-3">
+      {/* py-14 lg:py-20 → py-10 lg:py-14 (2026-09-04, inter-section spacing pass).
+          Header block changed from centered to left-aligned (2026-09-04, per
+          request: "align left and make the gaps and spacing consistent") —
+          text-center/mx-auto/max-w-2xl dropped, mb-10 lg:mb-14 → mb-8 lg:mb-10
+          (more compact, matches the mb-8 lg:mb-12 scale WhyFirmitySection
+          uses for the same kind of header). Card radius rounded-[20px] →
+          rounded-[4px] (2026-09-04, per request: "roundness too" — matches
+          the blog-card / ExploreSection-card radius used sitewide now). */}
+      <div className={`${HERO_PX} py-10 lg:py-14 w-full`}>
+        <Reveal className="mb-8 lg:mb-10">
+          {/* "Built on Three Pillars" kicker removed 2026-09-04 per request */}
+          <h2 className="font-serif text-[clamp(1.6rem,4vw,2.6rem)] font-light leading-[1.15] tracking-tight text-[#114dac] mb-3">
             The foundations of <em className="not-italic text-[#2b6cb0]">smarter facility management</em>
           </h2>
-          <p className="text-[13.5px] font-light leading-[1.8] text-[#4a5568] max-w-[460px] mx-auto">
+          <p className="text-[13.5px] font-light leading-[1.8] text-[#000000] max-w-[460px]">
             Every module in Firmity is built around three principles — get more done, protect what you own, and waste less doing it.
           </p>
         </Reveal>
@@ -426,16 +508,16 @@ export function PillarsSection() {
             {PILLARS.map(({ numeral, title, headline, desc, accent, icon }) => (
               <div
                 key={numeral}
-                className="rounded-[20px] border border-[#eef3f9] bg-white/70 p-7 lg:p-8 flex flex-col items-center text-center transition-shadow duration-300 hover:shadow-[0_12px_32px_rgba(17,29,53,0.07)]"
+                className="rounded-[4px] border border-[#eef3f9] bg-white/70 p-7 lg:p-8 flex flex-col items-center text-center transition-shadow duration-300 hover:shadow-[0_12px_32px_rgba(17,29,53,0.07)]"
               >
                 <img src={icon} alt="" className="w-[150px] h-auto mb-5 select-none" draggable={false} />
                 <span className="text-[10px] font-semibold tracking-[0.2em] uppercase mb-2" style={{ color: accent }}>
                   {title}
                 </span>
-                <h3 className="font-serif text-[1.15rem] font-normal leading-snug text-[#1a202c] mb-2">
+                <h3 className="font-serif text-[1.15rem] font-normal leading-snug text-[#114dac] mb-2">
                   {headline}
                 </h3>
-                <p className="text-[12.5px] font-light leading-[1.7] text-[#718096]">
+                <p className="text-[12.5px] font-light leading-[1.7] text-[#000000]">
                   {desc}
                 </p>
               </div>
@@ -449,17 +531,22 @@ export function PillarsSection() {
 
 // ─── 4) MODULES — shared constants ────────────────────────────────────────────
 
-const MODULE_ACCENTS = [
-  { bg: "#0c1a32", accent: "#63b3ed" },  // 01 — Facility Records — blue
-  { bg: "#0b2018", accent: "#4ade80" },  // 02 — Preventive Maintenance — green
-  { bg: "#1a0e2e", accent: "#a78bfa" },  // 03 — Complaint Management — violet
-  { bg: "#1c1a08", accent: "#fbbf24" },  // 04 — Asset Management — amber
-  { bg: "#1c100c", accent: "#fb923c" },  // 05 — Inventory — orange
-  { bg: "#0a1620", accent: "#38bdf8" },  // 06 — Staff Attendance — sky
-  { bg: "#0f1c2e", accent: "#f472b6" },  // 07 — Visitor Management — pink
+// Single shared colour for every module slide (2026-09-05 per request — the
+// previous per-module rainbow (green/amber/violet/orange/pink/sky/teal) read
+// as arbitrary and clashed with the site's blue identity: "why is it
+// green? ... look exactly like the first slide"). One consistent dark-navy
+// bg + the hero slide's own accent (#63b3ed) for all 8, so every module
+// slide reads as the same family as the hero rather than each having its
+// own colour theme.
+const MODULE_ACCENTS = Array.from({ length: 8 }, () => ({ bg: "#0c1a32", accent: "#63b3ed" }))
+
+// Short captions for the slideshow's bottom indicator row — index-aligned to
+// MODULES_LIST, NOT copied from its (longer) titles.
+const MODULE_INDICATOR_LABELS = [
+  "Facility Tasks", "Assets", "Complaints", "Inventory", "Visitor", "Employee", "Payroll", "Expense",
 ]
 
-const MODULE_PAGES: Record<string, string> = {
+export const MODULE_PAGES: Record<string, string> = {
   "facility-records":       "/facility-records",
   "preventive-maintenance": "/preventive-maintenance",
   "complaint-management":   "/complaint-management",
@@ -467,20 +554,64 @@ const MODULE_PAGES: Record<string, string> = {
   "inventory-management":   "/inventory-management",
   "staff-attendance":       "/staff-attendance",
   "visitor-management":     "/visitor-management",
+  // payroll-management / facility-expense-management intentionally absent —
+  // no dedicated page exists yet, so these fall through to the `??
+  // /features#${slug}` default below, which now resolves (see FEATURES on
+  // src/app/features/page.tsx, 2026-09-05).
 }
+
+// Real per-module photography, keyed by MODULES_LIST slug — added as it
+// becomes available (2026-09-05: Facility Task Automation is the first).
+// Any slug absent from this map falls back to MODULE_PLACEHOLDER_IMAGE below.
+export const MODULE_IMAGES: Record<string, string> = {
+  "preventive-maintenance":      "/images/task_slide.png",    // Facility Task Automation
+  "asset-management":            "/images/assets_spares.png", // Assets & Spares Automation
+  "complaint-management":        "/images/helpdesk.png",      // Complaint & Helpdesk Automation
+  "inventory-management":        "/images/inventory.png",     // Inventory & Vendor Automation ERP
+  "visitor-management":          "/images/visitor.png",       // Visitor Management Automation
+  "staff-attendance":            "/images/employee.png",      // Employee Management Automation
+  "payroll-management":          "/images/payroll.png",       // Payroll Automation ERP
+  "facility-expense-management": "/images/expense.png",       // Facility Expense Automation ERP
+}
+
+// Neutral placeholder — used for any module slide NOT yet in MODULE_IMAGES
+// above, in the Hero's right-panel crossfade (the only place a module image
+// renders; the old SlideshowLeft thumbnail was removed 2026-09-05 — see
+// SlideshowLeft below). Inline SVG data URI (not an Unsplash stock photo) so
+// it reads as "deliberately temporary", not a broken img.
+const MODULE_PLACEHOLDER_IMAGE =
+  "data:image/svg+xml;utf8," +
+  encodeURIComponent(
+    "<svg xmlns='http://www.w3.org/2000/svg' width='900' height='700'>" +
+      "<rect width='900' height='700' fill='#11294a'/>" +
+      "<defs><pattern id='g' width='56' height='56' patternUnits='userSpaceOnUse'>" +
+      "<path d='M56 0H0V56' fill='none' stroke='#ffffff' stroke-opacity='0.05'/>" +
+      "</pattern></defs>" +
+      "<rect width='900' height='700' fill='url(#g)'/>" +
+      "<g transform='translate(450,350)' fill='none' stroke='#ffffff' stroke-opacity='0.22' stroke-width='2.5'>" +
+      "<rect x='-80' y='-60' width='160' height='120' rx='10'/>" +
+      "<circle cx='-40' cy='-24' r='14'/>" +
+      "<path d='M-80 40 L-20 -10 L20 20 L80 -30 L80 40 Z' fill='#ffffff' fill-opacity='0.08' stroke='none'/>" +
+      "</g>" +
+      "</svg>",
+  )
 
 const MOD_ADVANCE_MS = 5500
 
 // ─── 4a) HERO MODULES SLIDESHOW — fills the hero left column ──────────────────
 // Slide 0 = original hero ("Powered by UFirm Technologies" / full h1 / Book a Demo)
-// Slides 1–6 = the 6 product modules with per-module accent colors
-// Unified template; slide 0 detected by index to render the branded headline variant.
+// Slides 1–8 = the 8 MODULES_LIST modules, in that array's order (Facility
+// Task Automation first, ending Facility Expense Automation ERP) — REBUILT
+// 2026-09-05 from the old hand-written 7-slide set (which read off a
+// separate, differently-ordered/differently-named `MODULES` array — see
+// MODULES_LIST's own comment for why that's now unified). Unified template;
+// slide 0 detected by index to render the branded headline variant.
 
 type SlideEntry = {
   key: string
   indicatorId: string
   indicatorLabel: string
-  kicker: string
+  kicker?: string
   bg: string
   accent: string
   ctaPrimary: { label: string; href: string }
@@ -496,78 +627,38 @@ const ALL_SLIDES: SlideEntry[] = [
     key: "hero",
     indicatorId: "",
     indicatorLabel: "Home",
-    kicker: "Powered by UFirm Technologies",
-    bg: "#111d35",
+    // kicker: "Powered by UFirm Technologies",
+    bg: "#114dac",
     accent: "#63b3ed",
     ctaPrimary:   { label: "Book a Demo",      href: "/contact"  },
     ctaSecondary: { label: "Explore Features", href: "/features" },
-    desc: "Firmity is a smart, integrated facility management software built to simplify operations, enhance visibility, and empower teams with real-time control over maintenance, assets, workforce, and compliance.",
-    image:    "https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1200&q=85&fit=crop&crop=top",
-    imageAlt: "Modern commercial facility exterior",
+    desc: "Scale faster and simplify maintenance operations with Firmity Facility Automation. Our CMMS and ERP solutions automate administrative overhead and deliver predictive insights, letting your team skip the busywork and focus on high-value tasks with real-time operational visibility across all your facilities.",
+    // Was a stale Unsplash exterior-building photo (2026-09-05 fix) — the
+    // actual hero image was previously hardcoded separately as
+    // "/images/heroImage.png" (the laptop+phone dashboard mockup) and this
+    // field was dead/unused data until the panel render was unified to read
+    // `s.image` for every slide, which surfaced the stale value. Corrected
+    // to the real asset so the hero slide is unchanged from before.
+    image:    "/images/heroImage.png",
+    imageAlt: "Firmity dashboard shown on a laptop, next to the Firmity mobile app login screen on a phone",
   },
-  {
-    key: MODULES[0].id, indicatorId: MODULES[0].id, indicatorLabel: "Cloud Records",
-    kicker: `Module ${MODULES[0].id}`, bg: MODULE_ACCENTS[0].bg, accent: MODULE_ACCENTS[0].accent,
-    ctaPrimary: { label: "Explore Module", href: MODULE_PAGES[MODULES[0].slug] ?? `/features#${MODULES[0].slug}` },
+  ...MODULES_LIST.map((m, i) => ({
+    key: m.id,
+    indicatorId: m.id,
+    indicatorLabel: MODULE_INDICATOR_LABELS[i],
+    // No "Module 0X" kicker on these slides (2026-09-05 per request) — kept
+    // as "" rather than removed from the type so SlideshowLeft can keep a
+    // single `slide.kicker &&` guard instead of an isHero-only branch.
+    kicker: "",
+    bg: MODULE_ACCENTS[i].bg,
+    accent: MODULE_ACCENTS[i].accent,
+    ctaPrimary: { label: "Explore the module", href: MODULE_PAGES[m.slug] ?? `/features#${m.slug}` },
     ctaSecondary: { label: "Explore Features", href: "/features" },
-    desc: MODULES[0].desc, title: MODULES[0].title,
-    image:    "https://images.unsplash.com/photo-1568992687947-868a62a9f521?w=900&q=80&fit=crop",
-    imageAlt: "Digital records and server room",
-  },
-  {
-    key: MODULES[1].id, indicatorId: MODULES[1].id, indicatorLabel: "PPM",
-    kicker: `Module ${MODULES[1].id}`, bg: MODULE_ACCENTS[1].bg, accent: MODULE_ACCENTS[1].accent,
-    ctaPrimary: { label: "Explore Module", href: MODULE_PAGES[MODULES[1].slug] ?? `/features#${MODULES[1].slug}` },
-    ctaSecondary: { label: "Explore Features", href: "/features" },
-    desc: MODULES[1].desc, title: MODULES[1].title,
-    image:    "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=900&q=80&fit=crop",
-    imageAlt: "Engineer performing preventive maintenance",
-  },
-  {
-    key: MODULES[2].id, indicatorId: MODULES[2].id, indicatorLabel: "Complaints",
-    kicker: `Module ${MODULES[2].id}`, bg: MODULE_ACCENTS[2].bg, accent: MODULE_ACCENTS[2].accent,
-    ctaPrimary: { label: "Explore Module", href: MODULE_PAGES[MODULES[2].slug] ?? `/features#${MODULES[2].slug}` },
-    ctaSecondary: { label: "Explore Features", href: "/features" },
-    desc: MODULES[2].desc, title: MODULES[2].title,
-    image:    "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=900&q=80&fit=crop",
-    imageAlt: "Helpdesk team collaboration",
-  },
-  {
-    key: MODULES[3].id, indicatorId: MODULES[3].id, indicatorLabel: "Assets",
-    kicker: `Module ${MODULES[3].id}`, bg: MODULE_ACCENTS[3].bg, accent: MODULE_ACCENTS[3].accent,
-    ctaPrimary: { label: "Explore Module", href: MODULE_PAGES[MODULES[3].slug] ?? `/features#${MODULES[3].slug}` },
-    ctaSecondary: { label: "Explore Features", href: "/features" },
-    desc: MODULES[3].desc, title: MODULES[3].title,
-    image:    "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=900&q=80&fit=crop",
-    imageAlt: "Industrial machinery asset management",
-  },
-  {
-    key: MODULES[4].id, indicatorId: MODULES[4].id, indicatorLabel: "Inventory",
-    kicker: `Module ${MODULES[4].id}`, bg: MODULE_ACCENTS[4].bg, accent: MODULE_ACCENTS[4].accent,
-    ctaPrimary: { label: "Explore Module", href: MODULE_PAGES[MODULES[4].slug] ?? `/features#${MODULES[4].slug}` },
-    ctaSecondary: { label: "Explore Features", href: "/features" },
-    desc: MODULES[4].desc, title: MODULES[4].title,
-    image:    "https://images.unsplash.com/photo-1553413077-190dd305871c?w=900&q=80&fit=crop",
-    imageAlt: "Warehouse inventory shelves",
-  },
-  {
-    key: MODULES[5].id, indicatorId: MODULES[5].id, indicatorLabel: "Attendance",
-    kicker: `Module ${MODULES[5].id}`, bg: MODULE_ACCENTS[5].bg, accent: MODULE_ACCENTS[5].accent,
-    ctaPrimary: { label: "Explore Module", href: MODULE_PAGES[MODULES[5].slug] ?? `/features#${MODULES[5].slug}` },
-    ctaSecondary: { label: "Explore Features", href: "/features" },
-    desc: MODULES[5].desc, title: MODULES[5].title,
-    image:    "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=900&q=80&fit=crop",
-    imageAlt: "Staff team attendance management",
-  },
-  {
-    key: MODULES[6].id, indicatorId: MODULES[6].id, indicatorLabel: "Visitor",
-    kicker: `Module ${MODULES[6].id}`, bg: MODULE_ACCENTS[6].bg, accent: MODULE_ACCENTS[6].accent,
-    ctaPrimary: { label: "Explore Module", href: MODULE_PAGES[MODULES[6].slug] ?? `/features#${MODULES[6].slug}` },
-    ctaSecondary: { label: "Explore Features", href: "/features" },
-    desc: MODULES[6].desc, title: MODULES[6].title,
-    image:    "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=900&q=80&fit=crop",
-    imageAlt: "Reception desk and visitor check-in",
-  },
+    desc: m.slideDesc,
+    title: m.title,
+    image: MODULE_IMAGES[m.slug] ?? MODULE_PLACEHOLDER_IMAGE,
+    imageAlt: MODULE_IMAGES[m.slug] ? `${m.title} module` : `${m.title} — module illustration placeholder`,
+  })),
 ]
 
 // ─── Shared slideshow logic ─────────────────────────────────────────────────
@@ -605,22 +696,25 @@ function SlideshowLeft({
   return (
     <div
       className="relative overflow-hidden h-full flex flex-col"
-      // isHero: translucent white (not flat #fff) so the page's fixed beige
-      // page-wash gradient shows through underneath — same treatment as the
-      // "Real Challenges, Real Solutions" (Problems) section's bg-white/60.
-      style={{ background: isHero ? "rgba(255,255,255,0.6)" : slide.bg, transition: "background 600ms ease", ["--ink" as string]: inkAccent(slide.accent) } as CSSProperties}
+      // Every slide now uses the SAME light panel as the hero (2026-09-05 per
+      // request — module slides previously had their own dark per-module
+      // `slide.bg`, which read as inconsistent with "look exactly like the
+      // first slide"). Translucent white (not flat #fff) so the page's fixed
+      // beige page-wash gradient shows through underneath — same treatment
+      // as the "Real Challenges, Real Solutions" (Problems) section's
+      // bg-white/60. `slide.bg` is kept on the data model (harmless) but no
+      // longer read here.
+      style={{ background: "rgba(255,255,255,0.6)", transition: "background 600ms ease", ["--ink" as string]: inkAccent(slide.accent) } as CSSProperties}
     >
-      {/* Phone only: a clean light gradient tinted to the active slide's colour
-          replaces the photo (photos hurt text legibility on small screens). The
-          desktop panel below keeps its flat `slide.bg`. Inked text sits on top. */}
+      {/* Phone only: same light gradient for every slide, matching the
+          desktop panel above. isHero stops were beige (#f7f1e6/#f1e8d7) —
+          swapped to gray 2026-09-04 to match the sitewide beige→gray change
+          (same #f7f7f7 family used for the Hero desktop panel and
+          HomeBlogSection). */}
       <div
         className="lg:hidden absolute inset-0 z-0 transition-[background] duration-700"
         aria-hidden
-        style={{
-          background: isHero
-            ? "linear-gradient(160deg, #ffffff 0%, #f7f1e6 62%, #f1e8d7 100%)"
-            : slide.bg,
-        }}
+        style={{ background: "linear-gradient(160deg, #ffffff 0%, #f2f2f2 62%, #ececec 100%)" }}
       />
       <style>{`
         @keyframes hsModUp  { from { opacity:0; transform:translateY(36px); } to { opacity:1; transform:translateY(0); } }
@@ -648,53 +742,66 @@ function SlideshowLeft({
       {/* Main content */}
       <div className={`${HERO_PX} flex-1 flex flex-col justify-center py-20 lg:py-0 relative z-10`}>
         <div key={animKey} className="flex flex-col">
-          {/* Kicker */}
-          <div style={{ animation: "hsModUp 0.5s cubic-bezier(0.22,1,0.36,1) both" }}>
-            <div className="flex items-center gap-3 mb-5">
-              {/* isHero: fixed to the "Big costs" blue (#2b6cb0), same as the
-                  Problems section accent — was the lighter slide.accent
-                  (#63b3ed). Module slides (isHero false) keep their own
-                  per-module accent, unaffected. */}
-              <div className="w-5 h-px" style={{ background: isHero ? "#2b6cb0" : slide.accent, transition: "background 600ms ease" }} />
-              <span className="text-[10px] font-semibold tracking-[0.22em] uppercase" style={{ color: isHero ? "#2b6cb0" : slide.accent, transition: "color 600ms ease" }}>
-                {slide.kicker}
-              </span>
+          {/* No per-slide thumbnail in this column (removed 2026-09-05 — it
+              read as "a weird empty image" wedged above the heading). The
+              module's photo/placeholder now lives ONLY in the desktop
+              crossfade panel (ALL_SLIDES.slice(1) below), same as the hero
+              slide's own image — so module slides match the hero's layout
+              exactly, just with their own photo + dark navy panel colour. */}
+
+          {/* Kicker — hero only now; module slides carry no "Module 0X"
+              label (2026-09-05 per request), so this whole row is skipped
+              rather than rendered with empty text. */}
+          {slide.kicker && (
+            <div style={{ animation: "hsModUp 0.5s cubic-bezier(0.22,1,0.36,1) both" }}>
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-5 h-px" style={{ background: "#2b6cb0" }} />
+                <span className="text-[10px] font-semibold tracking-[0.22em] uppercase" style={{ color: "#2b6cb0" }}>
+                  {slide.kicker}
+                </span>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Headline */}
           <div style={{ animation: "hsModUp2 0.65s cubic-bezier(0.22,1,0.36,1) both" }}>
             {isHero ? (
-              <h1 className="font-serif font-light text-[#111d35] leading-[1.1] tracking-tight mb-4" style={{ fontSize: "clamp(1.75rem,3.5vw,2.75rem)" }}>
+              <h1 className="font-serif font-light text-[#114dac] leading-[1.1] tracking-tight mb-4" style={{ fontSize: "clamp(1.75rem,3.5vw,2.75rem)" }}>
                 The Complete<br />
                 <em className="not-italic" style={{ color: "#2b6cb0" }}>Facility Automation</em><br />
                 Software Suite
               </h1>
             ) : (
-              <h1 className="font-serif font-light text-[#f0f4f8] leading-[1.08] tracking-tight mb-4" style={{ fontSize: "clamp(1.75rem,3.5vw,2.75rem)" }}>
+              <h1 className="font-serif font-light text-[#114dac] leading-[1.08] tracking-tight mb-4" style={{ fontSize: "clamp(1.75rem,3.5vw,2.75rem)" }}>
                 {slide.title}
               </h1>
             )}
           </div>
 
-          {/* Description */}
+          {/* Description — same colour on every slide now (was a lighter
+              blue-grey on module slides, tuned for their old dark bg; that
+              bg is gone, so this just matches the hero's black). */}
           <div style={{ animation: "hsModUp3 0.8s cubic-bezier(0.22,1,0.36,1) both" }}>
-            <p className={"text-[13.5px] font-light leading-[1.75] mb-7 max-w-[380px] " + (isHero ? "text-[#4a5568]" : "text-[#8ba5be]")}>{slide.desc}</p>
+            <p className="text-[13.5px] font-light leading-[1.75] mb-7 max-w-[380px] text-[#000000]">{slide.desc}</p>
           </div>
 
           {/* CTAs */}
           <div className="flex flex-row flex-wrap items-center gap-3" style={{ animation: "hsModUp4 0.95s cubic-bezier(0.22,1,0.36,1) both" }}>
-            <Link href={slide.ctaPrimary.href} className={"group inline-flex items-center justify-center gap-2 text-[13px] font-semibold px-7 py-3 transition-colors whitespace-nowrap " + (isHero ? "bg-[#111d35] text-white hover:bg-[#1a2744]" : "bg-white text-[#1a2744] hover:bg-[#e8f0fb]")}>
+            {/* Module slides: solid black "Explore the module" (per request). */}
+            <Link href={slide.ctaPrimary.href} className={"group inline-flex items-center justify-center gap-2 text-[13px] font-semibold px-7 py-3 rounded-[4px] transition-colors whitespace-nowrap " + (isHero ? "bg-[#114dac] text-white hover:bg-[#0e3e8a]" : "bg-black hover:bg-[#1a1a1a] text-white")}>
               {slide.ctaPrimary.label}
               <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
             </Link>
-            <Link
-              href={slide.ctaSecondary.href}
-              className="inline-flex items-center justify-center text-[13px] font-light px-7 py-3 border transition-all duration-200 whitespace-nowrap"
-              style={isHero ? { borderColor: "rgba(17,29,53,0.18)", color: "rgba(17,29,53,0.5)" } : { borderColor: `${slide.accent}28`, color: `${slide.accent}80` }}
-            >
-              {slide.ctaSecondary.label}
-            </Link>
+            {/* "Explore Features" — hero only (2026-09-05 per request: remove
+                it from every module slide, keep it on the first slide). */}
+            {isHero && (
+              <Link
+                href={slide.ctaSecondary.href}
+                className="inline-flex items-center justify-center text-[13px] font-light px-7 py-3 rounded-[4px] border transition-all duration-200 whitespace-nowrap bg-black hover:bg-[#1a1a1a] text-white border-black"
+              >
+                {slide.ctaSecondary.label}
+              </Link>
+            )}
           </div>
         </div>
       </div>
@@ -708,7 +815,7 @@ function SlideshowLeft({
               <button
                 key={s.key}
                 onClick={() => goTo(i)}
-                className="flex-shrink-0 flex flex-col items-start gap-1.5 focus:outline-none"
+                className="cursor-pointer flex-shrink-0 flex flex-col items-start gap-1.5 focus:outline-none"
                 aria-label={`Go to slide: ${s.indicatorLabel}`}
               >
                 {/* Number or hero dot — wrapped in a fixed-height span so all indicators are same height */}
@@ -716,28 +823,28 @@ function SlideshowLeft({
                   {s.indicatorId ? (
                     <span
                       className="text-[10px] font-semibold tracking-[0.15em] leading-none transition-colors duration-300"
-                      style={{ color: isActive ? slide.accent : (isHero ? "rgba(17,29,53,0.2)" : "rgba(255,255,255,0.22)") }}
+                      style={{ color: isActive ? slide.accent : "rgba(17,29,53,0.2)" }}
                     >
                       {s.indicatorId}
                     </span>
                   ) : (
                     <span
                       className="block w-[5px] h-[5px] rounded-full transition-colors duration-300"
-                      style={{ background: isActive ? slide.accent : (isHero ? "rgba(17,29,53,0.2)" : "rgba(255,255,255,0.22)") }}
+                      style={{ background: isActive ? slide.accent : "rgba(17,29,53,0.2)" }}
                     />
                   )}
                 </span>
                 {/* Label — whitespace-nowrap prevents wrapping */}
                 <span
                   className="text-[9.5px] font-light transition-colors duration-300 hidden xl:block leading-tight whitespace-nowrap"
-                  style={{ color: isActive ? (isHero ? "rgba(17,29,53,0.7)" : "rgba(255,255,255,0.78)") : (isHero ? "rgba(17,29,53,0.2)" : "rgba(255,255,255,0.22)") }}
+                  style={{ color: isActive ? "rgba(17,29,53,0.7)" : "rgba(17,29,53,0.2)" }}
                 >
                   {s.indicatorLabel}
                 </span>
                 {/* Progress track */}
                 <div
                   className="h-[2px] rounded-full overflow-hidden"
-                  style={{ width: i === 0 ? "20px" : "16px", background: isHero ? "rgba(17,29,53,0.08)" : "rgba(255,255,255,0.08)" }}
+                  style={{ width: i === 0 ? "20px" : "16px", background: "rgba(17,29,53,0.08)" }}
                 >
                   {isActive && (
                     <div
@@ -845,98 +952,81 @@ export function HeroSection() {
     setAnimKey((k) => k + 1)
   }
 
-  const isHeroSlide = activeIndex === 0
+  // Wrap in both directions with plain modulo arithmetic — no edge cases to
+  // get wrong (first slide's "previous" is the last slide, and vice versa).
+  // Reuses `goTo`, the exact same path the bottom indicator dots already use
+  // and rely on to reset the auto-advance timer (the `[activeIndex, paused]`
+  // effect above re-runs whenever activeIndex changes) — no new state, no
+  // new failure mode.
+  function goToPrev() {
+    goTo((activeIndex - 1 + ALL_SLIDES.length) % ALL_SLIDES.length)
+  }
+  function goToNext() {
+    goTo((activeIndex + 1) % ALL_SLIDES.length)
+  }
 
   return (
     <section
-      className="grid grid-cols-1 lg:grid-cols-2 min-h-[100svh] lg:min-h-[88vh]"
+      className="relative grid grid-cols-1 lg:grid-cols-2 min-h-[100svh] lg:min-h-[88vh]"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
+      {/* Prev/next arrows — bare chevrons (no circle/box, per reference).
+          On mobile (below lg) SlideshowLeft's content is vertically CENTERED
+          in a min-h-[100svh] panel, so a true vertical-center position for
+          the arrows landed them directly on top of the description text —
+          and pinning them near the bottom instead (tried, reverted) put
+          them right on top of the site-wide fixed WhatsApp button / survey
+          widget in the bottom-right corner. The one zone that's reliably
+          empty on every slide, on any phone height, is well below the
+          sticky navbar and well above the centered text block (there's a
+          large gap there specifically because the panel is forced to a
+          full viewport tall) — so mobile pins to `top` instead. At lg+, the
+          2-column layout has real breathing room on both edges (the left
+          arrow sits in the text column's own gutter, the right arrow over
+          the image panel), so vertical-center is restored there — verified
+          clean against the actual desktop layout. z-20 keeps them above
+          every slide's own content (which tops out at z-10) but below the
+          sticky navbar (z-50). */}
+      <button
+        type="button"
+        onClick={goToPrev}
+        aria-label="Previous slide"
+        className="cursor-pointer absolute left-2 sm:left-4 top-20 lg:top-1/2 lg:-translate-y-1/2 z-20 p-1.5 text-[#114dac] opacity-70 hover:opacity-100 transition-opacity focus:outline-none focus-visible:opacity-100"
+      >
+        <ChevronLeft size={44} strokeWidth={2} />
+      </button>
+      <button
+        type="button"
+        onClick={goToNext}
+        aria-label="Next slide"
+        className="cursor-pointer absolute right-2 sm:right-4 top-20 lg:top-1/2 lg:-translate-y-1/2 z-20 p-1.5 text-[#114dac] opacity-70 hover:opacity-100 transition-opacity focus:outline-none focus-visible:opacity-100"
+      >
+        <ChevronRight size={44} strokeWidth={2} />
+      </button>
+
       <div className="relative overflow-hidden order-1 min-h-[360px] lg:min-h-0">
         <SlideshowLeft activeIndex={activeIndex} animKey={animKey} paused={paused} goTo={goTo} />
       </div>
 
-      <div ref={panelRef} className="hidden lg:block relative overflow-hidden bg-[#f5eddd]">
+      <div ref={panelRef} className="hidden lg:block relative overflow-hidden bg-[#f7f7f7]">
+        {/* Panel background — flat gray (RGB 247/247/247), same swatch used
+            for the fallback bg above and HomeBlogSection's card background.
+            Sits under every slide's image below. */}
+        <div className="absolute inset-0" style={{ background: "#f7f7f7" }} />
 
-        <div
-          className="absolute inset-0 transition-opacity duration-700 ease-out"
-          style={{ opacity: isHeroSlide ? 1 : 0 }}
-        >
-          <div
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-            style={{ backgroundImage: "url('https://images.unsplash.com/photo-1486325212027-8081e485255e?w=900&q=85&fit=crop&crop=top')" }}
-          />
-          {/* EXPERIMENT (2026-09-01, user asked to preview a light treatment
-              here instead of the flat navy/85 overlay) — same beige-gradient
-              family as .page-wash / the mobile hero gradient above, just
-              opaque enough to keep the stat cards legible over the photo.
-              Easy to revert: swap this div back to `bg-[#111d35]/85` and
-              restore the card/text colors below to their white/[0.NN] values. */}
-          <div
-            className="absolute inset-0"
-            style={{ background: "linear-gradient(160deg, rgba(253,251,247,0.94) 0%, rgba(245,237,221,0.92) 55%, rgba(239,228,210,0.94) 100%)" }}
-          />
-          <div className="relative z-10 p-4 sm:p-6 lg:p-7 flex flex-col gap-2.5 h-full">
-            <div className="grid grid-cols-2 gap-2.5">
-              <div className="bg-white/70 border border-[#e2e8f0] rounded-xl p-3 sm:p-3.5 backdrop-blur-sm">
-                <div className="text-[8.5px] text-[#718096] uppercase tracking-[0.14em] mb-1.5">Assets Tracked</div>
-                <div className="font-sans text-[20px] sm:text-[22px] font-light text-[#2b6cb0] leading-none">{c1.display}</div>
-                <div className="text-[8px] text-[#38a169] mt-1">All active</div>
-              </div>
-              <div className="bg-white/70 border border-[#e2e8f0] rounded-xl p-3 sm:p-3.5 backdrop-blur-sm">
-                <div className="text-[8.5px] text-[#718096] uppercase tracking-[0.14em] mb-1.5">PPM Due</div>
-                <div className="font-sans text-[20px] sm:text-[22px] font-light text-[#c53030] leading-none">{c2.display}</div>
-                <div className="text-[8px] text-[#c53030]/75 mt-1">This week</div>
-              </div>
-            </div>
-
-            <div className="bg-white/70 border border-[#e2e8f0] rounded-xl p-3 sm:p-3.5 backdrop-blur-sm">
-              <div className="text-[8.5px] text-[#718096] uppercase tracking-[0.14em] mb-2">Staff Attendance Today</div>
-              <div className="bg-[#e2e8f0] h-[2px] w-full rounded-full">
-                <div
-                  className="h-[2px] rounded-full bg-[#2b6cb0] transition-all duration-[1800ms]"
-                  style={{ width: bar.width + "%" }}
-                />
-              </div>
-              <div className="text-[8.5px] text-[#a0aec0] mt-1.5">{bar.count} of 40 staff present</div>
-            </div>
-
-            <div className="bg-white/70 border border-[#e2e8f0] rounded-xl p-3 sm:p-3.5 backdrop-blur-sm grid grid-cols-2 gap-3">
-              <div>
-                <div className="text-[8.5px] text-[#718096] uppercase tracking-[0.14em] mb-1.5">Open Tickets</div>
-                <div className="font-sans text-[20px] sm:text-[22px] font-light text-[#b7791f] leading-none">{c3.display}</div>
-                <div className="text-[8px] text-[#b7791f]/75 mt-1">Awaiting action</div>
-              </div>
-              <div>
-                <div className="text-[8.5px] text-[#718096] uppercase tracking-[0.14em] mb-1.5">Compliance</div>
-                <div className="font-sans text-[20px] sm:text-[22px] font-light text-[#2b6cb0] leading-none">{c4.display}</div>
-                <div className="text-[8px] text-[#3182ce]/75 mt-1">On track</div>
-              </div>
-            </div>
-
-            <div className="bg-white/70 border border-[#e2e8f0] rounded-xl p-3 sm:p-3.5 backdrop-blur-sm flex-1">
-              <div className="text-[8.5px] text-[#718096] uppercase tracking-[0.14em] mb-2">Recent Activity</div>
-              <div className="divide-y divide-[#e2e8f0]">
-                <div className="flex items-center gap-2 py-[5px]">
-                  <div className="w-[5px] h-[5px] rounded-full flex-shrink-0 bg-[#38a169]" />
-                  <span className="text-[9px] sm:text-[9.5px] text-[#4a5568] font-light">PPM — HVAC Unit B2 completed</span>
-                </div>
-                <div className="flex items-center gap-2 py-[5px]">
-                  <div className="w-[5px] h-[5px] rounded-full flex-shrink-0 bg-[#d69e2e]" />
-                  <span className="text-[9px] sm:text-[9.5px] text-[#4a5568] font-light">AMC renewal due in 7 days — Block A</span>
-                </div>
-                <div className="flex items-center gap-2 py-[5px]">
-                  <div className="w-[5px] h-[5px] rounded-full flex-shrink-0 bg-[#3182ce]" />
-                  <span className="text-[9px] sm:text-[9.5px] text-[#4a5568] font-light">Visitor: Mr. Muhammad Ali checked in — Gate 2</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {ALL_SLIDES.slice(1).map((s, idx) => {
-          const i = idx + 1
+        {/* One unified treatment for EVERY slide (2026-09-05 per request —
+            module slides previously used a full-bleed bg-cover image under a
+            dark gradient; "get rid of all the nonsense gradient... make it
+            look like the first slide and the image should be at the center
+            like in the first slide"). Centered, capped-width <img>,
+            crossfaded by opacity. The slow zoom-on-active module slides
+            used to have here was removed (2026-09-06 per request — "remove
+            the pan zoom from every slide") without touching the hero slide
+            (i === 0), which never had it in the first place. Only the hero
+            slide gets the "Also available on Android & iOS" caption
+            underneath — that's hero-specific copy. */}
+        {ALL_SLIDES.map((s, i) => {
           const visible = i === activeIndex
           return (
             <div
@@ -944,17 +1034,25 @@ export function HeroSection() {
               className="absolute inset-0 transition-opacity duration-700 ease-out"
               style={{ opacity: visible ? 1 : 0 }}
             >
-              <div
-                className="absolute inset-0 bg-cover bg-center transition-transform ease-out"
-                style={{
-                  backgroundImage: "url('" + s.image + "')",
-                  transform: visible ? "scale(1.06)" : "scale(1)",
-                  transitionDuration: "6000ms",
-                }}
-                role="img"
-                aria-label={s.imageAlt}
-              />
-              <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(17,29,53,0.70) 0%, rgba(17,29,53,0.40) 50%, transparent 100%)" }} />
+              <div className="relative z-10 h-full flex flex-col items-center justify-center px-6 lg:px-10 py-10">
+                <img
+                  src={s.image}
+                  alt={s.imageAlt}
+                  className="w-full max-w-[560px] h-auto select-none drop-shadow-[0_24px_48px_rgba(17,29,53,0.18)]"
+                  draggable={false}
+                />
+                {i === 0 && (
+                  <div className="mt-8 flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1.5 text-center max-w-[420px]">
+                    <span className="text-[11px] font-semibold text-[#2b6cb0] tracking-[0.04em]">
+                      Also available on Android &amp; iOS
+                    </span>
+                    <span className="text-[#c0ccd8]">·</span>
+                    <span className="text-[11px] font-light text-[#000000]">
+                      same live data on web, desktop, and mobile
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
           )
         })}
@@ -994,7 +1092,20 @@ export function HeroModulesSlideshow() {
   )
 }
 
+// (MODULES_LIST used to be redeclared here as a section-local array —
+// consolidated 2026-09-05 into the single copy up in §4 "shared constants",
+// which now also drives ALL_SLIDES. See the comment there for the
+// slug/vignette mapping notes and the ERP title rename.)
+
 // ─── 4b) MODULES SECTION ─────────────────────────────────────────────────────
+// UNUSED as of 2026-09-04 — its usage in src/app/page.tsx was commented out
+// (not this function; kept intact here in case the tab/vignette layout is
+// wanted back) in favor of ExploreSection below, which copies Planon's
+// 2-column card-grid layout instead. Same pattern as ProblemsSection: the
+// component stays defined and exported, only the JSX call site is disabled.
+// (MODULES_LIST itself now lives up in §4 "shared constants", above
+// ALL_SLIDES — moved 2026-09-05 so the Hero slideshow can consume it too;
+// see the comment on that array.)
 
 const MODULE_ADVANCE_MS = 5000
 
@@ -1006,12 +1117,12 @@ export function ModulesSection() {
   useEffect(() => {
     if (paused || userLocked.current) return
     const t = setTimeout(() => {
-      setActiveIndex((i) => (i + 1) % MODULES.length)
+      setActiveIndex((i) => (i + 1) % MODULES_LIST.length)
     }, MODULE_ADVANCE_MS)
     return () => clearTimeout(t)
   }, [activeIndex, paused])
 
-  const active = MODULES[activeIndex]
+  const active = MODULES_LIST[activeIndex]
 
   return (
     <section
@@ -1027,20 +1138,19 @@ export function ModulesSection() {
         @keyframes hsProgress { from { width: 0; } to { width: 100%; } }
       `}</style>
 
-      <div className={"bg-[#111d35] " + HERO_PX + " py-16 lg:py-0 flex flex-col justify-center"}>
-        <span className="inline-block px-3 py-5 text-xs font-semibold text-[#63b3ed] rounded-full mb-4">
-          FIRMITY UNIFIED PLATFORM
-        </span>
+      <div className={"bg-[#114dac] " + HERO_PX + " py-16 lg:py-0 flex flex-col justify-center"}>
+        {/* "FIRMITY UNIFIED PLATFORM" kicker removed 2026-09-04 per request */}
         <Reveal>
-          <h2 className="font-serif text-[clamp(1.6rem,4vw,2.6rem)] font-light leading-[1.15] tracking-tight text-[#f0f4f8] mb-8 lg:mb-10">
-            Seven integrated modules.<br />
-            <em className="not-italic text-[#63b3ed]">One command centre.</em>
+          {/* Heading changed 2026-09-04 (was "Seven integrated modules. One
+              command centre.") — single line now, no <em> accent span needed. */}
+          <h2 className="font-serif text-[clamp(1.4rem,3.4vw,2.2rem)] font-light leading-[1.25] tracking-tight text-[#f0f4f8] mb-8 lg:mb-10">
+            Explore our cloud-based solutions for preventive planned maintenance
           </h2>
         </Reveal>
 
         <Reveal delay={120}>
           <div role="tablist" aria-label="Platform modules" className="space-y-1 max-w-[460px]">
-            {MODULES.map(({ id, title, Icon }, i) => {
+            {MODULES_LIST.map(({ id, title, Icon }, i) => {
               const isActive = i === activeIndex
               return (
                 <button
@@ -1088,14 +1198,17 @@ export function ModulesSection() {
         </Reveal>
       </div>
 
-      <div className="hidden lg:flex bg-white/60 border-l border-[#dbe5f0] items-center justify-center p-6 sm:p-10 lg:p-14">
+      {/* bg-white/60 → solid bg-[#f7f7f7] (2026-09-04, per request) — matches
+          the gray used elsewhere on the page (Hero right panel, "Browse our
+          latest resources"), not the translucent-over-page-wash pattern. */}
+      <div className="hidden lg:flex bg-[#f7f7f7] border-l border-[#dbe5f0] items-center justify-center p-6 sm:p-10 lg:p-14">
         <div className="w-full max-w-[520px]">
           <div key={active.slug} style={{ animation: "hsModuleFade 450ms cubic-bezier(0.22,1,0.36,1)" }}>
             <div className="min-h-[250px]">
               <ModuleVignette id={active.slug} />
             </div>
             <div className="mt-5">
-              <p className="text-[12.5px] font-light text-[#718096] leading-[1.8] mb-3">{active.desc}</p>
+              <p className="text-[12.5px] font-light text-[#000000] leading-[1.8] mb-3">{active.desc}</p>
               <Link
                 href={"/features#" + active.slug}
                 className="inline-flex items-center gap-2 text-[12px] font-semibold text-[#2b6cb0] hover:gap-3.5 transition-all"
@@ -1106,6 +1219,301 @@ export function ModulesSection() {
           </div>
         </div>
         </div>
+    </section>
+  )
+}
+
+// ─── EXPLORE SECTION — Planon-style 2-col solutions grid (2026-09-04) ────────
+// New homepage section, replaces ModulesSection above (see its unused-note).
+// Layout copied from planonsoftware.com/us's "Explore our solutions" block:
+// intro paragraph, then a 2-column grid of bordered white cards — title +
+// description + "Learn more" on the left, a solid-blue icon square on the
+// right — on a light-gray section background (#f7f7f7, matches the gray
+// used elsewhere on this page). Content is Firmity's own 8 modules
+// (MODULES_LIST above), not Planon's copy.
+export function ExploreSection() {
+  return (
+    // py-14 lg:py-20 → flat py-10 (2026-09-04, per request: "the top gap
+    // between Explore our solutions should be the same as the top gap in
+    // Browse our latest resources" — HomeBlogSection above uses a flat
+    // py-10 with no lg: bump, so this now matches it exactly instead of
+    // guessing a proportionally-scaled value).
+    // id="explore-solutions" (2026-09-05) — target of the navbar's new "Our
+    // Solutions" link (/#explore-solutions, src/components/navigation.tsx).
+    // NOTE (2026-09-05 fix): this used to also carry `scroll-mt-16`
+    // (scroll-margin-top: 64px) — but globals.css's `html{scroll-padding-top:
+    // 64px}` ALREADY reserves that same 64px sitewide. scroll-margin (on the
+    // target) and scroll-padding (on the scroll container) are additive per
+    // spec, so having both stacked to a 128px reserved gap — exactly why the
+    // landing consistently stopped one nav-height short with the previous
+    // section's tail still showing. Removed here; the single sitewide
+    // scroll-padding-top is enough and keeps every anchor consistent — kept
+    // in sync with navigation.tsx's NAV_HEIGHT constant (was scroll-mt-24
+    // when the navbar was briefly h-24; reverted together 2026-09-05). The
+    // actual scroll (both same-page and cross-page) is now driven by
+    // src/hooks/use-hash-scroll.ts's scrollIntoView, not a bare CSS
+    // scroll-behavior jump — see that file for why.
+    <section id="explore-solutions" className="bg-[#f7f7f7] py-10">
+      <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16">
+        {/* mb-10 lg:mb-14 → mb-6 lg:mb-8 (2026-09-04, per request: "reduce
+            the gap between the cards and [this paragraph]") */}
+        <Reveal>
+          <h2 className="font-serif text-[clamp(1.6rem,4vw,2.6rem)] font-light leading-[1.15] text-[#114dac] tracking-tight mb-4">
+            Explore our cloud-based solutions
+          </h2>
+          <p className="text-[13.5px] font-light leading-[1.8] text-[#000000] max-w-[720px] mb-6 lg:mb-8">
+            Firmity brings every facility operation onto one secure, cloud-based platform and automates task management,
+            asset management, inventory management, visitor management, staff management, payroll, and expense
+            management. Elevate your facility operations beyond spreadsheets with Firmity.
+          </p>
+        </Reveal>
+
+        {/* rounded-xl → rounded-[4px] (2026-09-04, per request: "the
+            roundness of all these should be the same as the blog" —
+            matches HomeBlogSection's card radius exactly, on both the card
+            and the icon square). Whole card is a <Link>, per request "the
+            entire card should be clickable", with `cursor-pointer` explicit
+            and `group` driving the "Learn more" hover state.
+            2-col → 3-col (2026-09-04, per request: "let's also try to fit 3
+            instead of 2... if i dont like it, i will ask you to revert" —
+            this is the ONE line to change back: `lg:grid-cols-2`, gap-6).
+            Card padding p-6/p-8 → p-5/p-6 and gap-6/gap-8 → gap-4/gap-6
+            (2026-09-04, per request: "make the cards more compact... reduce
+            the gap between the cards"). Icon square 84–104px → 64–76px to
+            fit 3-up without crowding.
+            Icon composition changed to a building motif (2026-09-04, per
+            request: "use the buildings in iconography for the explore our
+            solutions" — matches Planon's own icon style, a building
+            silhouette with a small circular badge in the corner carrying
+            each module's own glyph, rather than one bespoke icon per card. */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+          {MODULES_LIST.map(({ id, slug, title, desc, Icon }, i) => (
+            <Reveal key={id} delay={i * 40}>
+              <Link
+                href={"/features#" + slug}
+                className="group h-full flex items-start justify-between gap-4 bg-white border border-[#e2e8f0] rounded-[4px] p-5 sm:p-6 cursor-pointer hover:border-[#114dac]/40 hover:shadow-[0_10px_30px_rgba(17,77,172,0.08)] transition-all"
+              >
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-[15px] sm:text-[16px] font-semibold text-[#114dac] mb-2 leading-snug">
+                    {title}
+                  </h3>
+                  <p className="text-[12px] font-light text-[#000000] leading-relaxed mb-4">
+                    {desc}
+                  </p>
+                  <span className="inline-flex items-center gap-1.5 text-[#114dac] text-[12px] font-semibold group-hover:gap-2.5 transition-all">
+                    Learn more <ArrowRight size={12} />
+                  </span>
+                </div>
+                <div className="flex-shrink-0 w-[64px] h-[64px] sm:w-[76px] sm:h-[76px] rounded-[4px] bg-[#114dac] flex items-center justify-center">
+                  {/* Small Building2 corner badge removed 2026-09-04 per
+                      request ("remove the tiny buildings icons from the
+                      explore our solutions") — each module's own
+                      differentiating icon is the square's only icon now.
+                      `relative`/`overflow-visible` on this div were only
+                      needed to let that badge straddle the corner, so both
+                      dropped along with it. */}
+                  <Icon size={30} className="text-white" strokeWidth={1.5} />
+                </div>
+              </Link>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ─── KEEP IN TOUCH SECTION (2026-09-04) ───────────────────────────────────────
+// New section, placed directly after ExploreSection per request. Layout
+// copied from planonsoftware.com/us's "Keep in touch" block: dark panel,
+// newsletter email capture on the left, "Or connect with us on" + social
+// icons on the right.
+// No photo asset for this exists in the repo (public/images only has the
+// dashboard/phone mockup and the pillar illustration) — used the same dark
+// gradient treatment as the "See Firmity in Action" video panel elsewhere on
+// this page instead of lifting Planon's own photo. Swap in a real photo via
+// a background-image style on the outer div once one is supplied.
+// Newsletter form wired to /api/newsletter (2026-09-04, per request: "make
+// sure that the Subscribe to our newsletter and Keep in touch sign up cta
+// are both connected to firmity9@gmail.com like the rest" — was UI-only
+// before, no backend to submit to). Same honeypot + min-submit-time bot
+// resistance as the other lead-capture forms (brochure-download-form.tsx
+// etc.), duplicated inline here rather than factored out since this form's
+// visual treatment (dark banner, glass-adjacent styling) is specific to
+// this section and not shared with any other form.
+// Social links confirmed by user (2026-09-04): Instagram, LinkedIn, YouTube,
+// X (handle "firmityglobal" — URL constructed as https://x.com/firmityglobal,
+// not literally supplied). Facebook intentionally omitted — user said "i
+// think is connected" with no URL given; add it once confirmed rather than
+// guessing a link that may be wrong.
+const NEWSLETTER_MIN_SUBMIT_MS = 1500
+
+// bannerImage (2026-09-08): optional override so a page other than the
+// homepage can reuse this exact component/layout with its own banner
+// photo instead of contact_banner.png — added for /features, which uses
+// features_banner.png here ("same size as the banner on the homepage" —
+// literally the same component, so size/treatment can't drift, only the
+// photo changes). Defaults preserve the homepage's existing behavior
+// exactly (same file, same prop-less call site in src/app/page.tsx).
+export function KeepInTouchSection({
+  bannerImage = "/images/contact_banner.png",
+  // bannerPosition (2026-09-09): optional CSS background-position override,
+  // independent from bannerImage — added because /features' banner photo
+  // (features_banner.png) has its subject's face high in the frame; the
+  // previous fixed center-crop was clipping the top of her head there.
+  // "center top" shows the full top of the image (no crop from the top
+  // edge) so a face positioned high in a photo is never cut off. The
+  // homepage's contact_banner.png keeps its existing default ("center")
+  // untouched.
+  bannerPosition = "center",
+}: { bannerImage?: string; bannerPosition?: string } = {}) {
+  const [email, setEmail] = useState("")
+  const [website, setWebsite] = useState("") // honeypot — must stay empty
+  const [submitting, setSubmitting] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
+  const [error, setError] = useState("")
+  const mountedAt = useRef(Date.now())
+
+  const handleNewsletterSubmit = async (e: FormEvent) => {
+    e.preventDefault()
+    if (website.trim().length > 0 || Date.now() - mountedAt.current < NEWSLETTER_MIN_SUBMIT_MS) {
+      return
+    }
+    setSubmitting(true)
+    setError("")
+    try {
+      const res = await fetch("/api/newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, source: "keep-in-touch", website }),
+      })
+      if (!res.ok) throw new Error("Failed to sign up")
+      setSubmitted(true)
+      setEmail("")
+      setTimeout(() => setSubmitted(false), 5000)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong")
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const socialLinks = [
+    { label: "Instagram", href: "https://www.instagram.com/_firmity_?igsi=dGt2d2hjOW4wbnJo", Icon: Instagram },
+    { label: "LinkedIn", href: "https://www.linkedin.com/showcase/firmity-software-real-estate/", Icon: Linkedin },
+    { label: "YouTube", href: "https://www.youtube.com/@Firmity", Icon: Youtube },
+    { label: "X", href: "https://x.com/firmityglobal", Icon: XIcon },
+  ]
+
+  return (
+    <section className="relative overflow-hidden">
+      {/* Banner photo, per request. public/images/contact_banner.png already
+          existed in the repo (user placed it there) — a wide 2120×742
+          office photo with a deliberate empty dark panel on its left third,
+          clearly composed for text to sit over that side. Overlay tint
+          changed from a dark-navy gradient to Planon blue (2026-09-04, per
+          follow-up: "i dont want the dark blue gradient on the banner, i
+          want the blue which planon has which we have used everywhere" —
+          rgba(17,77,172,*) is #114dac, the same primary token used
+          everywhere else on the site). Still a left→right gradient
+          (strongest over the text, fading toward the photo's people on the
+          right) so the photo isn't fully obscured. Opacity stops lowered
+          0.88/0.62/0.28/0.16 → 0.60/0.40/0.18/0.08 (2026-09-04 follow-up,
+          per "reduce the opacity of the blue gradient on the banner
+          image") — photo now reads through more clearly under the text. */}
+      <div
+        className="absolute inset-0 bg-cover"
+        style={{ backgroundImage: `url(${bannerImage})`, backgroundPosition: bannerPosition }}
+      />
+      <div
+        className="absolute inset-0"
+        style={{ background: "linear-gradient(90deg, rgba(17,77,172,0.60) 0%, rgba(17,77,172,0.40) 45%, rgba(17,77,172,0.18) 75%, rgba(17,77,172,0.08) 100%)" }}
+      />
+      <div className="relative max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 py-14 lg:py-16">
+        <h2 className="font-serif text-[clamp(1.6rem,3.6vw,2.2rem)] font-light text-white mb-2.5">
+          Keep in touch
+        </h2>
+        <p className="text-[13px] font-light text-white/60 leading-relaxed mb-8 max-w-[480px]">
+          Register for our newsletter to receive free resources and industry news.
+        </p>
+
+        {/* Form and social icons share ONE row now (2026-09-04, per request
+            "align the social icons with the Keep in touch form") — was two
+            independently-centered blocks (heading+subtext+form vs.
+            label+icons), which let the icon row drift out of line with the
+            input row whenever the two blocks' heights differed. Now only
+            this row is centered, so the input and the icons sit on the
+            same baseline regardless of block height. */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 lg:gap-10">
+          <div className="max-w-[480px] w-full lg:w-auto">
+            {submitted ? (
+              <div className="flex items-center gap-2 text-[13px] text-white font-medium">
+                <CheckCircle2 size={16} className="flex-shrink-0" />
+                Thanks for signing up!
+              </div>
+            ) : (
+              <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-3">
+                {/* Honeypot — hidden off-screen, same pattern as brochure-download-form.tsx */}
+                <div className="absolute -left-[9999px] w-px h-px overflow-hidden" aria-hidden="true">
+                  <label htmlFor="keepintouch-website">Website</label>
+                  <input
+                    id="keepintouch-website"
+                    type="text"
+                    value={website}
+                    onChange={(e) => setWebsite(e.target.value)}
+                    tabIndex={-1}
+                    autoComplete="off"
+                  />
+                </div>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Your e-mail address"
+                  className="flex-1 min-w-0 text-[13px] px-4 py-3 rounded-[4px] border border-[#cbd5e0] bg-white text-[#114dac] placeholder:text-[#000000] focus:outline-none focus:border-[#114dac] focus:ring-1 focus:ring-[#114dac] transition-colors"
+                />
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="cursor-pointer bg-[#114dac] hover:bg-[#0e3e8a] text-white text-[13px] font-semibold px-6 py-3 rounded-[4px] transition-colors flex-shrink-0 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {submitting ? <Loader2 size={15} className="animate-spin" /> : "Sign up now"}
+                </button>
+              </form>
+            )}
+            {error && (
+              <div className="mt-2 flex items-center gap-1.5 text-[12px] text-red-200">
+                <AlertCircle size={13} className="flex-shrink-0" />
+                {error}
+              </div>
+            )}
+          </div>
+
+          <div className="flex-shrink-0">
+            <p className="text-[12px] font-semibold text-white uppercase tracking-[0.14em] mb-3 lg:text-right">
+              Or connect with us on
+            </p>
+            {/* Filled Planon blue + white (2026-09-04, per request: "fill
+                the social media icons with planon blue and white" — was a
+                translucent outline that only filled solid blue on hover). */}
+            <div className="flex items-center gap-3 lg:justify-end">
+              {socialLinks.map(({ label, href, Icon }) => (
+                <a
+                  key={label}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={label}
+                  className="cursor-pointer w-10 h-10 rounded-full bg-[#114dac] hover:bg-[#0e3e8a] border border-[#114dac] hover:border-[#0e3e8a] flex items-center justify-center text-white transition-colors"
+                >
+                  <Icon size={17} />
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
   )
 }

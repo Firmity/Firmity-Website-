@@ -422,7 +422,7 @@ export default function ManufacturingPage() {
           >
             <source src="/videos/factory.mp4" type="video/mp4" />
           </video>
-          <div className="absolute inset-0 bg-gradient-to-b from-[#0d1829]/60 via-[#111d35]/40 to-[#111d35]/95 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0d1829]/60 via-[#114dac]/40 to-[#114dac]/95 pointer-events-none" />
           <div className="absolute inset-0 pointer-events-none opacity-[0.025]" aria-hidden="true"
             style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "40px 40px" }} />
 
@@ -506,7 +506,7 @@ export default function ManufacturingPage() {
           <div className="max-w-6xl mx-auto">
             <Reveal>
               <SectionLabel>Industry Challenges</SectionLabel>
-              <h2 className="font-serif text-[clamp(1.8rem,4vw,2.8rem)] font-light text-[#111d35] mb-4 max-w-2xl">
+              <h2 className="font-serif text-[clamp(1.8rem,4vw,2.8rem)] font-light text-[#114dac] mb-4 max-w-2xl">
                 Manufacturing maintenance is broken by default
               </h2>
               <p className="text-[15px] text-[#718096] font-light mb-14 max-w-2xl leading-relaxed">
@@ -521,7 +521,7 @@ export default function ManufacturingPage() {
                       <div className="w-10 h-10 rounded-xl bg-[#eef3f9] flex items-center justify-center mb-4">
                         <Icon size={18} className="text-[#2b6cb0]" />
                       </div>
-                      <p className="font-serif text-[1.2rem] font-light text-[#111d35] mb-1.5">{title}</p>
+                      <p className="font-serif text-[1.2rem] font-light text-[#114dac] mb-1.5">{title}</p>
                       <p className="text-[13.5px] text-[#718096] font-light leading-relaxed">{desc}</p>
                     </div>
                   </Reveal>
@@ -536,7 +536,7 @@ export default function ManufacturingPage() {
           <div className="max-w-6xl mx-auto">
             <Reveal>
               <SectionLabel>Sub-Verticals</SectionLabel>
-              <h2 className="font-serif text-[clamp(1.8rem,4vw,2.8rem)] font-light text-[#111d35] mb-4">
+              <h2 className="font-serif text-[clamp(1.8rem,4vw,2.8rem)] font-light text-[#114dac] mb-4">
                 Built for every type of manufacturing facility
               </h2>
               <p className="text-[15px] text-[#718096] font-light mb-14 max-w-2xl leading-relaxed">
@@ -548,7 +548,7 @@ export default function ManufacturingPage() {
                 return (
                   <Reveal key={i} delay={(i % 3) * 90}>
                     <div>
-                      <p className="font-serif text-[1.2rem] font-light text-[#111d35] mb-1">{title}</p>
+                      <p className="font-serif text-[1.2rem] font-light text-[#114dac] mb-1">{title}</p>
                       <p className="text-[10.5px] text-[#a0aec0] font-semibold mb-4 tracking-[0.14em] uppercase">{tag}</p>
                       <ul className="space-y-2.5">
                         {points.map(function(p, j) {
@@ -572,12 +572,12 @@ export default function ManufacturingPage() {
         <section className="relative bg-white py-20 px-6 overflow-hidden">
           {/* FIRMITY watermark */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none" aria-hidden="true">
-            <span className="font-serif font-bold text-[#111d35] opacity-[0.04] leading-none tracking-tight" style={{ fontSize: "clamp(6rem,18vw,14rem)" }}>FIRMITY</span>
+            <span className="font-serif font-bold text-[#114dac] opacity-[0.04] leading-none tracking-tight" style={{ fontSize: "clamp(6rem,18vw,14rem)" }}>FIRMITY</span>
           </div>
           {/* Header aligned to max-w-5xl like sibling sections */}
           <Reveal className="max-w-5xl mx-auto mb-10">
             <SectionLabel>Features</SectionLabel>
-            <h2 className="font-serif text-[clamp(1.8rem,4vw,2.8rem)] font-light text-[#111d35] mb-2">
+            <h2 className="font-serif text-[clamp(1.8rem,4vw,2.8rem)] font-light text-[#114dac] mb-2">
               Everything your plant needs, in one platform
             </h2>
             <p className="text-[14px] text-[#718096] font-light">Click a module to see how it works.</p>
@@ -593,7 +593,7 @@ export default function ManufacturingPage() {
                     key={t.id}
                     type="button"
                     onClick={function() { setActiveTab(t.id) }}
-                    className={"cursor-pointer px-5 py-2 rounded-full text-[13px] font-medium transition-all " + (
+                    className={"cursor-pointer px-5 py-2 rounded-[4px] text-[13px] font-medium transition-all " + (
                       active
                         ? "bg-[#2b6cb0] text-white shadow-[0_2px_12px_rgba(43,108,176,0.30)]"
                         : "border border-[#b0bfd4] text-[#2d3748] bg-[#f7f9fc] hover:border-[#2b6cb0] hover:text-[#2b6cb0] hover:bg-white"
@@ -608,7 +608,7 @@ export default function ManufacturingPage() {
             {/* Active tab content */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
               <div>
-                <h3 className="font-serif text-[clamp(1.5rem,3vw,2rem)] font-light text-[#111d35] leading-snug mb-4">
+                <h3 className="font-serif text-[clamp(1.5rem,3vw,2rem)] font-light text-[#114dac] leading-snug mb-4">
                   {tab.heading}
                 </h3>
                 <p className="text-[14px] text-[#718096] font-light leading-relaxed mb-6">{tab.body}</p>
@@ -627,7 +627,7 @@ export default function ManufacturingPage() {
         <section className="bg-[#f8fafc] py-20 px-6 border-t border-[#eef3f9]">
           <Reveal className="max-w-3xl mx-auto text-center">
             <SectionLabel>Case Study</SectionLabel>
-            <h2 className="font-serif text-[clamp(1.5rem,3vw,2.1rem)] font-light text-[#111d35] mb-4">
+            <h2 className="font-serif text-[clamp(1.5rem,3vw,2.1rem)] font-light text-[#114dac] mb-4">
               How Apex Auto Components cut maintenance costs by 31%
             </h2>
             <p className="text-[14px] text-[#718096] font-light mb-10 leading-relaxed">
@@ -682,7 +682,7 @@ export default function ManufacturingPage() {
                   <Link key={r.href} href={r.href}
                     className="group flex items-center justify-between p-6 rounded-[20px] border border-[#dbe5f0] hover:border-[#2b6cb0] hover:bg-[#eef3f9] transition-all">
                     <div>
-                      <p className="text-[13.5px] font-semibold text-[#111d35] mb-1">{r.label}</p>
+                      <p className="text-[13.5px] font-semibold text-[#114dac] mb-1">{r.label}</p>
                       <p className="text-[12.5px] text-[#718096] font-light">{r.desc}</p>
                     </div>
                     <ArrowRight size={16} className="text-[#2b6cb0] opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-4" />
@@ -694,7 +694,7 @@ export default function ManufacturingPage() {
         </section>
 
         {/* ── CTA ───────────────────────────────────────────────── */}
-        <section className="bg-[#111d35] py-20 px-6">
+        <section className="bg-[#114dac] py-20 px-6">
           <Reveal className="max-w-3xl mx-auto text-center">
             <h2 className="font-serif text-[clamp(1.6rem,4vw,2.5rem)] font-light text-white mb-4">
               Ready to transform your facility maintenance?

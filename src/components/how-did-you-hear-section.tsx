@@ -16,19 +16,17 @@ import { HowDidYouHearForm } from "@/src/components/how-did-you-hear-form"
 
 export function HowDidYouHearSection() {
   return (
-    <section className="bg-transparent sm:bg-white/60 py-14">
+    // py-14 → py-10 (2026-09-04, inter-section spacing pass)
+    <section className="bg-transparent sm:bg-white/60 py-10">
       <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
         {/* Left — copy + form, left-aligned */}
         <Reveal direction="right">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-6 h-px bg-[#2b6cb0]" />
-            <span className="text-[#2b6cb0] text-[10px] font-semibold tracking-[0.2em] uppercase">Quick Question</span>
-          </div>
-          <h2 className="font-serif text-[clamp(1.6rem,4vw,2.6rem)] font-light leading-[1.15] text-[#1a202c] tracking-tight mb-2">
+          {/* "Quick Question" kicker removed 2026-09-04 per request */}
+          <h2 className="font-serif text-[clamp(1.6rem,4vw,2.6rem)] font-light leading-[1.15] text-[#114dac] tracking-tight mb-2">
             Help us get to know you better
           </h2>
-          <p className="text-[13.5px] font-light leading-[1.8] text-[#4a5568] mb-8 max-w-[400px]">
-            Could you please share with us how you got to know Firmity?
+          <p className="text-[13.5px] font-light leading-[1.8] text-[#000000] mb-8 max-w-[400px]">
+            Could you also please share with us how you got to know about Firmity?
           </p>
 
           <div className="max-w-md">
@@ -43,7 +41,7 @@ export function HowDidYouHearSection() {
             <img
               src="/images/illustration.png"
               alt=""
-              className="w-full max-w-[480px] h-auto opacity-70"
+              className="w-full max-w-[480px] h-auto opacity-70 rounded-[4px]"
               style={{ transform: "scaleX(-1)" }}
             />
           </Reveal>
