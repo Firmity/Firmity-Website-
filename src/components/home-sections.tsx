@@ -727,18 +727,25 @@ function SlideshowLeft({
       {/* Phone only: per-slide photo behind the text (2026-09-18 per report —
           "on phone, images are not visible in the background" — this panel
           previously showed ONLY the opaque gradient below with no photo at
-          all; desktop gets its own crossfading image panel further down in
-          HeroSection, `hidden lg:block`, mobile got nothing). object-cover
-          crops to fill the panel; key={slide.key} forces a fresh <img> per
-          slide so the browser doesn't try to reuse/crossfade the element
-          across slide changes. */}
-      <img
-        key={slide.key}
-        src={slide.image}
-        alt=""
-        aria-hidden
-        className="lg:hidden absolute inset-0 z-0 w-full h-full object-cover"
-      />
+          all). Now crossfades (2026-09-18 per request) using the exact same
+          technique as desktop's own crossfading panel further down in
+          HeroSection: every slide's image is mounted at once, absolutely
+          stacked, with only the active one at opacity-100 and a
+          transition-opacity on all of them — swapping opacity fades between
+          two already-loaded images instead of the old key={slide.key}
+          approach, which force-remounted a fresh <img> per slide (an
+          instant cut, nothing to fade). `blur-[1.2px] scale-110` unchanged
+          from before. */}
+      {ALL_SLIDES.map((s) => (
+        <img
+          key={s.key}
+          src={s.image}
+          alt=""
+          aria-hidden
+          className="lg:hidden absolute inset-0 z-0 w-full h-full object-cover blur-[1.2px] scale-110 transition-opacity duration-700 ease-out"
+          style={{ opacity: s.key === slide.key ? 1 : 0 }}
+        />
+      ))}
       {/* Legibility scrim over the photo above — was an OPAQUE gradient (no
           photo behind it to begin with, so opacity never mattered); now
           semi-transparent so the photo shows through while keeping the text
@@ -792,7 +799,27 @@ function SlideshowLeft({
           contains. At lg+ they're hidden — HeroSection's own
           absolutely-positioned, edge-of-panel arrows take over there
           instead, unchanged. */}
-      <div className={`${HERO_PX} flex-1 flex flex-col justify-center py-20 lg:py-0 relative z-10`}>
+      {/* `min-h-0 overflow-hidden` added (2026-09-18, per request: arrows
+          must not move up/down between slides). This div is `flex-1` inside
+          SlideshowLeft's now-fixed-height root (h-full resolves against the
+          ancestor's h-[100svh] on mobile — see that div's own comment) —
+          but flex items default to `min-height: auto`, which floors this
+          box at its own content's height whenever kicker+headline+
+          description+CTA is taller than the flex-computed share, overriding
+          the fixed parent height with a per-slide, content-driven one. That
+          variable height is what `top-1/2` on the arrow buttons below was
+          computing against, hence the drift. `min-h-0` removes that floor,
+          so this div's height is always exactly (fixed root height − the
+          indicator bar's own constant height) — the same on every slide —
+          which pins the arrows to one fixed spot. `overflow-hidden` clips
+          any slide whose content is too tall for that now-capped box (the
+          longest slide's description) at this div's own edge, instead of
+          letting it visually spill onto the indicator bar below — the same
+          clip-rather-than-grow tradeoff already accepted for the panel's
+          fixed height. Both classes are inert at lg: the ancestor is
+          `lg:h-auto`, so this div's height stays content-driven there,
+          unchanged — and the arrows are `lg:hidden` regardless. */}
+      <div className={`${HERO_PX} flex-1 min-h-0 overflow-hidden flex flex-col justify-center py-20 lg:py-0 relative z-10`}>
         <button
           type="button"
           onClick={goToPrev}
@@ -811,27 +838,16 @@ function SlideshowLeft({
         </button>
         <div
           key={animKey}
-          // Glassmorphic card on mobile only (2026-09-18 per report that
-          // text was still hard to read over busier photos even with the
-          // stronger scrim above) — backdrop-blur-md blurs whatever part
-          // of the photo sits directly behind THIS text block specifically,
-          // which is more reliable than raising the scrim's opacity
-          // further: that helps everywhere uniformly (already at
-          // 0.65-0.94 alpha) but can't fully neutralize high-contrast
-          // photo detail right behind the text, and every step past this
-          // starts erasing the photo entirely — defeating the point of
-          // showing it. Opacity lowered from /60 to /25 (2026-09-18 per
-          // report "the cards... look too ugly") — still enough blur+tint
-          // to read text reliably without the card reading as a stark
-          // opaque white block. `mx-12` (2026-09-18) makes room for the
-          // now-absolutely-positioned arrow buttons on either side so the
-          // card doesn't run underneath them. Every lg: class below resets
-          // to the original plain (no bg/blur/border/padding/margin)
-          // desktop treatment, which never had this problem since
-          // desktop's text column isn't layered over a photo at all (the
-          // crossfading image lives in its own right-side panel there —
-          // see HeroSection below).
-          className="flex flex-col flex-1 min-w-0 mx-12 bg-white/25 backdrop-blur-md rounded-[20px] px-4 py-4 border border-white/25 shadow-[0_8px_30px_rgba(17,29,53,0.06)] lg:mx-0 lg:flex-none lg:bg-transparent lg:backdrop-blur-none lg:rounded-none lg:px-0 lg:py-0 lg:border-0 lg:shadow-none"
+          // Card removed (2026-09-18 per request: "remove the card from the
+          // slideshow in mobile view, blur the background a bit" — the
+          // <img>'s own comment above is the blur half of that). `mx-12` is
+          // kept exactly as it was — it's what set the text's horizontal
+          // bounds before (matched to stay clear of the absolutely-
+          // positioned arrow buttons on either side) and is the same width
+          // being kept now, just with the bg/blur/border/rounding/padding
+          // that used to sit inside it stripped out. `lg:mx-0 lg:flex-none`
+          // unchanged — pre-existing desktop reset, untouched.
+          className="flex flex-col flex-1 min-w-0 mx-12 lg:mx-0 lg:flex-none"
         >
           {/* No per-slide thumbnail in this column (removed 2026-09-05 — it
               read as "a weird empty image" wedged above the heading). The
@@ -897,8 +913,26 @@ function SlideshowLeft({
         </div>
       </div>
 
-      {/* Bottom indicators */}
-      <div className={`${HERO_PX} pb-7 relative z-10`}>
+      {/* Bottom indicators. `flex-shrink-0` added (2026-09-18, per request:
+          this bar must stay fixed in place, never overlapped or pushed out
+          of the hero section). It's already protected in the normal case —
+          the content div above it is `flex-1 min-h-0`, so it absorbs 100% of
+          the fixed root's free space, leaving this bar pinned at a constant
+          natural height right below it, and that same content div's
+          `overflow-hidden` clips any slide whose text is too tall instead of
+          spilling onto this bar. `flex-shrink-0` closes the one remaining
+          edge case: if a slide's content were ever tall enough to exceed the
+          fixed root height entirely (negative free space), a 0%-basis flex
+          item contributes zero weight to the browser's shrink distribution,
+          so without this class the shrinkage could fall on THIS bar instead
+          (compressing/clipping the numbers) rather than the content area
+          that's built to absorb it. `flex-shrink-0` guarantees this bar
+          never shrinks below its natural size no matter what. This div is
+          shared with desktop (no lg:-scoping here), but it's a no-op there
+          too: at lg the ancestor is `lg:h-auto`, an indefinite/content-
+          driven height, so there's never leftover or negative space for
+          flex-grow/shrink to redistribute in the first place. */}
+      <div className={`${HERO_PX} pb-7 relative z-10 flex-shrink-0`}>
         <div className="flex items-end gap-2 lg:gap-2.5 overflow-x-auto pb-1 no-scrollbar">
           {ALL_SLIDES.map((s, i) => {
             const isActive = i === activeIndex
@@ -1100,7 +1134,17 @@ export function HeroSection() {
         <ChevronRight size={44} strokeWidth={2} />
       </button>
 
-      <div className="relative overflow-hidden order-1 min-h-[360px] lg:min-h-0">
+      {/* `min-h-[360px]` → `h-[100svh]` (2026-09-18, per request: slideshow
+          height must stay identical across every slide on mobile). A `min-h`
+          isn't a definite height, so this item's `h-full` child couldn't
+          reliably resolve against it — it fell back to sizing off its own
+          content instead, which is why taller/shorter slide text was
+          changing the panel's height. `h-[100svh]` is definite and viewport-
+          locked, so it can't grow or shrink with content; any slide taller
+          than that is clipped by this div's own `overflow-hidden` (and
+          SlideshowLeft's root, which has the same). `lg:min-h-0` unchanged —
+          desktop untouched. */}
+      <div className="relative overflow-hidden order-1 h-[100svh] lg:h-auto lg:min-h-0">
         <SlideshowLeft activeIndex={activeIndex} animKey={animKey} paused={paused} goTo={goTo} />
       </div>
 
