@@ -547,17 +547,22 @@ const MODULE_INDICATOR_LABELS = [
 ]
 
 export const MODULE_PAGES: Record<string, string> = {
-  "facility-records":       "/facility-records",
-  "preventive-maintenance": "/preventive-maintenance",
-  "complaint-management":   "/complaint-management",
-  "asset-management":       "/asset-management",
-  "inventory-management":   "/inventory-management",
-  "staff-attendance":       "/staff-attendance",
-  "visitor-management":     "/visitor-management",
-  // payroll-management / facility-expense-management intentionally absent —
-  // no dedicated page exists yet, so these fall through to the `??
-  // /features#${slug}` default below, which now resolves (see FEATURES on
-  // src/app/features/page.tsx, 2026-09-05).
+  "facility-records":            "/facility-records",
+  "preventive-maintenance":      "/facility-task-automation",
+  "complaint-management":        "/complaint-management",
+  "asset-management":            "/asset-management",
+  "inventory-management":        "/inventory-management",
+  "staff-attendance":            "/staff-attendance",
+  "visitor-management":          "/visitor-management",
+  // payroll-management / facility-expense-management (2026-09-12): dedicated
+  // pages now exist — see src/app/payroll-management and
+  // src/app/facility-expense-management (built on ModulePageTemplate, same
+  // as facility-task-automation). Every surface that reads MODULE_PAGES
+  // (homepage ExploreSection/Hero slideshow, footer SOLUTIONS, /features
+  // "View Detailed Features Listing" CTA, the guide-page sidebar) picks up
+  // these two automatically.
+  "payroll-management":           "/payroll-management",
+  "facility-expense-management":  "/facility-expense-management",
 }
 
 // Real per-module photography, keyed by MODULES_LIST slug — added as it
@@ -1366,7 +1371,14 @@ export function KeepInTouchSection({
   // homepage's contact_banner.png keeps its existing default ("center")
   // untouched.
   bannerPosition = "center",
-}: { bannerImage?: string; bannerPosition?: string } = {}) {
+  // reserveLeftGutter (2026-09-12): opt-in extra left padding at lg+ so this
+  // section's text doesn't sit under module-page-template.tsx's fixed
+  // "Explore our solutions" sidebar, which — per request — stays on screen
+  // for the whole page, this section included. Defaults to false so the
+  // homepage (src/app/page.tsx) and /features, which have no such sidebar,
+  // render exactly as before; only module pages pass true.
+  reserveLeftGutter = false,
+}: { bannerImage?: string; bannerPosition?: string; reserveLeftGutter?: boolean } = {}) {
   const [email, setEmail] = useState("")
   const [website, setWebsite] = useState("") // honeypot — must stay empty
   const [submitting, setSubmitting] = useState(false)
@@ -1429,7 +1441,7 @@ export function KeepInTouchSection({
         className="absolute inset-0"
         style={{ background: "linear-gradient(90deg, rgba(17,77,172,0.60) 0%, rgba(17,77,172,0.40) 45%, rgba(17,77,172,0.18) 75%, rgba(17,77,172,0.08) 100%)" }}
       />
-      <div className="relative max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 py-14 lg:py-16">
+      <div className={`relative max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 py-14 lg:py-16 ${reserveLeftGutter ? "lg:pl-[calc(4rem+284px)]" : ""}`}>
         <h2 className="font-serif text-[clamp(1.6rem,3.6vw,2.2rem)] font-light text-white mb-2.5">
           Keep in touch
         </h2>
