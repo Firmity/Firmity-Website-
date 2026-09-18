@@ -846,19 +846,6 @@ export default function FirmityHome() {
               page. Section now ends right after the carousel. */}
         </section>
 
-        {/* ── BLOG PREVIEW — 4 latest posts, fetched client-side via /api/blog/latest ──
-            Moved here 2026-09-04: directly under "Companies Using Firmity"
-            (was below "Help us get to know you better"). Heading renamed
-            "More facility management insights" → "Browse our latest
-            resources" in the same request — see the HomeBlogSection
-            function above for that string. */}
-        <HomeBlogSection />
-
-        {/* ── HOW DID YOU HEAR ABOUT US — anonymous attribution pulse-check ──
-            Implementation lives in src/components/how-did-you-hear-section.tsx.
-            Re-asked again post-submit on /contact — see src/app/contact/page.tsx. */}
-        <HowDidYouHearSection />
-
         {/* ── SEVEN MODULES — commented out 2026-09-04, replaced by
             ExploreSection below (Planon 2-col card-grid layout, per
             request: "comment out our existing explore section and instead
@@ -1008,6 +995,26 @@ export default function FirmityHome() {
             </div>
           </div>
         )}
+
+        {/* ── BLOG PREVIEW — 4 latest posts, fetched client-side via /api/blog/latest ──
+            Moved here 2026-09-18, directly after "Contact Us for a
+            Walkthrough" and above "What our customers say" (was directly
+            under "Companies Using Firmity"), per request: "move Browse our
+            latest resources ... before What our customers say ... so it
+            becomes ...Contact Us for a Walkthrough and then browse our
+            latest resources and help us get to... and what our customers
+            say." Heading is "Browse our latest resources" — see the
+            HomeBlogSection function above for that string. */}
+        <HomeBlogSection />
+
+        {/* ── HOW DID YOU HEAR ABOUT US — anonymous attribution pulse-check ──
+            Implementation lives in src/components/how-did-you-hear-section.tsx.
+            Moved here 2026-09-18, directly above "What our customers say"
+            (was directly under "Browse our latest resources", right after
+            Companies Using Firmity), per the same request as HomeBlogSection
+            above. Re-asked again post-submit on /contact — see
+            src/app/contact/page.tsx. */}
+        <HowDidYouHearSection />
 
         {/* ── WHAT OUR CUSTOMERS SAY — case-study cards (2026-09-04) ──
             MOVED above KeepInTouchSection per request ("move What our
