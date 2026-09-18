@@ -20,7 +20,7 @@ const industryItems = [
     href: "/industries/manufacturing",
     accent: "#2b6cb0",
     subItems: [
-      { label: "PPM Scheduling", href: "/preventive-maintenance" },
+      { label: "PPM Scheduling", href: "/facility-task-automation" },
       { label: "Asset Tracking", href: "/asset-management" },
       { label: "Breakdown Management", href: "/complaint-management" },
       { label: "Compliance Records", href: "/facility-records" },
@@ -44,7 +44,7 @@ const industryItems = [
     subItems: [
       { label: "Gate & Visitor Logs", href: "/visitor-management" },
       { label: "Resident Complaints", href: "/complaint-management" },
-      { label: "Common Area PPM", href: "/preventive-maintenance" },
+      { label: "Common Area PPM", href: "/facility-task-automation" },
       { label: "Society Records", href: "/facility-records" },
     ],
   },

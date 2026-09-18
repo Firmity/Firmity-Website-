@@ -26,6 +26,15 @@ const SESSION_KEY_SHOWN = "firmity-survey-popup-shown"
 // repeat-popup bug.
 const SESSION_KEY_CLOSED = "firmity-survey-popup-closed"
 
+// Hidden per request (2026-09-19): "hide free ai survey thumbnail." The
+// sticky chip below (appears after the full popup is closed once) is now
+// skipped entirely; the full popup itself is untouched and still shows once
+// per session on "/". Flip this back to true to restore the thumbnail — the
+// state machine that drives it (hasBeenClosed/SESSION_KEY_CLOSED) is left
+// exactly as-is rather than ripped out, so this is a one-line revert.
+// Freed the bottom-20 rail slot, now used by AppQrWidget (app-qr-widget.tsx).
+const SHOW_STICKY_THUMBNAIL = false
+
 export function SurveyPopup() {
   const [isOpen, setIsOpen] = useState(false)
   const [hasBeenClosed, setHasBeenClosed] = useState(false)
@@ -132,7 +141,7 @@ export function SurveyPopup() {
           widget's right edge tracks the Book Demo button/footer edge at any
           viewport width instead of a raw `right-5`. bottom-24 (not bottom-5)
           still stacks it above the WhatsApp button. */}
-      {hasBeenClosed && !isOpen && (
+      {SHOW_STICKY_THUMBNAIL && hasBeenClosed && !isOpen && (
         // bottom-24 (96px) was tuned for the old, larger WhatsApp button (56px
         // @ bottom-5) — left a ~28px gap above it. WhatsApp is now 48px, so
         // bottom-20 (80px) closes that down to ~12px without the two touching.

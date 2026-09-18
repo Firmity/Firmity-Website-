@@ -547,17 +547,22 @@ const MODULE_INDICATOR_LABELS = [
 ]
 
 export const MODULE_PAGES: Record<string, string> = {
-  "facility-records":       "/facility-records",
-  "preventive-maintenance": "/preventive-maintenance",
-  "complaint-management":   "/complaint-management",
-  "asset-management":       "/asset-management",
-  "inventory-management":   "/inventory-management",
-  "staff-attendance":       "/staff-attendance",
-  "visitor-management":     "/visitor-management",
-  // payroll-management / facility-expense-management intentionally absent —
-  // no dedicated page exists yet, so these fall through to the `??
-  // /features#${slug}` default below, which now resolves (see FEATURES on
-  // src/app/features/page.tsx, 2026-09-05).
+  "facility-records":            "/facility-records",
+  "preventive-maintenance":      "/facility-task-automation",
+  "complaint-management":        "/complaint-management",
+  "asset-management":            "/asset-management",
+  "inventory-management":        "/inventory-management",
+  "staff-attendance":            "/staff-attendance",
+  "visitor-management":          "/visitor-management",
+  // payroll-management / facility-expense-management (2026-09-12): dedicated
+  // pages now exist — see src/app/payroll-management and
+  // src/app/facility-expense-management (built on ModulePageTemplate, same
+  // as facility-task-automation). Every surface that reads MODULE_PAGES
+  // (homepage ExploreSection/Hero slideshow, footer SOLUTIONS, /features
+  // "View Detailed Features Listing" CTA, the guide-page sidebar) picks up
+  // these two automatically.
+  "payroll-management":           "/payroll-management",
+  "facility-expense-management":  "/facility-expense-management",
 }
 
 // Real per-module photography, keyed by MODULES_LIST slug — added as it
@@ -693,6 +698,19 @@ function SlideshowLeft({
   const slide = ALL_SLIDES[activeIndex]
   const isHero = activeIndex === 0
 
+  // Mobile-only prev/next (2026-09-18 per report — arrows should flank the
+  // text, not float at a fixed page offset). Same wrap-around modulo as
+  // HeroSection's own goToPrev/goToNext (which still drive the lg+ arrows
+  // rendered there, positioned at the panel edges); duplicated here rather
+  // than lifted into a shared prop because `goTo` is already available on
+  // this component and that's all either version needs.
+  function goToPrev() {
+    goTo((activeIndex - 1 + ALL_SLIDES.length) % ALL_SLIDES.length)
+  }
+  function goToNext() {
+    goTo((activeIndex + 1) % ALL_SLIDES.length)
+  }
+
   return (
     <div
       className="relative overflow-hidden h-full flex flex-col"
@@ -706,15 +724,36 @@ function SlideshowLeft({
       // longer read here.
       style={{ background: "rgba(255,255,255,0.6)", transition: "background 600ms ease", ["--ink" as string]: inkAccent(slide.accent) } as CSSProperties}
     >
-      {/* Phone only: same light gradient for every slide, matching the
-          desktop panel above. isHero stops were beige (#f7f1e6/#f1e8d7) —
-          swapped to gray 2026-09-04 to match the sitewide beige→gray change
-          (same #f7f7f7 family used for the Hero desktop panel and
-          HomeBlogSection). */}
+      {/* Phone only: per-slide photo behind the text (2026-09-18 per report —
+          "on phone, images are not visible in the background" — this panel
+          previously showed ONLY the opaque gradient below with no photo at
+          all; desktop gets its own crossfading image panel further down in
+          HeroSection, `hidden lg:block`, mobile got nothing). object-cover
+          crops to fill the panel; key={slide.key} forces a fresh <img> per
+          slide so the browser doesn't try to reuse/crossfade the element
+          across slide changes. */}
+      <img
+        key={slide.key}
+        src={slide.image}
+        alt=""
+        aria-hidden
+        className="lg:hidden absolute inset-0 z-0 w-full h-full object-cover"
+      />
+      {/* Legibility scrim over the photo above — was an OPAQUE gradient (no
+          photo behind it to begin with, so opacity never mattered); now
+          semi-transparent so the photo shows through while keeping the text
+          block below readable. Text here (navy headline, black description)
+          stays dark, so this scrim has to stay LIGHT to keep contrast — a
+          literal dark/black scrim would fight the text color instead of
+          helping it. Strengthened once already (2026-09-18 per report that
+          text still wasn't reading clearly enough over busier photos) by
+          raising the alpha at every stop; if it still needs more, raise
+          these further before reaching for a dark scrim + white text
+          instead (a bigger, deliberate redesign, not a tweak). */}
       <div
         className="lg:hidden absolute inset-0 z-0 transition-[background] duration-700"
         aria-hidden
-        style={{ background: "linear-gradient(160deg, #ffffff 0%, #f2f2f2 62%, #ececec 100%)" }}
+        style={{ background: "linear-gradient(160deg, rgba(255,255,255,0.94) 0%, rgba(242,242,242,0.8) 55%, rgba(236,236,236,0.65) 100%)" }}
       />
       <style>{`
         @keyframes hsModUp  { from { opacity:0; transform:translateY(36px); } to { opacity:1; transform:translateY(0); } }
@@ -739,9 +778,61 @@ function SlideshowLeft({
         </span>
       </div>
 
-      {/* Main content */}
+      {/* Main content. Prev/next arrows here are mobile-only, absolutely
+          positioned within THIS div (2026-09-18, replacing an earlier
+          flex-row-with-buttons-in-flow layout that had the arrows as flex
+          SIBLINGS of the animKey content block below — since that block's
+          height changes per slide (kicker present/absent, 1 vs 2-line
+          description), `items-center` on that row re-centered the arrows
+          differently on every slide, i.e. exactly the "keep moving up and
+          down" bug reported. Anchoring them to `top-1/2` of THIS div instead
+          — whose own height is fixed by `flex-1` regardless of its
+          content's height — makes their position independent of slide
+          content entirely, so they can't drift again no matter what a slide
+          contains. At lg+ they're hidden — HeroSection's own
+          absolutely-positioned, edge-of-panel arrows take over there
+          instead, unchanged. */}
       <div className={`${HERO_PX} flex-1 flex flex-col justify-center py-20 lg:py-0 relative z-10`}>
-        <div key={animKey} className="flex flex-col">
+        <button
+          type="button"
+          onClick={goToPrev}
+          aria-label="Previous slide"
+          className="lg:hidden absolute left-0 top-1/2 -translate-y-1/2 z-20 cursor-pointer p-1 text-[#114dac] opacity-70 hover:opacity-100 transition-opacity focus:outline-none focus-visible:opacity-100"
+        >
+          <ChevronLeft size={44} strokeWidth={2} />
+        </button>
+        <button
+          type="button"
+          onClick={goToNext}
+          aria-label="Next slide"
+          className="lg:hidden absolute right-0 top-1/2 -translate-y-1/2 z-20 cursor-pointer p-1 text-[#114dac] opacity-70 hover:opacity-100 transition-opacity focus:outline-none focus-visible:opacity-100"
+        >
+          <ChevronRight size={44} strokeWidth={2} />
+        </button>
+        <div
+          key={animKey}
+          // Glassmorphic card on mobile only (2026-09-18 per report that
+          // text was still hard to read over busier photos even with the
+          // stronger scrim above) — backdrop-blur-md blurs whatever part
+          // of the photo sits directly behind THIS text block specifically,
+          // which is more reliable than raising the scrim's opacity
+          // further: that helps everywhere uniformly (already at
+          // 0.65-0.94 alpha) but can't fully neutralize high-contrast
+          // photo detail right behind the text, and every step past this
+          // starts erasing the photo entirely — defeating the point of
+          // showing it. Opacity lowered from /60 to /25 (2026-09-18 per
+          // report "the cards... look too ugly") — still enough blur+tint
+          // to read text reliably without the card reading as a stark
+          // opaque white block. `mx-12` (2026-09-18) makes room for the
+          // now-absolutely-positioned arrow buttons on either side so the
+          // card doesn't run underneath them. Every lg: class below resets
+          // to the original plain (no bg/blur/border/padding/margin)
+          // desktop treatment, which never had this problem since
+          // desktop's text column isn't layered over a photo at all (the
+          // crossfading image lives in its own right-side panel there —
+          // see HeroSection below).
+          className="flex flex-col flex-1 min-w-0 mx-12 bg-white/25 backdrop-blur-md rounded-[20px] px-4 py-4 border border-white/25 shadow-[0_8px_30px_rgba(17,29,53,0.06)] lg:mx-0 lg:flex-none lg:bg-transparent lg:backdrop-blur-none lg:rounded-none lg:px-0 lg:py-0 lg:border-0 lg:shadow-none"
+        >
           {/* No per-slide thumbnail in this column (removed 2026-09-05 — it
               read as "a weird empty image" wedged above the heading). The
               module's photo/placeholder now lives ONLY in the desktop
@@ -967,32 +1058,36 @@ export function HeroSection() {
 
   return (
     <section
+      id="hero-slideshow"
+      // id read by AppQrWidget (app-qr-widget.tsx) via IntersectionObserver
+      // — that widget starts as a thumbnail and animates open once this
+      // section scrolls out of view (2026-09-18 per request). Renaming or
+      // removing this id silently breaks that trigger (the widget falls
+      // back to showing expanded immediately — see that file's comment —
+      // so it fails safe, but the scroll-triggered reveal stops working).
       className="relative grid grid-cols-1 lg:grid-cols-2 min-h-[100svh] lg:min-h-[88vh]"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      {/* Prev/next arrows — bare chevrons (no circle/box, per reference).
-          On mobile (below lg) SlideshowLeft's content is vertically CENTERED
-          in a min-h-[100svh] panel, so a true vertical-center position for
-          the arrows landed them directly on top of the description text —
-          and pinning them near the bottom instead (tried, reverted) put
-          them right on top of the site-wide fixed WhatsApp button / survey
-          widget in the bottom-right corner. The one zone that's reliably
-          empty on every slide, on any phone height, is well below the
-          sticky navbar and well above the centered text block (there's a
-          large gap there specifically because the panel is forced to a
-          full viewport tall) — so mobile pins to `top` instead. At lg+, the
-          2-column layout has real breathing room on both edges (the left
-          arrow sits in the text column's own gutter, the right arrow over
-          the image panel), so vertical-center is restored there — verified
-          clean against the actual desktop layout. z-20 keeps them above
-          every slide's own content (which tops out at z-10) but below the
-          sticky navbar (z-50). */}
+      {/* Prev/next arrows — desktop/tablet only (lg+). On mobile, the same
+          goToPrev/goToNext render INLINE inside SlideshowLeft instead,
+          flanking the text block directly (2026-09-18 per report — the
+          previous fixed `top-20` mobile position read as "arrows in a weird
+          place" rather than beside the text; that position existed because
+          true vertical-center overlapped the description text and bottom-
+          pinning overlapped the WhatsApp/survey widgets — flanking the text
+          sidesteps that tradeoff entirely instead of re-tuning it). At lg+,
+          the 2-column layout has real breathing room on both edges (left
+          arrow in the text column's own gutter, right arrow over the image
+          panel), so these stay absolutely positioned and vertically
+          centered on the panel — unchanged from before. z-20 keeps them
+          above every slide's own content (z-10 max) but below the sticky
+          navbar (z-50). */}
       <button
         type="button"
         onClick={goToPrev}
         aria-label="Previous slide"
-        className="cursor-pointer absolute left-2 sm:left-4 top-20 lg:top-1/2 lg:-translate-y-1/2 z-20 p-1.5 text-[#114dac] opacity-70 hover:opacity-100 transition-opacity focus:outline-none focus-visible:opacity-100"
+        className="hidden lg:block cursor-pointer absolute left-4 top-1/2 -translate-y-1/2 z-20 p-1.5 text-[#114dac] opacity-70 hover:opacity-100 transition-opacity focus:outline-none focus-visible:opacity-100"
       >
         <ChevronLeft size={44} strokeWidth={2} />
       </button>
@@ -1000,7 +1095,7 @@ export function HeroSection() {
         type="button"
         onClick={goToNext}
         aria-label="Next slide"
-        className="cursor-pointer absolute right-2 sm:right-4 top-20 lg:top-1/2 lg:-translate-y-1/2 z-20 p-1.5 text-[#114dac] opacity-70 hover:opacity-100 transition-opacity focus:outline-none focus-visible:opacity-100"
+        className="hidden lg:block cursor-pointer absolute right-4 top-1/2 -translate-y-1/2 z-20 p-1.5 text-[#114dac] opacity-70 hover:opacity-100 transition-opacity focus:outline-none focus-visible:opacity-100"
       >
         <ChevronRight size={44} strokeWidth={2} />
       </button>
@@ -1366,7 +1461,14 @@ export function KeepInTouchSection({
   // homepage's contact_banner.png keeps its existing default ("center")
   // untouched.
   bannerPosition = "center",
-}: { bannerImage?: string; bannerPosition?: string } = {}) {
+  // reserveLeftGutter (2026-09-12): opt-in extra left padding at lg+ so this
+  // section's text doesn't sit under module-page-template.tsx's fixed
+  // "Explore our solutions" sidebar, which — per request — stays on screen
+  // for the whole page, this section included. Defaults to false so the
+  // homepage (src/app/page.tsx) and /features, which have no such sidebar,
+  // render exactly as before; only module pages pass true.
+  reserveLeftGutter = false,
+}: { bannerImage?: string; bannerPosition?: string; reserveLeftGutter?: boolean } = {}) {
   const [email, setEmail] = useState("")
   const [website, setWebsite] = useState("") // honeypot — must stay empty
   const [submitting, setSubmitting] = useState(false)
@@ -1429,7 +1531,7 @@ export function KeepInTouchSection({
         className="absolute inset-0"
         style={{ background: "linear-gradient(90deg, rgba(17,77,172,0.60) 0%, rgba(17,77,172,0.40) 45%, rgba(17,77,172,0.18) 75%, rgba(17,77,172,0.08) 100%)" }}
       />
-      <div className="relative max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 py-14 lg:py-16">
+      <div className={`relative max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 py-14 lg:py-16 ${reserveLeftGutter ? "lg:pl-[calc(4rem+284px)]" : ""}`}>
         <h2 className="font-serif text-[clamp(1.6rem,3.6vw,2.2rem)] font-light text-white mb-2.5">
           Keep in touch
         </h2>

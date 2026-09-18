@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation"
 import { WhatsAppButton } from "@/src/components/whatsapp-button"
+import { AppQrWidget } from "@/src/components/app-qr-widget"
 
 // Widgets that belong on public/marketing pages only — never on authenticated
 // or operational screens (admin, survey-taking, staff, blog-admin), which have
@@ -9,9 +10,16 @@ import { WhatsAppButton } from "@/src/components/whatsapp-button"
 //
 // NOTE: <SurveyPopup /> is NOT rendered here — src/app/page.tsx (the actual
 // homepage) already mounts it directly, home-page-only, by original design.
-// Adding it here too would double-mount it on "/". It stays positioned at
-// bottom-24 (see survey-popup.tsx) purely so it doesn't overlap the WhatsApp
-// button below it when both happen to be on screen together.
+// Adding it here too would double-mount it on "/". Its sticky "Free AI
+// Survey" thumbnail is hidden as of 2026-09-19 (per request — see the
+// SHOW_STICKY_THUMBNAIL flag in survey-popup.tsx), freeing the bottom-20
+// slot that AppQrWidget now occupies below.
+//
+// AppQrWidget (2026-09-18) IS rendered here, unlike SurveyPopup — it has no
+// homepage-only content or session-storage state, so it's safe to mount
+// site-wide the same way WhatsAppButton is. It sits at bottom-20, clear of
+// WhatsApp — see app-qr-widget.tsx's file-header comment for the stacking
+// math and why that's the same slot the survey thumbnail used to use.
 //
 // Mounted once in the root layout (src/app/layout.tsx) rather than repeated
 // across every marketing page.tsx/layout.tsx. To add a new operational route,
@@ -36,5 +44,10 @@ export function MarketingWidgets() {
 
   if (isExcluded) return null
 
-  return <WhatsAppButton />
+  return (
+    <>
+      <WhatsAppButton />
+      <AppQrWidget />
+    </>
+  )
 }

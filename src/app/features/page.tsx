@@ -67,9 +67,9 @@ import {
   KeepInTouchSection,
 } from "@/src/components/home-sections"
 import { ERP_GUIDES } from "@/src/lib/erp-guides"
-import { linkifyGlossary } from "@/src/components/glossary-term"
+import { linkifyGlossary, GlossaryTerm } from "@/src/components/glossary-term"
 import Link from "next/link"
-import { useEffect, useRef, useState, type FC } from "react"
+import { useEffect, useRef, useState, type FC, type ReactNode } from "react"
 import {
   ArrowRight,
   Cloud,
@@ -92,6 +92,8 @@ import {
   Rocket,
   Search,
   Smartphone,
+  Server,
+  Settings2,
   type LucideProps,
 } from "lucide-react"
 
@@ -297,14 +299,39 @@ const GUIDE_ICONS: Record<string, FC<LucideProps>> = {
 }
 
 // ─── FAQ — features/module/ERP-specific, own set from the homepage's ──────────
-const FAQ_ITEMS = [
+// `a` is usually a plain string (auto-linkified for ERP/CMMS mentions via
+// linkifyGlossary at render time — see below). The "Is Firmity a CMMS or an
+// ERP?" item is the one exception: it needs a real link on the phrase
+// "What is CMMS?" pointing straight at /resources/guide/what-is-cmms
+// (2026-09-16, per request — the old copy said "in the guides below", which
+// was also just wrong: the ERP & CMMS Guides section sits ABOVE this FAQ on
+// the page, not below it). linkifyGlossary can't produce that — it only
+// word-matches bare "ERP"/"CMMS", and nesting a Link inside more glossary
+// markup risks an invalid-HTML interactive-inside-interactive nest (see the
+// warning in glossary-term.tsx) — so this one item's `a` is hand-built JSX
+// instead of a plain string; the render loop below checks for that.
+const FAQ_ITEMS: { q: string; a: string | ReactNode }[] = [
   {
     q: "How many modules does Firmity actually include?",
     a: "Eight integrated modules — facility task automation, assets & spares, complaints & helpdesk, inventory & vendor, visitor management, employee management, payroll, and facility expense — plus cloud-based facility records underpinning all of them. Every module ships as part of the same platform; there's no à la carte module pricing.",
   },
   {
     q: "Is Firmity a CMMS or an ERP?",
-    a: "Both, depending on what you're searching for. Firmity started as a CMMS for planned maintenance and asset tracking, and has grown ERP-adjacent modules on top — inventory & vendor, payroll, and facility expense automation — without losing the maintenance-first design. See \"What is CMMS?\" in the guides below for the full distinction.",
+    a: (
+      <>
+        Both, depending on what you're searching for. Firmity started as a <GlossaryTerm term="CMMS" /> for
+        planned maintenance and asset tracking, and has grown <GlossaryTerm term="ERP" />-adjacent modules on
+        top — inventory & vendor, payroll, and facility expense automation — without losing the
+        maintenance-first design. See{" "}
+        <Link
+          href="/resources/guide/what-is-cmms"
+          className="text-[#2b6cb0] font-medium underline decoration-[#2b6cb0]/40 underline-offset-2 hover:decoration-[#2b6cb0]"
+        >
+          What is CMMS?
+        </Link>{" "}
+        for the full distinction.
+      </>
+    ),
   },
   {
     q: "Does moving to the cloud mean giving up control of our data?",
@@ -342,6 +369,11 @@ export default function FeaturesPage() {
   const [inlineVideoPlaying, setInlineVideoPlaying] = useState<boolean>(false)
   const videoUrl = process.env.NEXT_PUBLIC_VIDEO_URL ?? ""
   const [brochurePopupOpen, setBrochurePopupOpen] = useState<boolean>(false)
+
+  // DEPLOYMENT section tab state (2026-09-16 redesign — was a static
+  // always-both-visible two-column grid; per request, now a single panel
+  // toggled by a pill tab pair, "Firmity Cloud" active by default).
+  const [deploymentTab, setDeploymentTab] = useState<"cloud" | "onprem">("cloud")
 
   // Hash navigation: highlight the target module briefly so deep links from
   // the homepage Explore cards / footer SOLUTIONS links land with clear
@@ -542,7 +574,7 @@ export default function FeaturesPage() {
                 type="button"
                 onClick={() => setModuleNavOpen((v) => !v)}
                 aria-expanded={moduleNavOpen}
-                className="w-full flex items-center justify-between gap-3 bg-white border border-[#e2e8f0] rounded-[4px] px-4 py-3.5 shadow-[0_1px_4px_rgba(17,29,53,0.06)]"
+                className="cursor-pointer w-full flex items-center justify-between gap-3 bg-white border border-[#e2e8f0] rounded-[4px] px-4 py-3.5 shadow-[0_1px_4px_rgba(17,29,53,0.06)]"
               >
                 <span className="flex items-center gap-2.5 text-[13px] font-medium text-[#000000] min-w-0">
                   <activeModule.Icon size={16} strokeWidth={1.5} className="text-[#2b6cb0] flex-shrink-0" />
@@ -716,12 +748,17 @@ export default function FeaturesPage() {
                                 <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
                               </Link>
                               {showMobileApp && (
-                                // TODO: point at the real App Store / Google Play
-                                // listing (or an internal /mobile-app page) once
-                                // those links exist — placeholder per request
-                                // (2026-09-09).
+                                // Was a "#" placeholder (2026-09-09 TODO). Now
+                                // routed through /get-app (src/app/get-app/route.ts,
+                                // added 2026-09-19 for the homepage QR widget) —
+                                // that route reads the visitor's User-Agent and
+                                // sends iOS to NEXT_PUBLIC_APP_STORE_URL / Android
+                                // to NEXT_PUBLIC_PLAY_STORE_URL, falling back to
+                                // NEXT_PUBLIC_APP_DOWNLOAD_URL for desktop. Once
+                                // those two store env vars are set, this link (and
+                                // the QR) both work with no further code changes.
                                 <Link
-                                  href="#"
+                                  href="/get-app"
                                   className="inline-flex items-center justify-center gap-2 text-[13px] font-semibold px-7 py-3 rounded-[4px] transition-colors whitespace-nowrap border border-[#114dac] text-[#114dac] hover:bg-[#114dac] hover:text-white"
                                 >
                                   <span className="flex items-center gap-1 flex-shrink-0">
@@ -947,54 +984,153 @@ export default function FeaturesPage() {
           </div>
         </section>
 
-        {/* ── WHY CLOUD — cloud-forward messaging, cued from sap.com's ──
-            "what is ERP" resource page (anywhere access, lower hardware/
-            support cost, stronger security, integration with other systems,
-            adopting a "cloud mindset" as the pace of business accelerates) —
-            rewritten in Firmity's own words, not reproduced from the source.
-            Light band (was a dark-navy #1a2744 panel) — 2026-09-08, per the
-            page-wide "no dark blue anywhere" request. ── */}
+        {/* ── DEPLOYMENT — Firmity Cloud vs. Firmity On-Premise ─────────
+            (2026-09-16 — one static "Built cloud-first. On-prem if your
+            policy requires it." heading + "Deploy the way that works for
+            your organization." subtext sits above the tab switcher, shown
+            once regardless of which tab is active. Below the tabs, each tab
+            ALSO gets its own smaller per-tab title (text-[1.2rem] sm:text-
+            [1.35rem], same size for both, per request "add [the on-premise
+            title] similar sized text for firmity cloud as well"): Cloud
+            shows "Built cloud-first, not a legacy system with a cloud login
+            bolted on.", On-Premise shows "Need it behind your own firewall?
+            We build for that too." — neither repeats in the paragraph body
+            below it. Layout is otherwise the original pre-session "why
+            cloud" structure: 2-col grid-cols-1 lg:grid-cols-2 gap-10
+            lg:gap-16 lg:items-center (tabs+title+paragraph left, image
+            right), full-width 4-across chip row below, image plain w-full
+            h-auto object-contain, chip cards bg-white rounded-xl border
+            p-6. Tab buttons keep explicit cursor-pointer (2026-09-16, per
+            request "cursor pointer for all buttons"). Light band (was a
+            dark-navy #1a2744 panel) — 2026-09-08, per the page-wide "no
+            dark blue anywhere" request. ── */}
         <section className="bg-white border-t border-[#dbe5f0] relative overflow-hidden py-14 lg:py-20">
           <div className="relative max-w-7xl mx-auto px-6 sm:px-10 lg:px-16">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 lg:items-center">
-              <Reveal>
+            <Reveal>
+              <div className="max-w-2xl mb-4 lg:mb-5">
                 <h2 className="font-serif text-[clamp(1.6rem,4vw,2.6rem)] font-light leading-tight text-[#114dac] tracking-tight">
-                  Built cloud-first, not a legacy system with a cloud login bolted on.
+                  Built cloud-first. On-prem if your policy requires it.
                 </h2>
                 <p className="text-[13.5px] font-light text-[#000000] leading-[1.85] mt-3">
-                  {linkifyGlossary(
-                    'Cloud ERP has become the default for facility teams, not a fallback. It runs on a ' +
-                    'subscription, so there is no server room to build, patch, or replace every few years, ' +
-                    'and the provider carries the maintenance and upgrade load instead of your team. Your ' +
-                    'managers can open Firmity from a site visit, a client meeting, or a phone in the field ' +
-                    'and see the same live data as the office. Security improves too: most breaches trace ' +
-                    'back to on-premise systems left unpatched, while a cloud platform runs on redundant, ' +
-                    'off-site backups with dedicated security teams watching it around the clock, coverage ' +
-                    'few facility teams can staff on their own. And because Firmity already lives in the ' +
-                    'cloud, it connects to the other cloud systems you run, accounting, HR, IoT sensors, ' +
-                    'without custom point-to-point integrations holding it all together. As the pace of ' +
-                    'facility operations keeps accelerating, that cloud-first foundation stops being ' +
-                    'optional and becomes the baseline every other decision gets built on.',
-                    "why-cloud-copy",
-                  )}
+                  Deploy the way that works for your organization.
                 </p>
+              </div>
+            </Reveal>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 lg:items-center">
+              <Reveal>
+                <div role="tablist" aria-label="Deployment option" className="inline-flex items-center gap-1 rounded-full border border-[#dbe5f0] bg-[#f7f7f7] p-1 mb-5">
+                  {(
+                    [
+                      { id: "cloud" as const, label: "Firmity Cloud", Icon: Cloud },
+                      { id: "onprem" as const, label: "Firmity On-Premise", Icon: Server },
+                    ]
+                  ).map(({ id, label, Icon }) => {
+                    const isActive = deploymentTab === id
+                    return (
+                      <button
+                        key={id}
+                        role="tab"
+                        aria-selected={isActive}
+                        onClick={() => setDeploymentTab(id)}
+                        className={
+                          "cursor-pointer flex items-center gap-2 rounded-full px-4 sm:px-5 py-2.5 text-[12.5px] font-semibold transition-all duration-300 " +
+                          (isActive
+                            ? "bg-[#114dac] text-white shadow-[0_4px_14px_rgba(17,77,172,0.25)]"
+                            : "text-[#4a5568] hover:text-[#114dac]")
+                        }
+                      >
+                        <Icon size={15} strokeWidth={1.75} />
+                        {label}
+                      </button>
+                    )
+                  })}
+                </div>
+
+                <h3 className="font-serif text-[1.2rem] sm:text-[1.35rem] font-light leading-tight text-[#114dac] tracking-tight mb-3">
+                  {deploymentTab === "cloud"
+                    ? "Built cloud-first, not a legacy system with a cloud login bolted on."
+                    : "Need it behind your own firewall? We build for that too."}
+                </h3>
+
+                <p className="text-[13px] font-light text-[#000000] leading-[1.8]">
+                  {deploymentTab === "cloud"
+                    ? linkifyGlossary(
+                        'Cloud ERP has become the default for facility teams, not a fallback. It runs on a ' +
+                        'subscription, so there is no server room to build, patch, or replace every few years, ' +
+                        'and the provider carries the maintenance and upgrade load instead of your team. Your ' +
+                        'managers can open Firmity from a site visit, a client meeting, or a phone in the field ' +
+                        'and see the same live data as the office. Security improves too: most breaches trace ' +
+                        'back to on-premise systems left unpatched, while a cloud platform runs on redundant, ' +
+                        'off-site backups with dedicated security teams watching it around the clock, coverage ' +
+                        'few facility teams can staff on their own. And because Firmity already lives in the ' +
+                        'cloud, it connects to the other cloud systems you run, accounting, HR, IoT sensors, ' +
+                        'without custom point-to-point integrations holding it all together. As the pace of ' +
+                        'facility operations keeps accelerating, that cloud-first foundation stops being ' +
+                        'optional and becomes the baseline every other decision gets built on.',
+                        "why-cloud-copy",
+                      )
+                    : linkifyGlossary(
+                        'Not every facility team can move to the cloud on day one — a data-residency policy, ' +
+                        'a security clearance requirement, or an IT department that simply hasn’t signed off ' +
+                        'yet can all rule it out. Firmity ships as an on-premise deployment for exactly this ' +
+                        'case: the same modules, the same interface, installed on servers inside your own ' +
+                        'data center or server room instead of a Firmity-hosted subscription. Your IT team ' +
+                        'keeps control of the infrastructure, the network, and who has access, under whatever ' +
+                        'security policy your organization already runs — nothing about the deployment forces a change to ' +
+                        'that. It is a heavier lift than signing up for cloud: your team owns the server, the ' +
+                        'backups, and the upgrade schedule, and we work with your IT team on setup and ' +
+                        'version updates rather than pushing them out automatically. For organizations that ' +
+                        'need that trade-off, it is available on every plan on-premise supports.',
+                        "why-onprem-copy",
+                      )}
+                </p>
+
+                {/* "Talk to our team" CTA (2026-09-16, per request — placed
+                    between the paragraph and the chip cards below). Sized/
+                    styled to match the site's established solid primary
+                    button convention (bg-[#114dac] hover:bg-[#0e3e8a],
+                    text-[13px] font-semibold, px-6 py-3, rounded-[4px]) —
+                    same button "Sign up now" uses in KeepInTouchSection
+                    (home-sections.tsx) and the same family as the "Contact"
+                    button in the nav (navigation.tsx), just with an
+                    ArrowRight icon added, matching the "Book a Demo" button
+                    already used on module pages (module-page-template.tsx). */}
+                <Link
+                  href="/contact"
+                  className="cursor-pointer inline-flex items-center justify-center gap-2 bg-[#114dac] hover:bg-[#0e3e8a] text-white text-[13px] font-semibold px-6 py-3 rounded-[4px] transition-colors mt-6"
+                >
+                  Talk to our team <ArrowRight size={14} />
+                </Link>
               </Reveal>
               <Reveal delay={100}>
                 <img
-                  src="/images/cloud.png"
-                  alt="Firmity cloud platform, accessible anywhere and connected to accounting, HR, and IoT systems"
+                  src={deploymentTab === "cloud" ? "/images/cloud.png" : "/images/on_prem_view.png"}
+                  alt={
+                    deploymentTab === "cloud"
+                      ? "Firmity cloud platform, accessible anywhere and connected to accounting, HR, and IoT systems"
+                      : "Firmity on-premise deployment running inside a customer's own server infrastructure"
+                  }
                   className="w-full h-auto object-contain"
                 />
               </Reveal>
             </div>
             <Reveal delay={140}>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-10">
-                {[
-                  { Icon: Globe,     title: "Anywhere access",      desc: "Log in from any site, any device. No VPN, no on-prem client." },
-                  { Icon: Wallet,    title: "Lower overhead",       desc: "No servers to buy, patch, or refresh every few years." },
-                  { Icon: ShieldCheck, title: "Stronger security",  desc: "Redundant off-site backups with dedicated security teams, around the clock." },
-                  { Icon: Workflow,  title: "One connected system", desc: "Every module reads and writes the same live data. Nothing to reconcile." },
-                ].map(({ Icon, title, desc }) => (
+                {(deploymentTab === "cloud"
+                  ? [
+                      { Icon: Globe,     title: "Anywhere access",      desc: "Log in from any site, any device. No VPN, no on-prem client." },
+                      { Icon: Wallet,    title: "Lower overhead",       desc: "No servers to buy, patch, or refresh every few years." },
+                      { Icon: ShieldCheck, title: "Stronger security",  desc: "Redundant off-site backups with dedicated security teams, around the clock." },
+                      { Icon: Workflow,  title: "One connected system", desc: "Every module reads and writes the same live data. Nothing to reconcile." },
+                    ]
+                  : [
+                      { Icon: Lock,     title: "Full data residency",     desc: "Every record stays inside your own network — nothing leaves to a third-party host." },
+                      { Icon: Server,   title: "Runs on your servers",    desc: "Deployed on infrastructure your IT team owns and manages, on-site or in your own data center." },
+                      { Icon: Settings2, title: "Fits existing IT policy", desc: "Works within your firewall, VPN, and access controls — no exceptions to carve out." },
+                      { Icon: Layers,   title: "Same modules, no gaps",   desc: "Every Firmity module ships identically — nothing held back for cloud-only customers." },
+                    ]
+                ).map(({ Icon, title, desc }) => (
                   <div key={title} className="bg-white rounded-xl border border-[#dbe5f0] p-6">
                     <Icon size={18} strokeWidth={1.5} className="text-[#2b6cb0] mb-3" />
                     <div className="text-[12.5px] font-semibold text-[#114dac] mb-1.5">{title}</div>
@@ -1011,23 +1147,31 @@ export default function FeaturesPage() {
             instead of just before the FAQ). ── */}
         <KeepInTouchSection bannerImage="/images/features_banner.png" bannerPosition="center top" />
 
-        {/* ── ERP & CMMS GUIDES — icon-topped card grid, same lighter ──
-            pattern as the RESOURCES cards on /resources/page.tsx (icon box,
-            small label, title, excerpt, "Read guide" link) — swapped in
-            2026-09-08 for the previous solid-color header-bar (blog-card)
-            style, which used a bg-[#114dac]/bg-[#2b6cb0] bar per card; that
-            no longer fits the page-wide "no dark blue" direction. Each card
-            opens /resources/guide/[slug] — full content in
-            src/lib/erp-guides.ts. Getting Started Guide card (already exists
-            on /resources, linking to /contact) included alongside so this
-            page is also reachable that way. ── */}
+        {/* ── ERP & CMMS GUIDES ─────────────────────────────────────────
+            (2026-09-16 — restyled to match the homepage's "Browse our
+            latest resources" cards (HomeBlogSection, src/app/page.tsx),
+            per request: same flat white rounded-[4px] panel, shadow-only
+            (no border), solid bg-[#114dac] "Guide" header bar, serif blue
+            title, line-clamped excerpt, "Read guide" + arrow. The one
+            deliberate difference, also per request ("remove the image,
+            leave no space for image, maybe use iconography"): no cover
+            image / reserved image height at all — each guide's own icon
+            (GUIDE_ICONS, keyed by erp-guides.ts slug) sits inside the
+            header bar itself instead, taking the image's place rather than
+            leaving empty space where one would have gone. Each card opens
+            /resources/guide/[slug] — full content in src/lib/erp-guides.ts.
+            Getting Started Guide card (already exists on /resources,
+            linking to /contact) included alongside so this page is also
+            reachable that way — same header-bar treatment, distinguished
+            with bg-[#2b6cb0] instead of bg-[#114dac] so it doesn't read as
+            just another guide. ── */}
         <section id="erp-guides" className="bg-[#f7f7f7] border-t border-[#dbe5f0] py-14 lg:py-20 scroll-mt-16">
           <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16">
             <Reveal>
               <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
                 <div>
                   <h2 className="font-serif text-[clamp(1.6rem,4vw,2.6rem)] font-light leading-[1.15] text-[#114dac] tracking-tight mb-1">
-                    {linkifyGlossary("Guides for teams evaluating ERP", "guides-h2")}
+                    {linkifyGlossary("Guides for teams evaluating ERP and CMMS.", "guides-h2")}
                   </h2>
                   <p className="text-[13.5px] font-light leading-[1.8] text-[#000000] max-w-[460px]">
                     {linkifyGlossary(
@@ -1045,24 +1189,30 @@ export default function FeaturesPage() {
               </div>
             </Reveal>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {ERP_GUIDES.map((guide, i) => {
                 const GuideIcon = GUIDE_ICONS[guide.slug] ?? BookOpen
                 return (
                   <Reveal key={guide.slug} delay={(i % 3) * 100}>
                     <Link
                       href={`/resources/guide/${guide.slug}`}
-                      className="group block h-full bg-white rounded-[20px] border border-[#cbd5e0] shadow-[0_4px_20px_rgba(17,29,53,0.06)] hover:shadow-[0_14px_36px_rgba(17,29,53,0.13)] hover:-translate-y-1 hover:border-[#2b6cb0]/50 transition-all duration-300 p-6 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2b6cb0]"
+                      className="group flex flex-col h-full bg-white rounded-[4px] shadow-[0_1px_3px_rgba(0,0,0,0.08)] hover:shadow-[0_10px_30px_rgba(43,108,176,0.14)] transition-shadow overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2b6cb0]"
                     >
-                      <div className="w-[42px] h-[42px] rounded-xl border border-[rgba(43,108,176,0.25)] group-hover:border-[#2b6cb0] group-hover:bg-[#2b6cb0] flex items-center justify-center mb-4 text-[#2b6cb0] group-hover:text-white transition-all duration-300">
-                        <GuideIcon size={17} strokeWidth={1.5} />
+                      <div className="bg-[#114dac] px-4 py-4 flex-shrink-0 flex items-center justify-between">
+                        <span className="text-[12px] font-semibold text-white tracking-wide">Guide</span>
+                        <GuideIcon size={18} strokeWidth={1.5} className="text-white/70" />
                       </div>
-                      <div className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[#2b6cb0]/60 mb-1.5">Guide</div>
-                      <div className="text-[13px] font-semibold text-[#114dac] mb-1.5 group-hover:text-[#2b6cb0] transition-colors">{guide.title}</div>
-                      <p className="text-[12.5px] font-light text-[#000000] leading-[1.7] mb-4 line-clamp-3">{guide.description}</p>
-                      <span className="inline-flex items-center gap-1.5 text-[11.5px] font-semibold text-[#2b6cb0] group-hover:gap-3 transition-all">
-                        Read guide <ArrowRight size={12} />
-                      </span>
+                      <div className="flex flex-col flex-1 p-5">
+                        <p className="font-serif text-[15px] font-normal text-[#2b6cb0] leading-snug mb-2 line-clamp-2 group-hover:text-[#0e3e8a] transition-colors">
+                          {guide.title}
+                        </p>
+                        <p className="text-[12.5px] font-light text-[#000000] leading-relaxed mb-4 line-clamp-3">
+                          {guide.description}
+                        </p>
+                        <span className="mt-auto inline-flex items-center gap-1.5 text-[#2b6cb0] text-[12px] font-semibold group-hover:gap-2.5 transition-all flex-shrink-0">
+                          Read guide <ArrowRight size={12} />
+                        </span>
+                      </div>
                     </Link>
                   </Reveal>
                 )
@@ -1073,17 +1223,23 @@ export default function FeaturesPage() {
               <Reveal delay={(ERP_GUIDES.length % 3) * 100}>
                 <Link
                   href="/contact"
-                  className="group block h-full bg-white rounded-[20px] border-2 border-dashed border-[#2b6cb0]/30 hover:border-[#2b6cb0] hover:shadow-[0_14px_36px_rgba(17,29,53,0.13)] hover:-translate-y-1 transition-all duration-300 p-6 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2b6cb0]"
+                  className="group flex flex-col h-full bg-white rounded-[4px] shadow-[0_1px_3px_rgba(0,0,0,0.08)] hover:shadow-[0_10px_30px_rgba(43,108,176,0.14)] transition-shadow overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2b6cb0]"
                 >
-                  <div className="w-[42px] h-[42px] rounded-xl border border-[rgba(43,108,176,0.25)] group-hover:border-[#2b6cb0] group-hover:bg-[#2b6cb0] flex items-center justify-center mb-4 text-[#2b6cb0] group-hover:text-white transition-all duration-300">
-                    <BookOpen size={17} strokeWidth={1.5} />
+                  <div className="bg-[#2b6cb0] px-4 py-4 flex-shrink-0 flex items-center justify-between">
+                    <span className="text-[12px] font-semibold text-white tracking-wide">Get Started</span>
+                    <BookOpen size={18} strokeWidth={1.5} className="text-white/70" />
                   </div>
-                  <div className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[#2b6cb0]/60 mb-1.5">Get Started</div>
-                  <div className="text-[13px] font-semibold text-[#114dac] mb-1.5 group-hover:text-[#2b6cb0] transition-colors">Getting Started Guide</div>
-                  <p className="text-[12.5px] font-light text-[#000000] leading-[1.7] mb-4">Step-by-step industry guide for your organization.</p>
-                  <span className="inline-flex items-center gap-1.5 text-[11.5px] font-semibold text-[#2b6cb0] group-hover:gap-3 transition-all">
-                    Learn more <ArrowRight size={12} />
-                  </span>
+                  <div className="flex flex-col flex-1 p-5">
+                    <p className="font-serif text-[15px] font-normal text-[#2b6cb0] leading-snug mb-2 line-clamp-2 group-hover:text-[#0e3e8a] transition-colors">
+                      Getting Started Guide
+                    </p>
+                    <p className="text-[12.5px] font-light text-[#000000] leading-relaxed mb-4">
+                      Step-by-step industry guide for your organization.
+                    </p>
+                    <span className="mt-auto inline-flex items-center gap-1.5 text-[#2b6cb0] text-[12px] font-semibold group-hover:gap-2.5 transition-all flex-shrink-0">
+                      Learn more <ArrowRight size={12} />
+                    </span>
+                  </div>
                 </Link>
               </Reveal>
             </div>
@@ -1120,7 +1276,9 @@ export default function FeaturesPage() {
                     </button>
                     {isOpen && (
                       <div className="pb-6 pl-[34px] pr-2">
-                        <p className="text-[13.5px] leading-[1.8] text-[#000000]">{linkifyGlossary(item.a, `faq-${i}`)}</p>
+                        <p className="text-[13.5px] leading-[1.8] text-[#000000]">
+                          {typeof item.a === "string" ? linkifyGlossary(item.a, `faq-${i}`) : item.a}
+                        </p>
                       </div>
                     )}
                   </div>

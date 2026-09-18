@@ -1,28 +1,16 @@
 import type { ReactNode } from "react"
-import { buildPageMetadata } from "@/src/lib/seo-store"
-import { PageJsonLd } from "@/src/components/seo-json-ld"
-import { JsonLd } from "@/src/components/json-ld"
-import { serviceJsonLd } from "@/src/lib/seo"
+import { noindexMetadata } from "@/src/lib/seo"
 
-export const revalidate = 60
-
-export async function generateMetadata() {
-  return buildPageMetadata("/preventive-maintenance")
+// Page moved to /facility-task-automation (2026-09-12) — see the redirect()
+// call in this route's page.tsx and the 301 in next.config.mjs. This layout
+// now only supplies noindex metadata (no JSON-LD — the content and its
+// structured data live at the new URL) as a second safety net so this old
+// path is never indexed as a separate/duplicate page if it's ever crawled
+// before the redirect takes effect.
+export function generateMetadata() {
+  return noindexMetadata("Redirecting to Facility Task Automation…")
 }
 
-// See facility-records/layout.tsx for why this file exists (2026-09-05 audit).
 export default function Layout({ children }: { children: ReactNode }) {
-  return (
-    <>
-      <PageJsonLd path="/preventive-maintenance" />
-      <JsonLd
-        data={serviceJsonLd(
-          "Planned Preventive Maintenance",
-          "Automate preventive maintenance schedules, work orders and asset servicing with Firmity — reduce breakdowns and extend equipment life across your facilities.",
-          "/preventive-maintenance",
-        )}
-      />
-      {children}
-    </>
-  )
+  return <>{children}</>
 }

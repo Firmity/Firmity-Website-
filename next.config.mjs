@@ -49,6 +49,11 @@ const nextConfig = {
   async redirects() {
     return [
       { source: "/survey", destination: "/surveys", permanent: false },
+      // /preventive-maintenance renamed to /facility-task-automation
+      // (2026-09-12) — permanent 301 so bookmarks/inbound links/search
+      // rankings carry over to the new URL. A redirect() safety net also
+      // lives at src/app/preventive-maintenance/page.tsx.
+      { source: "/preventive-maintenance", destination: "/facility-task-automation", permanent: true },
     ];
   },
   // Allow loading the dev server from other devices on your LAN (e.g. testing on a

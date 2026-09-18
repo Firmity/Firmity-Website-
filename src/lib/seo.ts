@@ -104,11 +104,11 @@ export const PAGE_SEO: Record<string, PageSeo> = {
       "Book your free on-site AI facility health survey in a few steps — choose your facility type, scope and preferred dates. Get a detailed facility health report.",
     keywords: [...BASE_KEYWORDS, "book facility survey", "facility audit booking"],
   },
-  "/preventive-maintenance": {
-    title: "Preventive Maintenance Software",
+  "/facility-task-automation": {
+    title: "Facility Task Automation Software",
     description:
-      "Automate preventive maintenance schedules, work orders and asset servicing with Firmity — reduce breakdowns and extend equipment life across your facilities.",
-    keywords: [...BASE_KEYWORDS, "preventive maintenance software", "PPM software", "work order management"],
+      "Automate preventive maintenance schedules, work orders and asset servicing with Firmity's Facility Task Automation — reduce breakdowns and extend equipment life across your facilities.",
+    keywords: [...BASE_KEYWORDS, "facility task automation", "preventive maintenance software", "PPM software", "work order management"],
   },
   "/complaint-management": {
     title: "Complaint Management Software",
@@ -145,6 +145,18 @@ export const PAGE_SEO: Record<string, PageSeo> = {
     description:
       "Keep every facility record, register and compliance document in one place with Firmity — audit-ready logbooks, certificates and SOPs at your fingertips.",
     keywords: [...BASE_KEYWORDS, "facility records", "compliance management", "digital logbook"],
+  },
+  "/payroll-management": {
+    title: "Payroll Automation ERP",
+    description:
+      "Run multi-tier payroll with 1-click execution, automated statutory deductions (PF/ESI/PT/TDS), maker-checker approval and bank file generation with Firmity's payroll ERP.",
+    keywords: [...BASE_KEYWORDS, "payroll software", "payroll ERP", "statutory compliance payroll", "PF ESI TDS software"],
+  },
+  "/facility-expense-management": {
+    title: "Facility Expense Automation ERP",
+    description:
+      "Control facility spend with policy-driven budget caps, category-wise tracking, maker-checker approvals and audit-ready journals auto-posted to your ledger with Firmity.",
+    keywords: [...BASE_KEYWORDS, "facility expense management", "expense ERP", "budget management software", "facility budget control"],
   },
   "/industries/manufacturing": {
     title: "Facility Management for Manufacturing Plants",
@@ -204,13 +216,15 @@ export const SEO_ROUTES: { path: string; label: string }[] = [
   { path: "/contact", label: "Contact" },
   { path: "/facility-survey", label: "Facility Survey" },
   { path: "/facility-survey/book", label: "Facility Survey — Book" },
-  { path: "/preventive-maintenance", label: "Preventive Maintenance" },
+  { path: "/facility-task-automation", label: "Facility Task Automation" },
   { path: "/complaint-management", label: "Complaint Management" },
   { path: "/asset-management", label: "Asset Management" },
   { path: "/inventory-management", label: "Inventory Management" },
   { path: "/staff-attendance", label: "Staff Attendance" },
   { path: "/visitor-management", label: "Visitor Management" },
   { path: "/facility-records", label: "Facility Records" },
+  { path: "/payroll-management", label: "Payroll Management" },
+  { path: "/facility-expense-management", label: "Facility Expense Management" },
   { path: "/industries/manufacturing", label: "Industries — Manufacturing" },
   { path: "/industries/educational", label: "Industries — Educational" },
   { path: "/industries/residential", label: "Industries — Residential" },

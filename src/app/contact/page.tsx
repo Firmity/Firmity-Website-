@@ -75,7 +75,7 @@ const REQUEST_TYPES: { value: string; label: string; Icon: FC<LucideProps> }[] =
 const TEAM_SIZES = ["1-10", "11-50", "51-100", "100+"] as const
 
 const CHANNELS: { Icon: FC<LucideProps>; title: string; detail: string; sub: string }[] = [
-  { Icon: Mail,   title: "Email",    detail: "demo@firmity.in",           sub: "Reply within 24 hours" },
+  { Icon: Mail,   title: "Email",    detail: "sales@firmity.in",          sub: "Reply within 24 hours" },
   { Icon: Phone,  title: "Phone",    detail: "Available on request",     sub: "Mon–Sat, 9am–6pm IST" },
   { Icon: MapPin, title: "Office",   detail: "UFIRM Technologies (P) Ltd", sub: "Proudly Made in India" },
 ]
