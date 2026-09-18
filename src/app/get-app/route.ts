@@ -38,8 +38,36 @@ const IOS_RE = /iPhone|iPad|iPod/i
 const ANDROID_RE = /Android/i
 
 const FALLBACK_URL = process.env.NEXT_PUBLIC_APP_DOWNLOAD_URL || "https://www.firmity.in"
-const APP_STORE_URL = process.env.NEXT_PUBLIC_APP_STORE_URL || FALLBACK_URL
-const PLAY_STORE_URL = process.env.NEXT_PUBLIC_PLAY_STORE_URL || FALLBACK_URL
+
+// Validate env-supplied URLs before ever redirecting to them (2026-09-18,
+// after a report of a broken redirect — DevTools showed a failed request to
+// "itms-appss://apps.apple.com/app/id=com.firmity.cmms", a hand-typed .env
+// value with a typo'd scheme (itms-appss, not itms-apps) AND the wrong
+// format for that scheme (needs a numeric App Store id, not a bundle id like
+// com.firmity.cmms) — Safari can't resolve it, so the "scan" flow just
+// broke). Rather than trust .env content blindly (external input — same
+// validate-before-use principle as any other untrusted input), only accept
+// a value that parses as an absolute http(s) URL; anything else — a typo, a
+// non-URL placeholder, an unsupported custom scheme like itms-apps: — falls
+// back to FALLBACK_URL (the site itself) instead of sending someone's phone
+// into a dead link. Once this rejects a value, fix the .env line directly:
+// the correct Apple format is a plain https://apps.apple.com/app/idNNNNNNN
+// link (Apple resolves that straight to the App Store app on an iPhone) —
+// NOT an itms-apps:// URI, which needs the numeric id too and buys nothing
+// extra here.
+function safeStoreUrl(value: string | undefined): string {
+  if (!value) return FALLBACK_URL
+  try {
+    const parsed = new URL(value)
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return FALLBACK_URL
+    return value
+  } catch {
+    return FALLBACK_URL
+  }
+}
+
+const APP_STORE_URL = safeStoreUrl(process.env.NEXT_PUBLIC_APP_STORE_URL)
+const PLAY_STORE_URL = safeStoreUrl(process.env.NEXT_PUBLIC_PLAY_STORE_URL)
 
 export async function GET(request: NextRequest) {
   const ua = request.headers.get("user-agent") || ""
