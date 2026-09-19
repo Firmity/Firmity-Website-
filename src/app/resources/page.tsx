@@ -167,6 +167,25 @@ export default function ResourcesPage() {
               </li>
             ))}
           </ul>
+
+          {/* /resources/guide (the guide index/hub, src/app/resources/guide/page.tsx)
+              existed but had no card or CTA linking to it anywhere on the site —
+              only individual guide articles above were reachable. This card,
+              placed right after the ERP & CMMS guides grid, is that entry point. */}
+          <Link
+            href="/resources/guide"
+            className="group mt-4 flex items-center justify-between gap-4 bg-white border border-[#dbe5f0] rounded-[4px] p-5 hover:border-[#114dac]/40 hover:shadow-md transition-all"
+          >
+            <span>
+              <span className="block text-[15px] font-semibold text-[#114dac] mb-1.5 group-hover:underline">
+                Browse all ERP &amp; CMMS guides
+              </span>
+              <span className="block text-[12.5px] font-light text-[#1a2744]/75 leading-[1.7]">
+                Every guide in one place — the full library, not just the picks above.
+              </span>
+            </span>
+            <ArrowRight size={16} className="flex-shrink-0 text-[#114dac] group-hover:translate-x-0.5 transition-transform" />
+          </Link>
         </section>
 
         {/* ── FAQ — interactive accordion ── */}
