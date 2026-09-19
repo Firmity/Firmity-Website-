@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useLayoutEffect, useRef, useState } from "react"
 
 import { isAutoScrolling } from "@/src/hooks/use-hash-scroll"
 
@@ -30,8 +30,25 @@ export function useHideOnScroll(revealHeight: number, pause = false): boolean {
   const [hidden, setHidden] = useState(false)
   const lastY = useRef(0)
 
-  useEffect(() => {
+  // Sync `hidden` to the real scroll position BEFORE paint, on mount.
+  // Bug (2026-09-19): Navigation and Breadcrumbs each render their own
+  // <Navigation/> tree per-page (see navigation.tsx/breadcrumbs.tsx), so a
+  // client-side route change remounts both fresh — each with its own
+  // `useHideOnScroll` instance starting from the `useState(false)` default.
+  // If the page is already scrolled past `revealHeight` at that moment, the
+  // freshly-mounted bar rendered "visible" until the NEXT scroll event, even
+  // though a sibling bar (or this same bar on the previous page) had already
+  // caught that event and was sitting hidden — the two bars fell out of sync
+  // (breadcrumb stuck open while the navbar above it had disappeared).
+  // useLayoutEffect (not useEffect) so this resolves before the browser
+  // paints the mount frame, matching what the scroll-driven branch below
+  // already does — no visible flash either way.
+  useLayoutEffect(() => {
     lastY.current = window.scrollY
+    if (!pause) setHidden(window.scrollY > revealHeight)
+    // Mount-only: re-syncing on every revealHeight/pause change would fight
+    // the scroll listener's own state updates below.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
