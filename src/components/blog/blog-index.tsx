@@ -88,7 +88,7 @@ export function BlogIndex({ posts }: { posts: Card[] }) {
               Ideas for teams that <em className="not-italic text-[#2b6cb0]">run buildings better.</em>
             </h1>
             <p className="text-[13.5px] font-light text-[#1a2744]/75 leading-[1.85] max-w-2xl mt-3">
-              Guides, case studies, and best practices on facility operations, maintenance, and the systems behind them.
+              The Firmity blog publishes guides, case studies, and best practices on facility management, preventive and predictive maintenance, CMMS adoption, and multi-site operations.
             </p>
           </div>
         </section>

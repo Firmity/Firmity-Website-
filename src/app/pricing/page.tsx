@@ -15,7 +15,6 @@
 //       manpower: "1-10",
 //       price: 300,
 //       period: "per person/month",
-//       trial: "2 WEEKS FREE",
 //       highlight: false,
 //       color: "bg-blue-50",
 //       borderColor: "border-blue-200",
@@ -25,7 +24,6 @@
 //       manpower: "11-50",
 //       price: 250,
 //       period: "per person/month",
-//       trial: "2 WEEKS FREE",
 //       highlight: true,
 //       color: "bg-primary/10",
 //       borderColor: "border-primary",
@@ -36,7 +34,6 @@
 //       manpower: "51-100+",
 //       price: 180,
 //       period: "per person/month",
-//       trial: "2 WEEKS FREE",
 //       highlight: false,
 //       color: "bg-blue-50",
 //       borderColor: "border-blue-200",
@@ -46,7 +43,6 @@
 //   const comparisonFeatures = [
 //     { category: "Users", icon: "👥", startup: "1-10", growth: "11-50", enterprise: "51-100+" },
 //     { category: "Monthly Cost Per User", icon: "💰", startup: "₹300", growth: "₹250", enterprise: "₹180" },
-//     { category: "Free Trial", icon: "🎁", startup: "2 weeks", growth: "2 weeks", enterprise: "2 weeks" },
 //     {
 //       category: "Core Features",
 //       icon: "⭐",
@@ -105,7 +101,6 @@
 //                 Simple, Transparent Pricing
 //               </h1>
 //               <p className="text-lg text-foreground/70">
-//                 Choose the perfect plan for your organization. All plans include a 6-week free trial, unlimited
 //                 training, and expert support.
 //               </p>
 //             </div>
@@ -245,7 +240,6 @@
 //             <div className="space-y-4">
 //               <h2 className="text-3xl md:text-4xl font-bold text-foreground">Ready to Get Started?</h2>
 //               <p className="text-lg text-foreground/70">
-//                 Start your free 6-week trial today. No credit card required. Full access to all features.
 //               </p>
 //             </div>
 //             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -253,7 +247,6 @@
 //                 href="/contact"
 //                 className="bg-primary text-primary-foreground px-8 py-3 rounded-lg hover:bg-primary/90 transition-all font-semibold shadow-md hover:shadow-lg"
 //               >
-//                 Start Free Trial
 //               </Link>
 //               <Link
 //                 href="/contact"
@@ -272,7 +265,6 @@
 //             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 //               {[
 //                 {
-//                   q: "What's included in the 6-week free trial?",
 //                   a: "Full access to all Firmity features, unlimited team training, digital reports, bulk data entry support, and 24/7 backend support.",
 //                 },
 //                 {

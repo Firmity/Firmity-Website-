@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Link from "next/link"
 import { X, QrCode } from "lucide-react"
 
 // Once-per-session "user closed it" state, same pattern as SurveyPopup's
@@ -196,7 +195,7 @@ export function AppQrWidget() {
             >
               <X size={11} className="text-black/60" />
             </button>
-            <Link
+            <a
               href="/get-app"
               aria-label="Scan the QR code to get the Firmity app"
               tabIndex={expanded ? 0 : -1}
@@ -215,8 +214,8 @@ export function AppQrWidget() {
               <span className="text-[10px] font-normal text-black/60 text-center leading-[1.25] whitespace-nowrap">
                 Scan to get the app
               </span>
-              <img src="/images/app-qr-code.png" alt="" className="h-28 w-28 flex-shrink-0 rounded-xl" />
-            </Link>
+              <img src="/images/app-qr-code.png" alt="" width={112} height={112} className="h-28 w-28 flex-shrink-0 rounded-xl" />
+            </a>
           </div>
         </div>
       </div>

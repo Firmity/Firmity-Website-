@@ -22,6 +22,15 @@ export const SITE = {
   locale: "en_IN",
 } as const;
 
+// Official profiles (same set as the footer). Used for Organization "sameAs" so
+// search and AI systems can tie the site to the brand's other presences.
+export const SOCIAL_PROFILES = [
+  "https://www.linkedin.com/showcase/firmity-software-real-estate/",
+  "https://www.youtube.com/@Firmity",
+  "https://www.instagram.com/_firmity_/",
+  "https://x.com/firmityglobal",
+] as const;
+
 export interface PageSeo {
   title: string;        // page <title> (the "%s" in the root template)
   description: string;  // 150–160 chars ideal
@@ -35,7 +44,7 @@ export interface PageSeo {
 // help us to get featured even if someone searches for erp and not
 // necessarily cmms only") — Firmity now has real ERP-framed content
 // (inventory & vendor ERP, payroll ERP, facility expense ERP — see
-// /features and /inventory-management) to back these terms up, sitewide,
+// /features and /inventory-vendor-automation-erp) to back these terms up, sitewide,
 // not just on one page.
 const BASE_KEYWORDS = [
   "facility management software",
@@ -53,19 +62,19 @@ export const PAGE_SEO: Record<string, PageSeo> = {
   "/": {
     title: "Firmity — Facility Management, CMMS & ERP Software in India",
     description:
-      "AI-powered facility management, CMMS & ERP platform for India — automate maintenance, assets, inventory, payroll, expenses, workforce and compliance with real-time operational visibility.",
+      "AI-powered facility management, CMMS & ERP software for India. Automate maintenance, assets, inventory, payroll and compliance with real-time visibility.",
     keywords: [...BASE_KEYWORDS, "facility maintenance software", "FM software India"],
   },
   "/about": {
     title: "About Firmity",
     description:
-      "Firmity is built by UFIRM Technologies to give facility teams in India one integrated platform for maintenance, assets, and compliance. Learn our mission and approach.",
+      "Firmity is built by UFIRM Technologies to give facility teams in India one integrated platform for maintenance, assets and compliance. Our mission and approach.",
     keywords: [...BASE_KEYWORDS, "about Firmity", "UFIRM Technologies"],
   },
   "/features": {
-    title: "Features — Facility Management, CMMS & ERP in One Platform",
+    title: "Features: Facility Management, CMMS & ERP Platform",
     description:
-      "Preventive maintenance, assets, complaints, inventory & vendor ERP, visitor management, staff attendance, payroll ERP and facility expense ERP — every facility workflow in one Firmity platform.",
+      "Preventive maintenance, assets, complaints, inventory, visitors, attendance, payroll and expenses: every facility workflow in one CMMS and ERP platform.",
     keywords: [...BASE_KEYWORDS, "CMMS features", "facility management features", "payroll ERP", "facility expense ERP", "inventory ERP"],
   },
   "/pricing": {
@@ -107,34 +116,34 @@ export const PAGE_SEO: Record<string, PageSeo> = {
   "/facility-task-automation": {
     title: "Facility Task Automation Software",
     description:
-      "Automate preventive maintenance schedules, work orders and asset servicing with Firmity's Facility Task Automation — reduce breakdowns and extend equipment life across your facilities.",
+      "Automate preventive maintenance schedules, work orders and asset servicing with Firmity's Facility Task Automation to cut breakdowns and extend equipment life.",
     keywords: [...BASE_KEYWORDS, "facility task automation", "preventive maintenance software", "PPM software", "work order management"],
   },
-  "/complaint-management": {
+  "/complaint-helpdesk-automation": {
     title: "Complaint Management Software",
     description:
       "Log, route and resolve facility complaints with SLA tracking. Firmity's complaint management keeps residents, tenants and staff informed and issues accountable.",
     keywords: [...BASE_KEYWORDS, "complaint management software", "helpdesk facility", "SLA tracking"],
   },
-  "/asset-management": {
+  "/assets-spares-automation": {
     title: "Asset Management Software",
     description:
       "Track every facility asset — location, condition, service history and depreciation — in one register. Firmity asset management gives full lifecycle visibility.",
     keywords: [...BASE_KEYWORDS, "asset management software", "asset tracking", "equipment register"],
   },
-  "/inventory-management": {
-    title: "Inventory & Vendor Management Software — Inventory ERP",
+  "/inventory-vendor-automation-erp": {
+    title: "Inventory & Vendor Management ERP Software",
     description:
-      "Control facility spares and consumables with Firmity's inventory & vendor ERP — stock levels, reorder alerts, purchase workflows and usage tracking to avoid stockouts and overspending.",
+      "Control facility spares and consumables with Firmity's inventory & vendor ERP: stock levels, reorder alerts, purchase workflows and usage tracking.",
     keywords: [...BASE_KEYWORDS, "inventory management software", "facility spares", "stock control", "inventory ERP", "vendor management ERP"],
   },
-  "/staff-attendance": {
+  "/employee-management-automation": {
     title: "Staff Attendance & Workforce Management",
     description:
       "Manage facility staff attendance, shifts and deployment with Firmity — real-time headcount, roster control and workforce accountability across sites.",
     keywords: [...BASE_KEYWORDS, "staff attendance software", "workforce management", "shift roster"],
   },
-  "/visitor-management": {
+  "/visitor-management-automation": {
     title: "Visitor Management System",
     description:
       "Digitise gate entry with Firmity's visitor management — pre-approvals, passes and audit logs for secure, seamless visitor access at your facility.",
@@ -146,16 +155,16 @@ export const PAGE_SEO: Record<string, PageSeo> = {
       "Keep every facility record, register and compliance document in one place with Firmity — audit-ready logbooks, certificates and SOPs at your fingertips.",
     keywords: [...BASE_KEYWORDS, "facility records", "compliance management", "digital logbook"],
   },
-  "/payroll-management": {
+  "/payroll-automation-erp": {
     title: "Payroll Automation ERP",
     description:
-      "Run multi-tier payroll with 1-click execution, automated statutory deductions (PF/ESI/PT/TDS), maker-checker approval and bank file generation with Firmity's payroll ERP.",
+      "Run multi-tier payroll in one click with Firmity's payroll ERP: automated PF, ESI, PT and TDS deductions, maker-checker approval and bank file generation.",
     keywords: [...BASE_KEYWORDS, "payroll software", "payroll ERP", "statutory compliance payroll", "PF ESI TDS software"],
   },
-  "/facility-expense-management": {
+  "/facility-expense-automation-erp": {
     title: "Facility Expense Automation ERP",
     description:
-      "Control facility spend with policy-driven budget caps, category-wise tracking, maker-checker approvals and audit-ready journals auto-posted to your ledger with Firmity.",
+      "Control facility spend with policy-driven budget caps, category-wise tracking, maker-checker approvals and audit-ready journals posted to your ledger.",
     keywords: [...BASE_KEYWORDS, "facility expense management", "expense ERP", "budget management software", "facility budget control"],
   },
   "/industries/manufacturing": {
@@ -191,7 +200,7 @@ export const PAGE_SEO: Record<string, PageSeo> = {
   },
   "/event-booking": {
     title: "Book an Event or Demo",
-    description: "Schedule a Firmity demo or event slot with our facility management team.",
+    description: "Schedule a Firmity demo or book an event or room slot, with intelligent calendar management and real-time availability for facilities in India.",
   },
   "/search": {
     title: "Search Firmity",
@@ -217,14 +226,14 @@ export const SEO_ROUTES: { path: string; label: string }[] = [
   { path: "/facility-survey", label: "Facility Survey" },
   { path: "/facility-survey/book", label: "Facility Survey — Book" },
   { path: "/facility-task-automation", label: "Facility Task Automation" },
-  { path: "/complaint-management", label: "Complaint Management" },
-  { path: "/asset-management", label: "Asset Management" },
-  { path: "/inventory-management", label: "Inventory Management" },
-  { path: "/staff-attendance", label: "Staff Attendance" },
-  { path: "/visitor-management", label: "Visitor Management" },
+  { path: "/complaint-helpdesk-automation", label: "Complaint Management" },
+  { path: "/assets-spares-automation", label: "Asset Management" },
+  { path: "/inventory-vendor-automation-erp", label: "Inventory Management" },
+  { path: "/employee-management-automation", label: "Staff Attendance" },
+  { path: "/visitor-management-automation", label: "Visitor Management" },
   { path: "/facility-records", label: "Facility Records" },
-  { path: "/payroll-management", label: "Payroll Management" },
-  { path: "/facility-expense-management", label: "Facility Expense Management" },
+  { path: "/payroll-automation-erp", label: "Payroll Management" },
+  { path: "/facility-expense-automation-erp", label: "Facility Expense Management" },
   { path: "/industries/manufacturing", label: "Industries — Manufacturing" },
   { path: "/industries/educational", label: "Industries — Educational" },
   { path: "/industries/residential", label: "Industries — Residential" },
@@ -242,7 +251,6 @@ export function buildMetadata(path: string): Metadata {
   return {
     title: seo.title,
     description: seo.description,
-    keywords: seo.keywords,
     alternates: { canonical: url },
     openGraph: {
       title: seo.title,
@@ -289,7 +297,14 @@ export function organizationJsonLd() {
     description:
       "AI-powered facility management, CMMS and ERP platform for maintenance, assets, inventory, payroll, expenses, workforce and compliance.",
     address: { "@type": "PostalAddress", addressCountry: "IN" },
-    sameAs: [] as string[], // add social profile URLs when available
+    sameAs: [...SOCIAL_PROFILES] as string[],
+    contactPoint: {
+      "@type": "ContactPoint",
+      contactType: "sales",
+      email: "demo@firmity.in",
+      areaServed: "IN",
+      availableLanguage: ["English"],
+    },
   };
 }
 

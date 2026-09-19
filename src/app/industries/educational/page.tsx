@@ -300,7 +300,7 @@ export default function EducationalPage() {
                 <span className="italic text-amber-300">Professionally Managed.</span>
               </h1>
               <p className="text-[15px] text-white/[0.72] max-w-2xl mx-auto leading-relaxed mb-10">
-                From classrooms to hostels — Firmity helps educational institutions stay on top of maintenance,
+                Firmity is a facility management platform for educational campuses in India. From classrooms to hostels — Firmity helps educational institutions stay on top of maintenance,
                 keep campuses secure, and serve students and staff with faster facility support.
               </p>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl mx-auto">

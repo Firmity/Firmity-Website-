@@ -1,0 +1,34 @@
+# Firmity
+
+> Firmity is a cloud-based facility management platform for India that combines CMMS (computerised maintenance management) and ERP workflows: preventive maintenance, assets and spares, complaints, inventory and vendors, visitors, attendance, payroll and facility expenses. Built by UFIRM Technologies (P) Limited. Available on web, Android and iOS, on cloud or on-premise.
+
+## Product modules
+
+- [Facility Task Automation](https://www.firmity.in/facility-task-automation): Schedule, assign and track preventive-maintenance work orders.
+- [Assets & Spares Automation](https://www.firmity.in/assets-spares-automation): QR-tagged assets, service history, AMC contracts and spares.
+- [Complaint & Helpdesk Automation](https://www.firmity.in/complaint-helpdesk-automation): Scan-to-raise QR tickets with routing and an SLA audit trail.
+- [Inventory & Vendor Automation ERP](https://www.firmity.in/inventory-vendor-automation-erp): Purchase orders, GRN tracking and reorder alerts.
+- [Visitor Management Automation](https://www.firmity.in/visitor-management-automation): Contactless QR check-ins and pre-approved gate passes.
+- [Employee Management Automation](https://www.firmity.in/employee-management-automation): Geo-fenced facial-recognition attendance and digital leave.
+- [Payroll Automation ERP](https://www.firmity.in/payroll-automation-erp): 1-click payroll with TDS/PF/ESI and bank file generation.
+- [Facility Expense Automation ERP](https://www.firmity.in/facility-expense-automation-erp): Budget caps, maker-checker approvals and ledger posting.
+
+## Guides (by Syed Aadam)
+
+- [What is ERP?](https://www.firmity.in/resources/guide/what-is-erp)
+- [What is cloud ERP?](https://www.firmity.in/resources/guide/what-is-cloud-erp)
+- [What is two-tier ERP?](https://www.firmity.in/resources/guide/what-is-two-tier-erp)
+- [Benefits of ERP](https://www.firmity.in/resources/guide/erp-benefits)
+- [Replacing legacy ERP](https://www.firmity.in/resources/guide/replacing-legacy-erp)
+- [Evaluating ERP software](https://www.firmity.in/resources/guide/evaluating-erp-software)
+- [ERP implementation best practices](https://www.firmity.in/resources/guide/erp-implementation-best-practices)
+- [What is CMMS?](https://www.firmity.in/resources/guide/what-is-cmms)
+
+## Key pages
+
+- [Features overview](https://www.firmity.in/features)
+- [About](https://www.firmity.in/about)
+- [Contact / request a demo](https://www.firmity.in/contact)
+- [Free facility health survey](https://www.firmity.in/facility-survey)
+- [Blog](https://www.firmity.in/blog)
+- [Sitemap](https://www.firmity.in/sitemap.xml)

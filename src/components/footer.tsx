@@ -54,7 +54,6 @@
 //           {/* Contact */}
 //           <div className="flex flex-col gap-2">
 //             <h4 className="font-semibold">Get Started</h4>
-//             <p className="text-sm opacity-80">2 Weeks Free Trial</p>
 //             <Link href="/contact" className="text-sm font-semibold hover:underline text-accent">
 //               Book Demo
 //             </Link>
@@ -381,7 +380,7 @@ export function Footer() {
             Next.js's auto-generated route (src/app/sitemap.ts) rather than
             an HTML page — same convention most sites use for this link. */}
         <div className="border-t border-[#dbe5f0] pt-5 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-[11px] text-[#2b6cb0]/70 font-light text-center sm:text-left">
+          <p className="text-[11px] text-[#4a5568] font-light text-center sm:text-left">
             Firmity is a registered software of UFIRM Technologies (P) Limited © {new Date().getFullYear()} | Proudly Made in India
           </p>
           <div className="flex flex-wrap items-center justify-center sm:justify-end gap-x-6 gap-y-2 flex-shrink-0">

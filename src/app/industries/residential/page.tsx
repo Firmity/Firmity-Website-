@@ -290,7 +290,7 @@ export default function ResidentialPage() {
                 <span className="italic text-emerald-300">Well-Maintained.</span>
               </h1>
               <p className="text-[15px] text-white/[0.68] font-light max-w-2xl mx-auto leading-relaxed mb-10">
-                Gate management, resident complaints, preventive maintenance, and staff tracking — everything your
+                Firmity is a facility management platform for residential communities and societies in India. Gate management, resident complaints, preventive maintenance, and staff tracking — everything your
                 facility management team needs to run a residential community safely and well.
               </p>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl mx-auto">

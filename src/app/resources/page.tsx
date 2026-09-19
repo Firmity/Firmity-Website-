@@ -10,6 +10,7 @@ import { Navigation } from "@/src/components/navigation"
 import { Footer } from "@/src/components/footer"
 import { Reveal } from "@/src/components/reveal"
 import Link from "next/link"
+import { ERP_GUIDES } from "@/src/lib/erp-guides"
 import { useState, type FC } from "react"
 import {
   ArrowRight,
@@ -108,7 +109,7 @@ export default function ResourcesPage() {
                 <em className="not-italic text-[#63b3ed] italic">succeed with Firmity.</em>
               </h1>
               <p className="text-[13.5px] font-light text-white/[0.45] leading-[1.85] max-w-2xl mt-3">
-                Guides, tutorials, training, and answers — for facility teams getting started
+                Firmity's resource library explains CMMS and ERP for facility teams: plain-English guides by Syed Aadam, plus tutorials, training, and answers — for facility teams getting started
                 and teams going deeper.
               </p>
             </Reveal>
@@ -136,6 +137,30 @@ export default function ResourcesPage() {
               </Reveal>
             ))}
           </div>
+        </section>
+
+        {/* ── Guides — plain links so every guide is reachable (and crawlable)
+            straight from the resources hub, not only via /features. ── */}
+        <section id="guides" className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 pb-14 lg:pb-20 scroll-mt-16">
+          <h2 className="font-serif text-[clamp(1.5rem,3.4vw,2.2rem)] font-light text-[#114dac] leading-tight tracking-tight mb-2">
+            ERP &amp; CMMS guides
+          </h2>
+          <p className="text-[13.5px] font-light text-[#1a2744]/75 leading-[1.85] max-w-2xl mb-8">
+            Plain-English explainers by Syed Aadam on what ERP and CMMS are, how they differ, and how to choose and roll one out.
+          </p>
+          <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {ERP_GUIDES.map((g) => (
+              <li key={g.slug}>
+                <Link
+                  href={`/resources/guide/${g.slug}`}
+                  className="group block h-full bg-white border border-[#dbe5f0] rounded-[4px] p-5 hover:border-[#114dac]/40 hover:shadow-md transition-all"
+                >
+                  <span className="block text-[15px] font-semibold text-[#114dac] mb-1.5 group-hover:underline">{g.title}</span>
+                  <span className="block text-[12.5px] font-light text-[#1a2744]/75 leading-[1.7]">{g.description}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
         </section>
 
         {/* ── FAQ — interactive accordion ── */}

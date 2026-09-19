@@ -178,7 +178,9 @@
 
 
 /* ── Firmity Typography ──────────────────────────────────────────────────── */
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300;1,9..40,400&family=Playfair+Display:wght@400;500&family=DM+Mono:wght@300;400;500&display=swap");
+/* Fonts are self-hosted via next/font in layout.tsx (variables --font-dm-sans,
+   --font-playfair, --font-dm-mono). A Google Fonts @import here was a
+   render-blocking third-party request duplicating them. */
 
 @import "tailwindcss";
 @import "tw-animate-css";
@@ -266,9 +268,9 @@
 }
 
 @theme inline {
-  --font-sans:  "DM Sans",  system-ui, sans-serif;
-  --font-serif: "Playfair Display", Georgia, serif;
-  --font-mono:  "DM Mono",  monospace;
+  --font-sans:  var(--font-dm-sans), "DM Sans", system-ui, sans-serif;
+  --font-serif: var(--font-playfair), "Playfair Display", Georgia, serif;
+  --font-mono:  var(--font-dm-mono), "DM Mono", monospace;
 
   --color-background:             var(--background);
   --color-foreground:             var(--foreground);
@@ -320,14 +322,14 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: var(--font-sans);
+    font-family: var(--font-dm-sans), "DM Sans", system-ui, sans-serif;
     font-weight: 400;
     line-height: 1.6;
   }
 
   /* Utility classes used by page.jsx */
-  .font-serif { font-family: var(--font-serif); }
-  .font-mono  { font-family: var(--font-mono); }
+  .font-serif { font-family: var(--font-playfair), "Playfair Display", Georgia, serif; }
+  .font-mono  { font-family: var(--font-dm-mono), "DM Mono", monospace; }
 }
 
 @layer utilities {

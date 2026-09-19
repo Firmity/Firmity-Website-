@@ -5,7 +5,8 @@ import { PageJsonLd } from "@/src/components/seo-json-ld"
 export const revalidate = 60
 
 export async function generateMetadata() {
-  return buildPageMetadata("/search")
+  // Internal search results are thin, near-infinite pages: keep them out of the index.
+  return { ...(await buildPageMetadata("/search")), robots: { index: false, follow: true } }
 }
 
 export default function Layout({ children }: { children: ReactNode }) {

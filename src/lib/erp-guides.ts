@@ -31,11 +31,25 @@ export interface ErpGuide {
   title: string
   /** Card excerpt — 1-2 sentences, shown on the /features grid card. */
   description: string
-  /** Rendered with BLOG_PROSE; h2/p/ul only. */
+  /** Rendered with BLOG_PROSE; h2/p/ul (and a table on the CMMS guide). */
   bodyHtml: string
+  /** Named author, shown as a byline and emitted as Person in Article JSON-LD. */
+  author: string
+  /** ISO dates (YYYY-MM-DD) — visible on the page and in Article JSON-LD. */
+  datePublished: string
+  dateModified: string
 }
 
-export const ERP_GUIDES: ErpGuide[] = [
+export const GUIDE_AUTHOR = "Syed Aadam"
+// Guides were written 2026-09-08; byline, dates and the CMMS/ERP comparison
+// table were added 2026-09-19. Bump GUIDE_MODIFIED when guide content is
+// materially revised.
+const GUIDE_PUBLISHED = "2026-09-08"
+const GUIDE_MODIFIED = "2026-09-19"
+
+type GuideContent = Omit<ErpGuide, "author" | "datePublished" | "dateModified">
+
+const GUIDE_CONTENT: GuideContent[] = [
   {
     slug: "what-is-erp",
     title: "What is ERP?",
@@ -191,12 +205,30 @@ export const ERP_GUIDES: ErpGuide[] = [
       </ul>
       <h2>CMMS vs. ERP</h2>
       <p>Where a full ERP spans an entire enterprise — finance, HR, sales, supply chain — a CMMS is deliberately narrower: it's built around the maintenance and asset-operations function specifically. Historically, that meant a facility team ran a dedicated CMMS alongside — but disconnected from — whatever ERP the finance department used, with someone re-keying data between the two.</p>
+      <table>
+        <caption>CMMS and ERP compared</caption>
+        <thead><tr><th scope="col">Aspect</th><th scope="col">CMMS</th><th scope="col">ERP</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Scope</th><td>Maintenance and asset operations</td><td>The whole enterprise: finance, HR, sales, supply chain</td></tr>
+          <tr><th scope="row">Core records</th><td>Assets, work orders, spare parts, vendors</td><td>Ledgers, invoices, payroll, orders, inventory</td></tr>
+          <tr><th scope="row">Typical users</th><td>Maintenance and facility teams</td><td>Finance, HR, procurement and operations teams</td></tr>
+          <tr><th scope="row">Main goal</th><td>Keep equipment running and reduce unplanned downtime</td><td>Run core business processes from one system of record</td></tr>
+          <tr><th scope="row">Where Firmity fits</th><td>Facility Task Automation; Assets &amp; Spares Automation</td><td>Inventory &amp; Vendor, Payroll and Facility Expense Automation ERP</td></tr>
+        </tbody>
+      </table>
       <h2>Why the line is blurring</h2>
       <p>That separation is breaking down from both directions. Some CMMS platforms now plug directly into ERP and financial systems via API to remove that manual re-entry, and vendors increasingly frame CMMS as the first stage on a path toward full Enterprise Asset Management (EAM) — the same idea ERP itself went through, just anchored around the asset instead of the transaction. As CMMS platforms add procurement, vendor management, payroll, and expense tracking — the operational functions a facility team actually needs day to day — they start covering the same ground a facility-focused ERP module would, just built around a work order and an asset instead of a generic accounting entry.</p>
       <p>Firmity sits squarely in that overlap: it started as a CMMS for planned maintenance and asset tracking, and has grown ERP-adjacent capabilities on top — inventory and vendor automation, payroll automation, and facility expense automation — without losing the maintenance-first design that made it useful on day one. Whether a team searches for "CMMS" or "facility ERP," they're usually describing the same underlying need: one system that runs the building, not just the books.</p>
     `,
   },
 ]
+
+export const ERP_GUIDES: ErpGuide[] = GUIDE_CONTENT.map((g) => ({
+  ...g,
+  author: GUIDE_AUTHOR,
+  datePublished: GUIDE_PUBLISHED,
+  dateModified: GUIDE_MODIFIED,
+}))
 
 export function getGuideBySlug(slug: string): ErpGuide | undefined {
   return ERP_GUIDES.find((g) => g.slug === slug)

@@ -237,7 +237,7 @@ const PILLARS: PillarItem[] = [
     headline: "Make every operation work smarter.",
     desc: "Digitise workflows, automate routine tasks, and give teams the tools to get more done.",
     accent: "#118AB2",
-    icon: "/images/pillar-productivity.png",
+    icon: "/images/pillar-productivity.webp",
   },
   {
     numeral: "II",
@@ -245,7 +245,7 @@ const PILLARS: PillarItem[] = [
     headline: "Protect the life of your assets.",
     desc: "Proactive maintenance, better visibility, and data-driven decisions keep facilities performing longer.",
     accent: "#94621d",
-    icon: "/images/pillar-longevity.png",
+    icon: "/images/pillar-longevity.webp",
   },
   {
     numeral: "III",
@@ -253,7 +253,7 @@ const PILLARS: PillarItem[] = [
     headline: "Build efficiency into every operation.",
     desc: "Reduce waste, optimise resources, and create more sustainable facility operations.",
     accent: "#6a9e10",
-    icon: "/images/pillar-sustainability.png",
+    icon: "/images/pillar-sustainability.webp",
   },
 ]
 
@@ -549,34 +549,34 @@ const MODULE_INDICATOR_LABELS = [
 export const MODULE_PAGES: Record<string, string> = {
   "facility-records":            "/facility-records",
   "preventive-maintenance":      "/facility-task-automation",
-  "complaint-management":        "/complaint-management",
-  "asset-management":            "/asset-management",
-  "inventory-management":        "/inventory-management",
-  "staff-attendance":            "/staff-attendance",
-  "visitor-management":          "/visitor-management",
+  "complaint-management":        "/complaint-helpdesk-automation",
+  "asset-management":            "/assets-spares-automation",
+  "inventory-management":        "/inventory-vendor-automation-erp",
+  "staff-attendance":            "/employee-management-automation",
+  "visitor-management":          "/visitor-management-automation",
   // payroll-management / facility-expense-management (2026-09-12): dedicated
-  // pages now exist — see src/app/payroll-management and
-  // src/app/facility-expense-management (built on ModulePageTemplate, same
+  // pages now exist — see src/app/payroll-automation-erp and
+  // src/app/facility-expense-automation-erp (built on ModulePageTemplate, same
   // as facility-task-automation). Every surface that reads MODULE_PAGES
   // (homepage ExploreSection/Hero slideshow, footer SOLUTIONS, /features
   // "View Detailed Features Listing" CTA, the guide-page sidebar) picks up
   // these two automatically.
-  "payroll-management":           "/payroll-management",
-  "facility-expense-management":  "/facility-expense-management",
+  "payroll-management":           "/payroll-automation-erp",
+  "facility-expense-management":  "/facility-expense-automation-erp",
 }
 
 // Real per-module photography, keyed by MODULES_LIST slug — added as it
 // becomes available (2026-09-05: Facility Task Automation is the first).
 // Any slug absent from this map falls back to MODULE_PLACEHOLDER_IMAGE below.
 export const MODULE_IMAGES: Record<string, string> = {
-  "preventive-maintenance":      "/images/task_slide.png",    // Facility Task Automation
-  "asset-management":            "/images/assets_spares.png", // Assets & Spares Automation
-  "complaint-management":        "/images/helpdesk.png",      // Complaint & Helpdesk Automation
-  "inventory-management":        "/images/inventory.png",     // Inventory & Vendor Automation ERP
-  "visitor-management":          "/images/visitor.png",       // Visitor Management Automation
-  "staff-attendance":            "/images/employee.png",      // Employee Management Automation
-  "payroll-management":          "/images/payroll.png",       // Payroll Automation ERP
-  "facility-expense-management": "/images/expense.png",       // Facility Expense Automation ERP
+  "preventive-maintenance":      "/images/task_slide.webp",    // Facility Task Automation
+  "asset-management":            "/images/assets_spares.webp", // Assets & Spares Automation
+  "complaint-management":        "/images/helpdesk.webp",      // Complaint & Helpdesk Automation
+  "inventory-management":        "/images/inventory.webp",     // Inventory & Vendor Automation ERP
+  "visitor-management":          "/images/visitor.webp",       // Visitor Management Automation
+  "staff-attendance":            "/images/employee.webp",      // Employee Management Automation
+  "payroll-management":          "/images/payroll.webp",       // Payroll Automation ERP
+  "facility-expense-management": "/images/expense.webp",       // Facility Expense Automation ERP
 }
 
 // Neutral placeholder — used for any module slide NOT yet in MODULE_IMAGES
@@ -637,14 +637,14 @@ const ALL_SLIDES: SlideEntry[] = [
     accent: "#63b3ed",
     ctaPrimary:   { label: "Book a Demo",      href: "/contact"  },
     ctaSecondary: { label: "Explore Features", href: "/features" },
-    desc: "Scale faster and simplify maintenance operations with Firmity Facility Automation. Our CMMS and ERP solutions automate administrative overhead and deliver predictive insights, letting your team skip the busywork and focus on high-value tasks with real-time operational visibility across all your facilities.",
+    desc: "Firmity is a cloud-based facility management platform for India that brings CMMS and ERP together in one system. It automates maintenance, assets, inventory, payroll, expenses and compliance, giving your team real-time operational visibility across every facility.",
     // Was a stale Unsplash exterior-building photo (2026-09-05 fix) — the
     // actual hero image was previously hardcoded separately as
-    // "/images/heroImage.png" (the laptop+phone dashboard mockup) and this
+    // "/images/heroImage.webp" (the laptop+phone dashboard mockup) and this
     // field was dead/unused data until the panel render was unified to read
     // `s.image` for every slide, which surfaced the stale value. Corrected
     // to the real asset so the hero slide is unchanged from before.
-    image:    "/images/heroImage.png",
+    image:    "/images/heroImage.webp",
     imageAlt: "Firmity dashboard shown on a laptop, next to the Firmity mobile app login screen on a phone",
   },
   ...MODULES_LIST.map((m, i) => ({
@@ -736,16 +736,31 @@ function SlideshowLeft({
           approach, which force-remounted a fresh <img> per slide (an
           instant cut, nothing to fade). `blur-[1.2px] scale-110` unchanged
           from before. */}
-      {ALL_SLIDES.map((s) => (
-        <img
-          key={s.key}
-          src={s.image}
-          alt=""
-          aria-hidden
-          className="lg:hidden absolute inset-0 z-0 w-full h-full object-cover blur-[1.2px] scale-110 transition-opacity duration-700 ease-out"
-          style={{ opacity: s.key === slide.key ? 1 : 0 }}
-        />
-      ))}
+      {/* Only the active slide and its two neighbours are mounted (was all 9
+          at once — every module photo downloaded on first paint on phones).
+          Neighbours stay mounted so the crossfade in/out still has both
+          images ready; the active one is the LCP candidate, so it gets
+          high fetch priority and the rest low. */}
+      {ALL_SLIDES.map((s, idx) => {
+        const n = ALL_SLIDES.length
+        const isActive = idx === activeIndex
+        const isNeighbour = idx === (activeIndex + 1) % n || idx === (activeIndex - 1 + n) % n
+        if (!isActive && !isNeighbour) return null
+        return (
+          <img
+            key={s.key}
+            src={s.image}
+            alt=""
+            aria-hidden
+            width={1536}
+            height={1024}
+            decoding="async"
+            fetchPriority={isActive ? "high" : "low"}
+            className="lg:hidden absolute inset-0 z-0 w-full h-full object-cover blur-[1.2px] scale-110 transition-opacity duration-700 ease-out"
+            style={{ opacity: isActive ? 1 : 0 }}
+          />
+        )
+      })}
       {/* Legibility scrim over the photo above — was an OPAQUE gradient (no
           photo behind it to begin with, so opacity never mattered); now
           semi-transparent so the photo shows through while keeping the text
@@ -767,22 +782,34 @@ function SlideshowLeft({
         @keyframes hsModUp2 { 0%{opacity:0;transform:translateY(36px);} 18%{opacity:0;transform:translateY(36px);} 100%{opacity:1;transform:translateY(0);} }
         @keyframes hsModUp3 { 0%{opacity:0;transform:translateY(36px);} 32%{opacity:0;transform:translateY(36px);} 100%{opacity:1;transform:translateY(0);} }
         @keyframes hsModUp4 { 0%{opacity:0;transform:translateY(36px);} 46%{opacity:0;transform:translateY(36px);} 100%{opacity:1;transform:translateY(0);} }
-        @keyframes hsModProg { from { width:0; } to { width:100%; } }
+        @keyframes hsModProg { from { transform:scaleX(0); } to { transform:scaleX(1); } }
       `}</style>
 
       {/* Ghost watermark */}
-      <div className="absolute right-0 top-0 bottom-0 flex items-end pb-16 pr-4 select-none pointer-events-none" aria-hidden>
-        <span
-          className="font-serif font-light leading-none"
-          style={{
-            fontSize: isHero ? "clamp(42px,6vw,80px)" : "clamp(90px,11vw,170px)",
-            color: `${slide.accent}08`,
-            transition: "color 600ms ease, font-size 600ms ease",
-            letterSpacing: isHero ? "0.18em" : undefined,
-          }}
-        >
-          {isHero ? "FIRMITY" : slide.key}
-        </span>
+      {/* One static watermark per slide, crossfaded with opacity only. It used
+          to be a single span whose text, font-size and color all changed per
+          slide — font-size/text changes reflow (a 0.114 layout shift in
+          Lighthouse) and color/font-size can't be compositor-animated. */}
+      <div className="absolute inset-0 select-none pointer-events-none" aria-hidden>
+        {ALL_SLIDES.map((s, i) => {
+          const hero = i === 0
+          return (
+            <span
+              key={s.key}
+              // Text comes from a CSS pseudo-element, not a text node, so this purely
+              // decorative watermark ("FIRMITY", "01"…"08") isn't part of the page
+              // text that crawlers and AI systems extract ahead of the real H1.
+              data-text={hero ? "FIRMITY" : s.key}
+              className="absolute right-4 bottom-16 font-serif font-light leading-none transition-opacity duration-[600ms] ease-out before:content-[attr(data-text)]"
+              style={{
+                fontSize: hero ? "clamp(42px,6vw,80px)" : "clamp(90px,11vw,170px)",
+                color: `${s.accent}08`,
+                letterSpacing: hero ? "0.18em" : undefined,
+                opacity: i === activeIndex ? 1 : 0,
+              }}
+            />
+          )
+        })}
       </div>
 
       {/* Main content. Prev/next arrows here are mobile-only, absolutely
@@ -945,26 +972,54 @@ function SlideshowLeft({
               >
                 {/* Number or hero dot — wrapped in a fixed-height span so all indicators are same height */}
                 <span className="flex items-center" style={{ minHeight: "14px" }}>
+                  {/* Active/inactive states are two stacked layers crossfaded
+                      with opacity (compositor-friendly) instead of
+                      transitioning color/background, which can't be
+                      composited. */}
                   {s.indicatorId ? (
-                    <span
-                      className="text-[10px] font-semibold tracking-[0.15em] leading-none transition-colors duration-300"
-                      style={{ color: isActive ? slide.accent : "rgba(17,29,53,0.2)" }}
-                    >
-                      {s.indicatorId}
+                    <span className="relative inline-block text-[10px] font-semibold tracking-[0.15em] leading-none">
+                      <span
+                        className="transition-opacity duration-300"
+                        style={{ color: "rgba(17,29,53,0.2)", opacity: isActive ? 0 : 1 }}
+                      >
+                        {s.indicatorId}
+                      </span>
+                      <span
+                        aria-hidden
+                        className="absolute inset-0 transition-opacity duration-300"
+                        style={{ color: slide.accent, opacity: isActive ? 1 : 0 }}
+                      >
+                        {s.indicatorId}
+                      </span>
                     </span>
                   ) : (
-                    <span
-                      className="block w-[5px] h-[5px] rounded-full transition-colors duration-300"
-                      style={{ background: isActive ? slide.accent : "rgba(17,29,53,0.2)" }}
-                    />
+                    <span className="relative block w-[5px] h-[5px]">
+                      <span
+                        className="absolute inset-0 rounded-full transition-opacity duration-300"
+                        style={{ background: "rgba(17,29,53,0.2)", opacity: isActive ? 0 : 1 }}
+                      />
+                      <span
+                        className="absolute inset-0 rounded-full transition-opacity duration-300"
+                        style={{ background: slide.accent, opacity: isActive ? 1 : 0 }}
+                      />
+                    </span>
                   )}
                 </span>
                 {/* Label — whitespace-nowrap prevents wrapping */}
-                <span
-                  className="text-[9.5px] font-light transition-colors duration-300 hidden xl:block leading-tight whitespace-nowrap"
-                  style={{ color: isActive ? "rgba(17,29,53,0.7)" : "rgba(17,29,53,0.2)" }}
-                >
-                  {s.indicatorLabel}
+                <span className="relative hidden xl:block text-[9.5px] font-light leading-tight whitespace-nowrap">
+                  <span
+                    className="transition-opacity duration-300"
+                    style={{ color: "rgba(17,29,53,0.2)", opacity: isActive ? 0 : 1 }}
+                  >
+                    {s.indicatorLabel}
+                  </span>
+                  <span
+                    aria-hidden
+                    className="absolute inset-0 transition-opacity duration-300"
+                    style={{ color: "rgba(17,29,53,0.7)", opacity: isActive ? 1 : 0 }}
+                  >
+                    {s.indicatorLabel}
+                  </span>
                 </span>
                 {/* Progress track */}
                 <div
@@ -974,12 +1029,11 @@ function SlideshowLeft({
                   {isActive && (
                     <div
                       key={`bar-${animKey}`}
-                      className="h-full rounded-full"
+                      className="h-full w-full origin-left rounded-full"
                       style={{
                         background: slide.accent,
                         animation: paused ? "none" : `hsModProg ${MOD_ADVANCE_MS}ms linear forwards`,
-                        width: paused ? "100%" : undefined,
-                        transition: "background 600ms ease",
+                        transform: paused ? "scaleX(1)" : undefined,
                       }}
                     />
                   )}
@@ -1174,9 +1228,19 @@ export function HeroSection() {
               style={{ opacity: visible ? 1 : 0 }}
             >
               <div className="relative z-10 h-full flex flex-col items-center justify-center px-6 lg:px-10 py-10">
+                {/* This whole panel is `hidden` below lg, but browsers still
+                    fetch images inside display:none — so every slide after
+                    the first is lazy (not fetched on phones at all, and
+                    deprioritised on desktop) to keep them from competing
+                    with the LCP image. */}
                 <img
                   src={s.image}
                   alt={s.imageAlt}
+                  width={1536}
+                  height={1024}
+                  loading={i === 0 ? "eager" : "lazy"}
+                  fetchPriority={i === 0 ? "high" : "low"}
+                  decoding="async"
                   className="w-full max-w-[560px] h-auto select-none drop-shadow-[0_24px_48px_rgba(17,29,53,0.18)]"
                   draggable={false}
                 />
@@ -1274,7 +1338,7 @@ export function ModulesSection() {
           from { opacity: 0; transform: translateY(10px); }
           to   { opacity: 1; transform: translateY(0); }
         }
-        @keyframes hsProgress { from { width: 0; } to { width: 100%; } }
+        @keyframes hsProgress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
       `}</style>
 
       <div className={"bg-[#114dac] " + HERO_PX + " py-16 lg:py-0 flex flex-col justify-center"}>
@@ -1320,7 +1384,7 @@ export function ModulesSection() {
                   />
                   {isActive && !paused && !userLocked.current && (
                     <span
-                      className="absolute bottom-0 left-0 h-[1.5px] bg-[#63b3ed]/40"
+                      className="absolute bottom-0 left-0 h-[1.5px] w-full origin-left bg-[#63b3ed]/40"
                       style={{ animation: "hsProgress " + MODULE_ADVANCE_MS + "ms linear forwards" }}
                     />
                   )}
@@ -1495,7 +1559,7 @@ const NEWSLETTER_MIN_SUBMIT_MS = 1500
 // photo changes). Defaults preserve the homepage's existing behavior
 // exactly (same file, same prop-less call site in src/app/page.tsx).
 export function KeepInTouchSection({
-  bannerImage = "/images/contact_banner.png",
+  bannerImage = "/images/contact_banner.webp",
   // bannerPosition (2026-09-09): optional CSS background-position override,
   // independent from bannerImage — added because /features' banner photo
   // (features_banner.png) has its subject's face high in the frame; the
@@ -1553,7 +1617,7 @@ export function KeepInTouchSection({
 
   return (
     <section className="relative overflow-hidden">
-      {/* Banner photo, per request. public/images/contact_banner.png already
+      {/* Banner photo, per request. public/images/contact_banner.webp already
           existed in the repo (user placed it there) — a wide 2120×742
           office photo with a deliberate empty dark panel on its left third,
           clearly composed for text to sit over that side. Overlay tint

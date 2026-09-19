@@ -2,8 +2,8 @@
 
 // ─── Module Page Template (2026-09-12) ────────────────────────────────────────
 // Shared layout for every dedicated module page (/facility-task-automation,
-// and — as they get rebuilt — /asset-management, /complaint-management,
-// /inventory-management, /staff-attendance, /visitor-management). One
+// and — as they get rebuilt — /assets-spares-automation, /complaint-helpdesk-automation,
+// /inventory-vendor-automation-erp, /employee-management-automation, /visitor-management-automation). One
 // component, data-driven via ModulePageConfig, so every module page shares
 // the exact same visual system as the homepage/features instead of each
 // hand-rolling its own theme (the old /preventive-maintenance page had its
@@ -67,6 +67,7 @@ import { ClientsCarousel } from "@/src/components/clients-carousel"
 import { OverviewContactForm } from "@/src/components/overview-contact-form"
 import { BrochureDownloadForm } from "@/src/components/brochure-download-form"
 import { buildInlineVideoUrl } from "@/src/lib/video"
+import { MODULE_DEFINITIONS } from "@/src/lib/module-definitions"
 import { ArrowRight, ChevronDown, CheckCircle2, Lock, Zap, Download, X, type LucideProps } from "lucide-react"
 
 // ─── Local kicker — mirrors home-sections.tsx's (module-private) SectionKicker
@@ -471,6 +472,30 @@ export function ModulePageTemplate({ config }: { config: ModulePageConfig }) {
             landing page, right after the hero, when a page opts in
             (2026-09-12, first used on /facility-task-automation). ── */}
         {config.showClientsMarquee && <ClientsMarqueeSection />}
+
+        {/* ── "What is X?" answer block — a self-contained definition placed
+            near the top of the page (the part AI answer engines cite most).
+            Copy lives in src/lib/module-definitions.ts. ── */}
+        {MODULE_DEFINITIONS[config.slug] && (
+          <section className="bg-white pt-14 lg:pt-20" aria-labelledby="module-what-is">
+            <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16">
+              <div className="max-w-3xl">
+                <Reveal>
+                  <h2
+                    id="module-what-is"
+                    className="font-serif font-light leading-[1.15] tracking-tight text-[#114dac] mb-5"
+                    style={{ fontSize: "clamp(1.5rem,3.4vw,2.2rem)" }}
+                  >
+                    {MODULE_DEFINITIONS[config.slug].heading}
+                  </h2>
+                  <p className="text-[14px] font-light leading-[1.85] text-[#000000]">
+                    {MODULE_DEFINITIONS[config.slug].body}
+                  </p>
+                </Reveal>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* ══════════════════════════════════════════════════════════════
             Main content — single column. Stacks Intro → Capabilities →

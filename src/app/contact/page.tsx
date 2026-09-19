@@ -213,7 +213,7 @@ export default function ContactPage() {
                   <em className="not-italic text-[#63b3ed]">running on Firmity.</em>
                 </h1>
                 <p className="text-[13.5px] font-light text-white/[0.45] leading-[1.85] mt-4 max-w-sm">
-                  Schedule a personalised demo or reach out directly. Our team responds
+                  Contact Firmity, the cloud-based CMMS and ERP platform for facility management in India, to schedule a personalised demo or reach out directly. Our team responds
                   within 24 hours and stays with you through onboarding.
                 </p>
               </div>

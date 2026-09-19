@@ -2,8 +2,10 @@
 // so DB posts look identical to the original MDX ones. ISR-refreshed.
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import Image from "next/image";
 import { BlogPostShell } from "@/src/components/blog-post-shell";
 import { getBySlug } from "@/src/lib/blog";
+import { BLOG_SEO_TITLES } from "@/src/lib/blog-seo-titles";
 import { BLOG_PROSE } from "@/src/lib/blog-prose";
 import { canonical, SITE } from "@/src/lib/seo";
 import { JsonLd } from "@/src/components/json-ld";
@@ -38,16 +40,29 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!post || post.status !== "published") return { title: "Article", robots: { index: false, follow: true } };
   const url = canonical(`/blog/${slug}`);
   const description = post.meta_description || post.subtitle || undefined;
+  const images = post.cover_image_url ? [{ url: post.cover_image_url }] : undefined;
+  // Shorter title for search/social when the headline is too long to display
+  // (see BLOG_SEO_TITLES); the H1 and BlogPosting headline keep the full title.
+  const seoTitle = BLOG_SEO_TITLES[slug] ?? post.title;
   return {
-    title: post.title,
+    title: seoTitle,
     description,
     alternates: { canonical: url },
     openGraph: {
-      title: post.title,
+      title: seoTitle,
       description,
       url,
       type: "article",
-      images: post.cover_image_url ? [{ url: post.cover_image_url }] : undefined,
+      images,
+    },
+    // Set explicitly: Next.js only shallow-merges metadata, so without this the
+    // post inherits the generic "Blog — ..." twitter title/description from
+    // the /blog layout.
+    twitter: {
+      card: images ? "summary_large_image" : "summary",
+      title: seoTitle,
+      description,
+      images: post.cover_image_url ? [post.cover_image_url] : undefined,
     },
   };
 }
@@ -114,8 +129,15 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         )}
       </div>
       {post.cover_image_url && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={post.cover_image_url} alt={post.title} className="w-full rounded-2xl mb-9" />
+        <Image
+          src={post.cover_image_url}
+          alt={post.title}
+          width={1200}
+          height={750}
+          sizes="(min-width: 768px) 720px, 100vw"
+          priority
+          className="w-full h-auto rounded-2xl mb-9"
+        />
       )}
       {/* content_html is sanitized on save (lib/blog.ts::sanitizeContent). */}
       <div className={BLOG_PROSE} dangerouslySetInnerHTML={{ __html: post.content_html }} />

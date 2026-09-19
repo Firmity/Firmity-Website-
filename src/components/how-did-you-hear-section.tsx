@@ -6,7 +6,7 @@
 // gradient) and the shared dropdown logic in how-did-you-hear-form.tsx.
 //
 // Layout: left column (kicker/heading/subtext/form, left-aligned) + right
-// column (public/images/illustration.png, mirrored horizontally, ~70% opacity,
+// column (public/images/illustration.webp, mirrored horizontally, ~70% opacity,
 // desktop-only — matches the left-text/right-visual rhythm used by the
 // Problems section above it). No top border — Insights (the section right
 // after this one) already carries one, so the two don't double up.
@@ -39,7 +39,7 @@ export function HowDidYouHearSection() {
         <div className="hidden lg:flex items-center justify-center" aria-hidden="true">
           <Reveal direction="left" delay={120}>
             <img
-              src="/images/illustration.png"
+              src="/images/illustration.webp"
               alt=""
               className="w-full max-w-[480px] h-auto opacity-70 rounded-[4px]"
               style={{ transform: "scaleX(-1)" }}

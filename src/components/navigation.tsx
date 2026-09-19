@@ -21,8 +21,8 @@ const industryItems = [
     accent: "#2b6cb0",
     subItems: [
       { label: "PPM Scheduling", href: "/facility-task-automation" },
-      { label: "Asset Tracking", href: "/asset-management" },
-      { label: "Breakdown Management", href: "/complaint-management" },
+      { label: "Asset Tracking", href: "/assets-spares-automation" },
+      { label: "Breakdown Management", href: "/complaint-helpdesk-automation" },
       { label: "Compliance Records", href: "/facility-records" },
     ],
   },
@@ -31,10 +31,10 @@ const industryItems = [
     href: "/industries/educational",
     accent: "#d97706",
     subItems: [
-      { label: "Campus Help Desk", href: "/complaint-management" },
+      { label: "Campus Help Desk", href: "/complaint-helpdesk-automation" },
       { label: "Hostel & Block Records", href: "/facility-records" },
-      { label: "Visitor Management", href: "/visitor-management" },
-      { label: "Staff Attendance", href: "/staff-attendance" },
+      { label: "Visitor Management", href: "/visitor-management-automation" },
+      { label: "Staff Attendance", href: "/employee-management-automation" },
     ],
   },
   {
@@ -42,8 +42,8 @@ const industryItems = [
     href: "/industries/residential",
     accent: "#276749",
     subItems: [
-      { label: "Gate & Visitor Logs", href: "/visitor-management" },
-      { label: "Resident Complaints", href: "/complaint-management" },
+      { label: "Gate & Visitor Logs", href: "/visitor-management-automation" },
+      { label: "Resident Complaints", href: "/complaint-helpdesk-automation" },
       { label: "Common Area PPM", href: "/facility-task-automation" },
       { label: "Society Records", href: "/facility-records" },
     ],

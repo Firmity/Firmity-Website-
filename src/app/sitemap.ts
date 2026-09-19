@@ -30,16 +30,15 @@ const STATIC_ROUTES = [
   "",
   "/about",
   "/features",
-  "/pricing",
   "/facility-task-automation",
-  "/complaint-management",
-  "/asset-management",
-  "/inventory-management",
-  "/staff-attendance",
-  "/visitor-management",
+  "/complaint-helpdesk-automation",
+  "/assets-spares-automation",
+  "/inventory-vendor-automation-erp",
+  "/employee-management-automation",
+  "/visitor-management-automation",
   "/facility-records",
-  "/payroll-management",
-  "/facility-expense-management",
+  "/payroll-automation-erp",
+  "/facility-expense-automation-erp",
   "/resources",
   ...ERP_GUIDES.map((g) => `/resources/guide/${g.slug}`),
   "/blog",
@@ -47,7 +46,6 @@ const STATIC_ROUTES = [
   "/facility-survey",
   "/facility-survey/book",
   "/event-booking",
-  "/search",
   "/industries/manufacturing",
   "/industries/educational",
   "/industries/residential",
@@ -58,7 +56,6 @@ const STATIC_ROUTES = [
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticEntries: MetadataRoute.Sitemap = STATIC_ROUTES.map((route) => ({
     url: canonical(route),
-    lastModified: new Date(),
   }))
 
   // Individual blog posts are DB-driven and weren't in the sitemap at all
