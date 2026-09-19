@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react"
+import { Fragment, useEffect, useRef, useState } from "react"
 import { usePathname } from "next/navigation"
 import { Home, ChevronRight } from "lucide-react"
 import { JsonLd } from "@/src/components/json-ld"
@@ -46,26 +46,7 @@ function humanize(segment: string): string {
 }
 
 export function Breadcrumbs() {
-  const routerPathname = usePathname()
-  // Bug (2026-09-19): usePathname() was observed reporting a stale/wrong
-  // route (an "index" segment) instead of the real URL — both on first
-  // landing on the homepage and after a client-side <Link> navigation to
-  // another page — producing a stray "Home > Index" bar site-wide until a
-  // hard refresh recomputed it correctly. window.location.pathname was
-  // confirmed correct ("/", then the real path) at every point this
-  // happened, so this bar now trusts that over the router's own hook:
-  // initialized straight from it on the client (SSR has no `window`, so the
-  // router value is the only option there, and it's reliable server-side —
-  // the raw SSR HTML never showed the bug, only post-hydration client state
-  // did), then re-synced defensively whenever the router's value changes,
-  // in case this same component instance ever persists across a navigation
-  // instead of remounting.
-  const [pathname, setPathname] = useState(() =>
-    typeof window !== "undefined" ? window.location.pathname : routerPathname
-  )
-  useLayoutEffect(() => {
-    setPathname(window.location.pathname)
-  }, [routerPathname])
+  const pathname = usePathname()
 
   const barRef = useRef<HTMLDivElement>(null)
   const [ownHeight, setOwnHeight] = useState(0)
