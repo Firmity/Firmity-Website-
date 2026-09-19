@@ -19,8 +19,8 @@ const BASE = (process.argv[2] || "http://localhost:3000").replace(/\/$/, "");
 const PUBLIC_ROUTES = [
   "/", "/about", "/features", "/pricing", "/resources", "/blog", "/contact",
   "/facility-survey", "/facility-survey/book",
-  "/preventive-maintenance", "/complaint-management", "/asset-management",
-  "/inventory-management", "/staff-attendance", "/visitor-management", "/facility-records",
+  "/preventive-maintenance", "/complaint-helpdesk-automation", "/assets-spares-automation",
+  "/inventory-vendor-automation-erp", "/employee-management-automation", "/visitor-management-automation", "/facility-records",
   "/industries/manufacturing", "/industries/educational", "/industries/residential",
   "/privacy", "/terms",
 ];

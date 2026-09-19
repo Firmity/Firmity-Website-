@@ -287,6 +287,9 @@ export default function FacilitySurveyLandingPage() {
                   Know the True Health<br />
                   <span className="italic text-emerald-300">of Your Facility.</span>
                 </h1>
+                <p className="text-[14px] font-light text-white/80 mb-3 leading-relaxed max-w-xl">
+                  The Firmity Facility Health Survey is a free, AI-assisted on-site audit of a building's safety, systems and services that produces an actionable facility health report.
+                </p>
                 <p className="text-[16.5px] font-semibold text-white mb-3 leading-snug">
                   Our surveyor visits your property. Our AI generates a comprehensive facility health report in 10 minutes.
                 </p>

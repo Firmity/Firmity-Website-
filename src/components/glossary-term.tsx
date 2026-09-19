@@ -217,9 +217,25 @@ export function GlossaryTerm({ term, children }: { term: "ERP" | "CMMS"; childre
         onClick={toggleClick}
         aria-label={`What is ${entry.term}?`}
         aria-expanded={open}
-        className="cursor-pointer ml-0.5 inline-flex items-center justify-center w-[13px] h-[13px] rounded-full border border-[#2b6cb0]/40 text-[#2b6cb0] text-[8.5px] font-semibold leading-none hover:border-[#2b6cb0] hover:bg-[#2b6cb0] hover:text-white transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-[#2b6cb0] translate-y-[-3px]"
+        className="cursor-pointer ml-0.5 inline-flex items-center justify-center w-[13px] h-[13px] rounded-full border border-[#2b6cb0]/40 text-[#2b6cb0] hover:border-[#2b6cb0] hover:bg-[#2b6cb0] hover:text-white transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-[#2b6cb0] translate-y-[-3px]"
       >
-        ?
+        {/* SVG, not a literal "?" — a text "?" inside a heading is read by
+            crawlers/text extraction as part of the heading ("Payroll ERP ?"). */}
+        <svg
+          viewBox="0 0 24 24"
+          width="8"
+          height="8"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="3.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path d="M8.5 9a3.5 3.5 0 1 1 5.2 3c-1.1.7-1.7 1.4-1.7 2.5" />
+          <path d="M12 19h.01" />
+        </svg>
       </button>
 
       {mounted && popover ? createPortal(popover, document.body) : null}

@@ -57,7 +57,8 @@ export default function AboutPage() {
               About Firmity
             </h1>
             <p className="text-lg text-foreground/80 text-center max-w-2xl mx-auto">
-              We're on a mission to simplify facility management through intelligent, integrated software solutions that
+              Firmity is a cloud-based facility management platform, built by UFIRM Technologies (P) Limited in India, that
+              combines CMMS and ERP in one product. We're on a mission to simplify facility management through intelligent, integrated software solutions that
               empower teams worldwide.
             </p>
           </div>

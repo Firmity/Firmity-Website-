@@ -10,4 +10,6 @@ export const BLOG_PROSE =
   "[&_a]:text-[#2b6cb0] [&_a]:underline hover:[&_a]:text-[#1a56a0] " +
   "[&_blockquote]:border-l-2 [&_blockquote]:border-[#2b6cb0] [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-[#4a5568] [&_blockquote]:my-5 " +
   "[&_img]:rounded-xl [&_img]:my-6 [&_img]:w-full [&_strong]:font-semibold [&_strong]:text-[#1a202c] " +
+  "[&_table]:block [&_table]:overflow-x-auto [&_table]:my-6 [&_table]:text-[14px] [&_table]:border-collapse [&_caption]:sr-only " +
+  "[&_th]:text-left [&_th]:bg-[#f4f7fb] [&_th]:text-[#114dac] [&_th]:font-semibold [&_th]:p-3 [&_td]:p-3 [&_td]:align-top [&_td]:text-[#2d3748] [&_tr]:border-t [&_tr]:border-[#e2e8f0] " +
   "[&_hr]:my-8 [&_hr]:border-[#e2e8f0] [&_code]:bg-[#f1f5f9] [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-[13px]";

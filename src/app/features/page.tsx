@@ -481,7 +481,7 @@ export default function FeaturesPage() {
             from the navy panel this replaced. */}
         <section className="relative h-[560px] sm:h-[600px] lg:h-[640px] overflow-hidden">
           <img
-            src="/images/features_hero.png"
+            src="/images/features_hero.webp"
             alt="Firmity facility management platform"
             className="absolute inset-0 w-full h-full object-cover"
           />
@@ -497,8 +497,10 @@ export default function FeaturesPage() {
                 <span className="text-[#8fc3f5] italic">for your facility.</span>
               </h1>
               <p className="text-[13.5px] font-light text-white/70 leading-[1.85] max-w-md mt-3">
-                Everything you need to manage facilities, assets, staff, and compliance — one integrated,
-                cloud-based platform, not seven disconnected tools.
+                Firmity's features are eight connected modules covering preventive maintenance, assets and spares,
+                complaints, inventory and vendors, visitors, attendance, payroll and expenses. Everything you need to
+                manage facilities, assets, staff, and compliance — one integrated, cloud-based platform, not eight
+                disconnected tools.
               </p>
 
               {/* Simple stat row — no boxes/borders, just icon + value + label. */}
@@ -695,7 +697,7 @@ export default function FeaturesPage() {
                 const showMobileApp = MOBILE_APP_SLUGS.has(slug)
                 const image = MODULE_IMAGES[slug]
                 const highlighted = highlightId === slug
-                const ctaHref = MODULE_PAGES[slug] ?? "/pricing"
+                const ctaHref = MODULE_PAGES[slug] ?? "/contact"
                 return (
                   <section key={slug} id={slug} className="scroll-mt-32">
                     <Reveal>
@@ -757,16 +759,19 @@ export default function FeaturesPage() {
                                 // NEXT_PUBLIC_APP_DOWNLOAD_URL for desktop. Once
                                 // those two store env vars are set, this link (and
                                 // the QR) both work with no further code changes.
-                                <Link
+                                // Plain <a>, not next/link: /get-app is a route handler that
+                                // 302s to a store URL, and Link's RSC prefetch/click fetch
+                                // followed that redirect cross-origin (CORS console error).
+                                <a
                                   href="/get-app"
                                   className="inline-flex items-center justify-center gap-2 text-[13px] font-semibold px-7 py-3 rounded-[4px] transition-colors whitespace-nowrap border border-[#114dac] text-[#114dac] hover:bg-[#114dac] hover:text-white"
                                 >
                                   <span className="flex items-center gap-1 flex-shrink-0">
-                                    <img src="/images/appstore_icon.png" alt="" className="h-4 w-4 object-contain" />
-                                    <img src="/images/googleplay_icon.png" alt="" className="h-4 w-4 object-contain" />
+                                    <img src="/images/appstore_icon.png" alt="" width={16} height={16} className="h-4 w-4 object-contain" />
+                                    <img src="/images/googleplay_icon.png" alt="" width={16} height={16} className="h-4 w-4 object-contain" />
                                   </span>
                                   View Mobile App
-                                </Link>
+                                </a>
                               )}
                             </div>
                           </div>
@@ -1105,7 +1110,7 @@ export default function FeaturesPage() {
               </Reveal>
               <Reveal delay={100}>
                 <img
-                  src={deploymentTab === "cloud" ? "/images/cloud.png" : "/images/on_prem_view.png"}
+                  src={deploymentTab === "cloud" ? "/images/cloud.webp" : "/images/on_prem_view.webp"}
                   alt={
                     deploymentTab === "cloud"
                       ? "Firmity cloud platform, accessible anywhere and connected to accounting, HR, and IoT systems"
@@ -1145,7 +1150,7 @@ export default function FeaturesPage() {
         {/* ── KEEP IN TOUCH — same component/instance the homepage uses ──
             (moved 2026-09-10, per request, to right after "Built cloud-first"
             instead of just before the FAQ). ── */}
-        <KeepInTouchSection bannerImage="/images/features_banner.png" bannerPosition="center top" />
+        <KeepInTouchSection bannerImage="/images/features_banner.webp" bannerPosition="center top" />
 
         {/* ── ERP & CMMS GUIDES ─────────────────────────────────────────
             (2026-09-16 — restyled to match the homepage's "Browse our

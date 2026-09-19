@@ -184,9 +184,10 @@ export function OverviewContactForm() {
 
       <div className="grid grid-cols-2 gap-2.5">
         <div>
-          <label className={labelClass}>Full Name*</label>
+          <label htmlFor="overview-fullName" className={labelClass}>Full Name*</label>
           <input
             type="text"
+            id="overview-fullName"
             name="fullName"
             value={formData.fullName}
             onChange={handleChange}
@@ -196,9 +197,10 @@ export function OverviewContactForm() {
           />
         </div>
         <div>
-          <label className={labelClass}>Email*</label>
+          <label htmlFor="overview-email" className={labelClass}>Email*</label>
           <input
             type="email"
+            id="overview-email"
             name="email"
             value={formData.email}
             onChange={handleChange}
@@ -208,9 +210,10 @@ export function OverviewContactForm() {
           />
         </div>
         <div>
-          <label className={labelClass}>Phone</label>
+          <label htmlFor="overview-phone" className={labelClass}>Phone</label>
           <input
             type="tel"
+            id="overview-phone"
             name="phone"
             value={formData.phone}
             onChange={handleChange}
@@ -219,9 +222,10 @@ export function OverviewContactForm() {
           />
         </div>
         <div>
-          <label className={labelClass}>Company Name*</label>
+          <label htmlFor="overview-companyName" className={labelClass}>Company Name*</label>
           <input
             type="text"
+            id="overview-companyName"
             name="companyName"
             value={formData.companyName}
             onChange={handleChange}
@@ -262,8 +266,9 @@ export function OverviewContactForm() {
       </div>
 
       <div>
-        <label className={labelClass}>Message</label>
+        <label htmlFor="overview-message" className={labelClass}>Message</label>
         <textarea
+          id="overview-message"
           name="message"
           value={formData.message}
           onChange={handleChange}

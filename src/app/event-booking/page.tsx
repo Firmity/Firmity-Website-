@@ -27,7 +27,7 @@ export default function EventBookingPage() {
                   href="/contact"
                   className="bg-primary text-primary-foreground px-8 py-3 rounded-lg hover:bg-primary/90 transition-colors font-semibold cursor-pointer"
                 >
-                  Start Free Trial
+                  Request a Demo
                 </a>
                 {/* <a
                   href="/pricing"

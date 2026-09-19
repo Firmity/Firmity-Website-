@@ -28,7 +28,7 @@ const EXCLUDED_PREFIXES = [
   "/admin",
   "/login",
   "/staff-login",
-  "/staff-attendance",
+  "/employee-management-automation",
   "/profile",
   "/settings",
   "/my-surveys",

@@ -12,21 +12,22 @@ import { getSiteSeo } from "@/src/lib/seo-store"
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
-  variable: "--font-sans",
+  style: ["normal", "italic"],
+  variable: "--font-dm-sans",
   display: "swap",
 })
 
 const playfairDisplay = Playfair_Display({
   subsets: ["latin"],
   weight: ["400", "500"],
-  variable: "--font-serif",
+  variable: "--font-playfair",
   display: "swap",
 })
 
 const dmMono = DM_Mono({
   subsets: ["latin"],
   weight: ["300", "400", "500"],
-  variable: "--font-mono",
+  variable: "--font-dm-mono",
   display: "swap",
 })
 
@@ -74,7 +75,7 @@ export default async function RootLayout({
           {`try{var t=localStorage.getItem('firmity_theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}`}
         </Script>
         {/* Google Tag Manager */}
-        <Script id="gtm-base" strategy="afterInteractive">
+        <Script id="gtm-base" strategy="lazyOnload">
           {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
 j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=

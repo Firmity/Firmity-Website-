@@ -1,22 +1,12 @@
+import type { Metadata } from "next"
 import type { ReactNode } from "react"
-import { buildPageMetadata } from "@/src/lib/seo-store"
-import { PageJsonLd } from "@/src/components/seo-json-ld"
 
-// /home mirrors the landing page. Point its canonical at "/" so Google treats
-// them as one URL (avoids duplicate-content splitting).
-export const revalidate = 60
-
-export async function generateMetadata() {
-  const m = await buildPageMetadata("/")
-  // absolute = skip the "%s | Firmity" template (home title already starts with Firmity)
-  return { ...m, title: { absolute: m.title as string } }
+// Staff (surveyor) dashboard — not a public marketing page.
+export const metadata: Metadata = {
+  title: "Surveyor Home",
+  robots: { index: false, follow: false },
 }
 
 export default function Layout({ children }: { children: ReactNode }) {
-  return (
-    <>
-      <PageJsonLd path="/" />
-      {children}
-    </>
-  )
+  return children
 }

@@ -435,7 +435,7 @@ export default function ManufacturingPage() {
                 Operational Excellence,<br />Built for the Factory Floor.
               </h1>
               <p className="text-[15px] text-white/[0.62] font-light max-w-2xl mx-auto leading-relaxed mb-10">
-                Manufacturing facilities lose hours every day to reactive maintenance, paper-based PPM records, and
+                Firmity is a CMMS and facility management platform for manufacturing plants in India. Manufacturing facilities lose hours every day to reactive maintenance, paper-based PPM records, and
                 untraceable spare parts. Firmity gives your team a unified platform to schedule work, manage breakdowns,
                 track inventory, and maintain compliance — across every line, shift, and site.
               </p>

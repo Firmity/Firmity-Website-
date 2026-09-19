@@ -25,6 +25,15 @@ import { ModuleSolutionsSidebar } from "@/src/components/module-solutions-sideba
 
 export const revalidate = 3600
 
+function formatDate(iso: string): string {
+  return new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  })
+}
+
 export function generateStaticParams() {
   return ERP_GUIDES.map((g) => ({ slug: g.slug }))
 }
@@ -47,6 +56,14 @@ export async function generateMetadata({
       description: guide.description,
       url,
       type: "article",
+      publishedTime: guide.datePublished,
+      modifiedTime: guide.dateModified,
+      authors: [guide.author],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: guide.title,
+      description: guide.description,
     },
   }
 }
@@ -73,6 +90,9 @@ export default async function GuidePage({
           "@type": "Article",
           headline: guide.title,
           description: guide.description,
+          author: { "@type": "Person", name: guide.author },
+          datePublished: guide.datePublished,
+          dateModified: guide.dateModified,
           publisher: {
             "@type": "Organization",
             name: "Firmity",
@@ -107,6 +127,13 @@ export default async function GuidePage({
               <p className="text-[13.5px] font-light text-white/[0.55] leading-[1.85] mt-3">
                 {guide.description}
               </p>
+              <p className="text-[12px] font-light text-white/[0.7] mt-4">
+                By <span className="font-medium text-white/[0.9]">{guide.author}</span>
+                <span aria-hidden="true"> · </span>
+                Published <time dateTime={guide.datePublished}>{formatDate(guide.datePublished)}</time>
+                <span aria-hidden="true"> · </span>
+                Updated <time dateTime={guide.dateModified}>{formatDate(guide.dateModified)}</time>
+              </p>
             </Reveal>
           </div>
         </section>
@@ -124,19 +151,10 @@ export default async function GuidePage({
             with no separate list to keep in sync here. ── */}
         <section className="max-w-6xl mx-auto px-6 sm:px-10 lg:px-16 py-12 lg:py-16">
           <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-10 lg:gap-16">
-            {/* Sidebar — hidden below lg, matching the sticky-rail pattern
-                already used on /features' module sidebar (same border-black
-                divider rail, no invented colors). */}
-            <aside className="hidden lg:block">
-              <div className="sticky top-24">
-                <h2 className="text-[11px] font-semibold tracking-[0.2em] uppercase text-black mb-4">
-                  Explore our solutions
-                </h2>
-                <ModuleSolutionsSidebar />
-              </div>
-            </aside>
-
-            <div className="max-w-[680px]">
+            {/* Article comes FIRST in the DOM (so its opening text is what crawlers and
+                AI answer engines read first); the sidebar is moved back to the left
+                column visually via explicit grid placement. */}
+            <div className="max-w-[680px] lg:col-start-2 lg:row-start-1">
               <Reveal>
                 <div className={BLOG_PROSE} dangerouslySetInnerHTML={{ __html: guide.bodyHtml }} />
               </Reveal>
@@ -151,6 +169,18 @@ export default async function GuidePage({
                 </Link>
               </div>
             </div>
+            {/* Sidebar — hidden below lg, matching the sticky-rail pattern
+                already used on /features' module sidebar (same border-black
+                divider rail, no invented colors). */}
+            <aside className="hidden lg:block lg:col-start-1 lg:row-start-1">
+              <div className="sticky top-24">
+                <h2 className="text-[11px] font-semibold tracking-[0.2em] uppercase text-black mb-4">
+                  Explore our solutions
+                </h2>
+                <ModuleSolutionsSidebar />
+              </div>
+            </aside>
+
           </div>
         </section>
 
