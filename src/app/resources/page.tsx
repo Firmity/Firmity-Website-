@@ -11,6 +11,7 @@ import { Footer } from "@/src/components/footer"
 import { Reveal } from "@/src/components/reveal"
 import Link from "next/link"
 import { ERP_GUIDES } from "@/src/lib/erp-guides"
+import { HomeAnswerSection } from "@/src/components/home-answer-section"
 import { useState, type FC } from "react"
 import {
   ArrowRight,
@@ -138,6 +139,11 @@ export default function ResourcesPage() {
             ))}
           </div>
         </section>
+
+        {/* ── What is Firmity? — definition + modules table. Lives here rather
+            than on the homepage so the home design stays clean; the homepage
+            FAQ still answers the same question. ── */}
+        <HomeAnswerSection />
 
         {/* ── Guides — plain links so every guide is reachable (and crawlable)
             straight from the resources hub, not only via /features. ── */}

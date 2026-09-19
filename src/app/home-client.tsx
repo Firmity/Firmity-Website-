@@ -309,7 +309,6 @@
 
 import { Navigation } from "@/src/components/navigation"
 import { Footer } from "@/src/components/footer"
-import { HomeAnswerSection } from "@/src/components/home-answer-section"
 import { BrochureDownloadForm } from "@/src/components/brochure-download-form"
 import { OverviewContactForm } from "@/src/components/overview-contact-form"
 import { SurveyPopup } from "@/src/components/survey-popup"
@@ -795,10 +794,6 @@ export default function FirmityHome({ initialPosts }: { initialPosts: LatestPost
             Full slideshow + data panel — implemented in home-sections.tsx
         ── */}
         <HeroSection />
-
-        {/* "What is Firmity?" definition + modules table — first thing after
-            the hero so the most citable text is near the top of the page. */}
-        <HomeAnswerSection />
 
         {/* ── PROBLEM STATEMENT — hero-aligned, live risk board ──
             Implementation lives in src/components/home-sections.tsx.
