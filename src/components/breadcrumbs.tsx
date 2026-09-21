@@ -60,7 +60,10 @@ export function Breadcrumbs() {
 
   if (!pathname || pathname === "/") return null
 
-  const segments = pathname.split("/").filter(Boolean)
+  // "index" is never a real URL segment on this site (the homepage is "/"),
+  // yet it surfaced as a phantom "Home > Index" bar on the homepage and after
+  // client-side navigation. Drop it; render nothing if no real segments remain.
+  const segments = pathname.split("/").filter((seg) => seg && seg.toLowerCase() !== "index")
   if (segments.length === 0) return null
 
   const crumbs = segments.map((seg, i) => ({

@@ -1,6 +1,6 @@
 # Firmity
 
-> Firmity is a cloud-based facility management platform for India that combines CMMS (computerised maintenance management) and ERP workflows: preventive maintenance, assets and spares, complaints, inventory and vendors, visitors, attendance, payroll and facility expenses. Built by UFIRM Technologies (P) Limited. Available on web, Android and iOS, on cloud or on-premise.
+> Firmity is a cloud-based facility management platform for India that combines CMMS (computerised maintenance management) and ERP workflows: preventive maintenance, task automation, assets and spares automation, complaints and helpdesk management, inventory and vendors management, visitors management, attendance management, payroll and facility expenses management. Built by UFIRM Technologies (P) Limited. Available on desktop, web, Android and iOS, on cloud or on-premise deployment.
 
 ## Product modules
 
