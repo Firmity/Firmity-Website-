@@ -743,11 +743,11 @@ function FaqSection() {
                     {item.q}
                   </span>
                 </button>
-                {isOpen && (
-                  <div className="pb-6 pl-[34px] pr-2">
-                    <p className="text-[13.5px] leading-[1.8] text-[#000000]">{item.a}</p>
-                  </div>
-                )}
+                {/* Always in the DOM (hidden, not unmounted) so the answer text is in
+                    the server-rendered HTML for crawlers; visually identical. */}
+                <div hidden={!isOpen} className="pb-6 pl-[34px] pr-2">
+                  <p className="text-[13.5px] leading-[1.8] text-[#000000]">{item.a}</p>
+                </div>
               </div>
             )
           })}
