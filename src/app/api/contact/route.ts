@@ -23,11 +23,18 @@ export async function POST(req: Request) {
 
     if (
       typeof fullName !== "string" || fullName.trim().length === 0 ||
-      typeof email !== "string" || !EMAIL_RE.test(email.trim()) ||
-      typeof companyName !== "string" || companyName.trim().length === 0
+      typeof email !== "string" || !EMAIL_RE.test(email.trim())
     ) {
       return NextResponse.json({ success: false, error: "Missing or invalid fields" }, { status: 400 })
     }
+
+    // companyName is required-in-practice for the homepage/Contact page
+    // forms (both always send one) but the new blog CTA form
+    // (blog-cta-form.tsx, 2026-09-23) has no company field at all, so this
+    // is optional here rather than gated behind a caller flag — every
+    // existing caller still always sends a non-empty value, so this is
+    // purely additive, not a loosening of validation for them.
+    const safeCompanyName = typeof companyName === "string" && companyName.trim() ? companyName.trim() : "(not provided)"
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -48,7 +55,7 @@ New contact request received:
 Name: ${fullName}
 Email: ${email}
 Phone: ${phone}
-Company: ${companyName}
+Company: ${safeCompanyName}
 Team Size: ${manpower}
 Request Type: ${requestType}
 Message: ${message}
@@ -63,7 +70,7 @@ Message: ${message}
           fullName,
           email,
           phone,
-          companyName,
+          companyName: safeCompanyName,
           manpower,
           message,
           requestType,

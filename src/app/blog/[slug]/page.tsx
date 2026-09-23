@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import { BlogPostShell } from "@/src/components/blog-post-shell";
 import { BlogFaqSection } from "@/src/components/blog/blog-faq-section";
+import { BlogCtaForm } from "@/src/components/blog/blog-cta-form";
 import { RelatedPostsSection } from "@/src/components/blog/related-posts-section";
 import { getBySlug, extractToc, listRelatedByCategory, categorySlug } from "@/src/lib/blog";
 import { getAuthorById } from "@/src/lib/blog-authors";
@@ -108,7 +109,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     : undefined;
 
   return (
-    <BlogPostShell toc={toc} breadcrumbOverride={breadcrumbOverride}>
+    <BlogPostShell toc={toc} breadcrumbOverride={breadcrumbOverride} postTitle={post.title}>
       <style>{`@media print{.no-print{display:none!important}nav,header,footer{display:none!important}}`}</style>
       <JsonLd
         data={{
@@ -234,6 +235,17 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           )}
         </div>
       )}
+
+      {/* Mobile/tablet lead-gen form (2026-09-23) — desktop's copy lives in
+          the right-hand rail (blog-post-shell.tsx); this is the SAME
+          component re-rendered inline for narrower viewports, per request:
+          "on mobiles, find a good place to put this, maybe at the end of
+          the blog after author" — placed right after the author bio /
+          "Last updated" block, before the related-posts cards. Hidden at
+          lg+ so it doesn't double-render alongside the desktop rail. */}
+      <div className="mt-10 lg:hidden">
+        <BlogCtaForm postTitle={post.title} />
+      </div>
 
       {/* "More on <category>" cards (2026-09-23) — last thing on the page,
           per request: "3 category-wise blog cards at the end of each
