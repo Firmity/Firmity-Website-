@@ -16,6 +16,8 @@ interface Q {
   facility_types: string[]; is_default: boolean;
   good_answer?: string | null;   // 'yes' | 'no'; which answer is compliant
   checklist?: SubItem[];
+  origin?: "admin" | "surveyor"; // who authored it
+  needs_review?: boolean;        // surveyor question flagged as a possible duplicate
 }
 const TYPES = ["choice", "rating", "text", "remarks", "number", "yes_no", "checklist"];
 const TYPE_LABELS: Record<string, string> = {
@@ -103,6 +105,7 @@ export default function AdminQuestions() {
   const [catDraft, setCatDraft] = useState({ name: "", isKey: true });
   const [rename, setRename] = useState("");
   const [search, setSearch] = useState("");
+  const [originFilter, setOriginFilter] = useState<"all" | "admin" | "surveyor">("all");
   const [showHelp, setShowHelp] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
@@ -119,7 +122,7 @@ export default function AdminQuestions() {
 
   async function loadQs(d: string) {
     const { data, error } = await sb
-      .from("questions").select("id,domain_slug,section,text,answer_type,is_active,sort_order,facility_types,is_default,good_answer,checklist")
+      .from("questions").select("id,domain_slug,section,text,answer_type,is_active,sort_order,facility_types,is_default,good_answer,checklist,origin,needs_review")
       .eq("domain_slug", d).order("sort_order"); // manual order (drag-and-drop) drives the admin list
     if (error) setErr(error.message);
     let rows = (data as Q[]) ?? [];
@@ -342,10 +345,15 @@ export default function AdminQuestions() {
     if (error) { setErr(error.message); loadDomains(domain); }
   }
 
-  const visible = useMemo(
-    () => (search ? qs.filter((q) => q.text.toLowerCase().includes(search.toLowerCase())) : qs),
-    [qs, search]
-  );
+  const visible = useMemo(() => {
+    let out = qs;
+    if (originFilter !== "all") {
+      // Rows created before this feature have no origin -> treat them as admin.
+      out = out.filter((q) => (q.origin ?? "admin") === originFilter);
+    }
+    if (search) out = out.filter((q) => q.text.toLowerCase().includes(search.toLowerCase()));
+    return out;
+  }, [qs, search, originFilter]);
   const allSel = visible.length > 0 && visible.every((q) => selected.has(q.id));
   function toggleAll() {
     setSelected(allSel ? new Set() : new Set(visible.map((q) => q.id)));
@@ -454,6 +462,15 @@ export default function AdminQuestions() {
 
           <div className="mb-3 flex flex-wrap items-center gap-2">
             <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search questions…" className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+            {/* Filter by who authored the question (item 3). */}
+            <div className="flex overflow-hidden rounded-lg border border-slate-300 text-xs">
+              {(["all", "admin", "surveyor"] as const).map((f) => (
+                <button key={f} type="button" onClick={() => setOriginFilter(f)}
+                  className={`px-2.5 py-2 font-medium capitalize ${originFilter === f ? "bg-slate-900 text-white" : "bg-white text-slate-600 hover:bg-slate-100"}`}>
+                  {f === "surveyor" ? "Surveyor (SQ)" : f}
+                </button>
+              ))}
+            </div>
             <button type="button" onClick={() => setAddingQ((a) => !a)} className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white">
               <Plus className="h-4 w-4" /> Add question
             </button>
@@ -540,6 +557,14 @@ export default function AdminQuestions() {
                 }`}
               >
                 {q.section && <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">{q.section}</p>}
+                {q.origin === "surveyor" && (
+                  <div className="mb-1.5 flex items-center gap-1.5">
+                    <span title="Added by a surveyor" className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-700">SQ</span>
+                    {q.needs_review && (
+                      <span title="Possible duplicate — review/merge" className="rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-red-600">Review</span>
+                    )}
+                  </div>
+                )}
                 <div className="flex items-start gap-2">
                   {!search && (
                     <button
