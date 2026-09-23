@@ -5,7 +5,7 @@ import { useState, useRef, useCallback, type FormEvent, type MouseEvent } from "
 import { useRouter, usePathname } from "next/navigation"
 import { Menu, X, ChevronDown, ArrowRight, Search, User } from "lucide-react"
 import Image from "next/image"
-import { Breadcrumbs } from "@/src/components/breadcrumbs"
+import { Breadcrumbs, type BreadcrumbCrumb } from "@/src/components/breadcrumbs"
 import { useHashScroll, scrollToHash } from "@/src/hooks/use-hash-scroll"
 import { useHideOnScroll } from "@/src/hooks/use-hide-on-scroll"
 
@@ -50,7 +50,10 @@ const industryItems = [
   },
 ]
 
-export function Navigation() {
+// `breadcrumbOverride` (2026-09-23) — forwarded straight to Breadcrumbs; see
+// that component for why blog posts/category pages need it. Omitted
+// everywhere else, so every other call site (there are dozens) is untouched.
+export function Navigation({ breadcrumbOverride }: { breadcrumbOverride?: BreadcrumbCrumb[] } = {}) {
   const [isOpen, setIsOpen] = useState(false)
   const [industriesOpen, setIndustriesOpen] = useState(false)
   const [industriesMobileOpen, setIndustriesMobileOpen] = useState(false)
@@ -402,7 +405,7 @@ export function Navigation() {
         directly under this <nav>'s bottom border via `sticky top-16` inside
         breadcrumbs.tsx — see that file for the offset/z-index rationale.
         Renders nothing on "/" (see breadcrumbs.tsx). */}
-    <Breadcrumbs />
+    <Breadcrumbs override={breadcrumbOverride} />
     </>
   )
 }
