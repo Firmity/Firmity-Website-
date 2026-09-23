@@ -25,7 +25,12 @@ import type { BlogFaq } from "@/src/lib/blog"
 // any faqs." Also emits the FAQPage JSON-LD via faqJsonLd (lib/seo.ts) —
 // see that function's comment for what it does and doesn't buy you in
 // 2026's search landscape.
-export function BlogFaqSection({ faqs }: { faqs: BlogFaq[] }) {
+//
+// `title` (2026-09-23) — editable per-post in the studio (Form.faq_title /
+// post.faq_title, blog.ts) so a marketer can write "FAQs: Preventive
+// Maintenance" instead of the generic default; blank/omitted falls back
+// to the literal "FAQs" below.
+export function BlogFaqSection({ faqs, title }: { faqs: BlogFaq[]; title?: string }) {
   const [openIdx, setOpenIdx] = useState<number | null>(null)
   if (faqs.length === 0) return null
 
@@ -33,7 +38,7 @@ export function BlogFaqSection({ faqs }: { faqs: BlogFaq[] }) {
     <section className="mt-12 pt-8 border-t border-[#eef3f9]">
       <JsonLd data={faqJsonLd(faqs)} />
       <h2 className="font-serif text-[clamp(1.4rem,3vw,1.9rem)] font-light text-[#114dac] leading-tight tracking-tight mb-5">
-        FAQs
+        {title || "FAQs"}
       </h2>
       <div>
         {faqs.map((item, i) => {
