@@ -45,7 +45,19 @@ function humanize(segment: string): string {
   return segment.replace(/[-_]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
 }
 
-export function Breadcrumbs() {
+export interface BreadcrumbCrumb {
+  label: string
+  href: string
+}
+
+// `override` (2026-09-23) lets one specific page supply its own full trail
+// instead of the auto URL-segment derivation below — used by blog posts and
+// the /blog/category/[slug] pages, whose category can't be read off the URL
+// (post URLs stay flat at /blog/[slug], never nested under a category
+// segment, so an existing post's URL never has to change for this). Omitted
+// — the default, and unchanged for every other page on the site — this
+// behaves exactly as before `override` existed.
+export function Breadcrumbs({ override }: { override?: BreadcrumbCrumb[] } = {}) {
   const pathname = usePathname()
 
   const barRef = useRef<HTMLDivElement>(null)
@@ -58,20 +70,24 @@ export function Breadcrumbs() {
     if (barRef.current) setOwnHeight(barRef.current.getBoundingClientRect().height)
   }, [pathname])
 
-  if (!pathname || pathname === "/") return null
+  if (!override && (!pathname || pathname === "/")) return null
 
-  // "index" is never a real URL segment on this site (the homepage is "/"),
-  // yet it surfaced as a phantom "Home > Index" bar on the homepage and after
-  // client-side navigation. Drop it; render nothing if no real segments remain.
-  const segments = pathname.split("/").filter((seg) => seg && seg.toLowerCase() !== "index")
-  if (segments.length === 0) return null
+  const crumbs = override
+    ? override.map((c, i) => ({ key: c.href + i, label: c.label, href: c.href, isLast: i === override.length - 1 }))
+    : // "index" is never a real URL segment on this site (the homepage is
+      // "/"), yet it surfaced as a phantom "Home > Index" bar on the
+      // homepage and after client-side navigation. Drop it.
+      (pathname ?? "")
+        .split("/")
+        .filter((seg) => seg && seg.toLowerCase() !== "index")
+        .map((seg, i, segments) => ({
+          key: seg + i,
+          label: humanize(seg),
+          href: "/" + segments.slice(0, i + 1).join("/"),
+          isLast: i === segments.length - 1,
+        }))
 
-  const crumbs = segments.map((seg, i) => ({
-    key: seg + i,
-    label: humanize(seg),
-    href: "/" + segments.slice(0, i + 1).join("/"),
-    isLast: i === segments.length - 1,
-  }))
+  if (crumbs.length === 0) return null
 
   // Matching BreadcrumbList structured data (2026-09-04) — `breadcrumbJsonLd`
   // already existed in src/lib/seo.ts but was never actually called anywhere

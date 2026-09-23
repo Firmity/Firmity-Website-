@@ -8,6 +8,7 @@ import Link from "next/link";
 import { Navigation } from "@/src/components/navigation";
 import { Footer } from "@/src/components/footer";
 import { Reveal } from "@/src/components/reveal";
+import type { BreadcrumbCrumb } from "@/src/components/breadcrumbs";
 import { ArrowRight, Clock, Mail } from "lucide-react";
 
 export interface Card {
@@ -20,10 +21,40 @@ export interface Card {
   cover?: string | null;
 }
 
-export function BlogIndex({ posts }: { posts: Card[] }) {
-  const [category, setCategory] = useState<string>("All");
+// The three product-line categories that always get a browse card at the
+// bottom of the index (2026-09-23, per request: "add these three
+// categories to the blogs CMMS/CAFM/ERP... in the blogs page, these three
+// will show at the bottom"). Everything else about categorisation stays
+// dynamic/marketer-managed (see blog.ts's listCategories/addCategory) —
+// this is just which three get a permanent featured tile here, provided a
+// published post actually uses that category (see `featured` below).
+const FEATURED_CATEGORIES = ["CMMS", "CAFM", "ERP"];
+
+export function BlogIndex({
+  posts,
+  breadcrumbOverride,
+  lockCategory,
+}: {
+  posts: Card[];
+  /** Forwarded to Navigation/Breadcrumbs — see breadcrumbs.tsx's `override`
+   * prop. Used by /blog/category/[slug]/page.tsx so that page reads "Home >
+   * Blog > <Category>" instead of the generic auto "Home > Blog > Category > <slug>". */
+  breadcrumbOverride?: BreadcrumbCrumb[];
+  /** Set by /blog/category/[slug]/page.tsx (2026-09-23): `posts` is already
+   * pre-filtered to this one category server-side, so the category-filter
+   * pills below (redundant on a page that IS one category) and the bottom
+   * "Browse by product" tiles (this page already lives at one of those
+   * tiles' destination) are both suppressed. Omitted on the main /blog
+   * index — zero behavior change there. */
+  lockCategory?: string;
+}) {
+  const [category, setCategory] = useState<string>(lockCategory ?? "All");
   const categories = useMemo(
     () => ["All", ...Array.from(new Set(posts.map((p) => p.category).filter(Boolean)))],
+    [posts],
+  );
+  const featuredCategories = useMemo(
+    () => FEATURED_CATEGORIES.filter((c) => posts.some((p) => p.category === c)),
     [posts],
   );
 
@@ -48,7 +79,7 @@ export function BlogIndex({ posts }: { posts: Card[] }) {
 
   return (
     <>
-      <Navigation />
+      <Navigation breadcrumbOverride={breadcrumbOverride} />
       <main className="bg-white">
         {/* HERO */}
         <section className="relative overflow-hidden">
@@ -82,7 +113,7 @@ export function BlogIndex({ posts }: { posts: Card[] }) {
           <div className="relative max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 pt-14 pb-16">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-6 h-px bg-[#114dac]" />
-              <span className="text-[#1a2744] text-[10px] font-semibold tracking-[0.2em] uppercase">Blog</span>
+              <span className="text-[#1a2744] text-[10px] font-semibold tracking-[0.2em] uppercase">{lockCategory ?? "Blog"}</span>
             </div>
             <h1 className="font-serif text-[clamp(1.8rem,4vw,2.6rem)] font-light text-[#114dac] leading-tight tracking-tight max-w-3xl">
               Ideas for teams that <em className="not-italic text-[#2b6cb0]">run buildings better.</em>
@@ -94,7 +125,7 @@ export function BlogIndex({ posts }: { posts: Card[] }) {
         </section>
 
         {/* FILTER */}
-        {categories.length > 1 && (
+        {!lockCategory && categories.length > 1 && (
           <section className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 pt-8">
             <div className="flex flex-wrap gap-2">
               {categories.map((c) => {
@@ -209,6 +240,34 @@ export function BlogIndex({ posts }: { posts: Card[] }) {
             <p className="text-center text-[13px] font-light text-[#718096] py-12">No posts published yet.</p>
           )}
         </section>
+
+        {/* BROWSE BY PRODUCT — CMMS/CAFM/ERP (2026-09-23). Own section, not
+            folded into the category-filter pills above: those pills filter
+            IN PLACE, these link OUT to a dedicated /blog/category/[slug]
+            page per product line. Reuses this file's own existing card
+            shell (rounded-[20px] border-[#cbd5e0], the same treatment as
+            the post cards above) rather than inventing a new tile style. */}
+        {!lockCategory && featuredCategories.length > 0 && (
+          <section className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 pb-14">
+            <h2 className="font-serif text-[clamp(1.3rem,2.8vw,1.8rem)] font-light text-[#114dac] leading-tight tracking-tight mb-5">
+              Browse by product
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+              {featuredCategories.map((c) => (
+                <Link
+                  key={c}
+                  href={`/blog/category/${c.toLowerCase()}`}
+                  className="group flex items-center justify-between gap-3 rounded-[20px] border border-[#cbd5e0] bg-white p-6 hover:-translate-y-1 hover:shadow-[0_14px_36px_rgba(17,29,53,0.13)] hover:border-[#2b6cb0]/50 transition-all duration-300"
+                >
+                  <span className="text-[15px] font-semibold text-[#1a202c] group-hover:text-[#2b6cb0] transition-colors">
+                    {c} articles
+                  </span>
+                  <ArrowRight size={16} className="flex-shrink-0 text-[#2b6cb0] group-hover:translate-x-1 transition-transform" />
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* NEWSLETTER */}
         <section className="bg-[#114dac]">

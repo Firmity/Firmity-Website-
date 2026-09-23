@@ -4,7 +4,7 @@
 import "server-only";
 import type { Metadata } from "next";
 import { getSupabaseAdmin } from "./supabase-admin";
-import { buildMetadata, canonical, SITE } from "./seo";
+import { buildMetadata, canonical, SITE, SEO_ROUTES, PAGE_SEO, serviceJsonLd } from "./seo";
 
 export interface PageSeoRow {
   path: string;
@@ -62,6 +62,91 @@ export async function deletePageSeo(path: string): Promise<void> {
 export async function updateSiteSeo(patch: Partial<SiteSeo>): Promise<void> {
   const { error } = await getSupabaseAdmin().from("site_seo").update(patch).eq("id", 1);
   if (error) throw new Error(`[SEO_DB_ERR] site update: ${error.message}`);
+}
+
+// ── Refresh (2026-09-23) ──────────────────────────────────────────────────────
+// The Studio's page list (SEO_ROUTES) and title/description/keywords already
+// always track seo.ts's PAGE_SEO live — buildPageMetadata/seo-manager.tsx
+// both fall back to the code default whenever no override is saved, so
+// there's nothing to "go stale" there. The one field that genuinely freezes
+// is Structured Data (JSON-LD): the moment a page gets a saved override, it
+// stops tracking the code, even after that page's real name/description
+// changes in PAGE_SEO. This regenerates it, for exactly the pages that have
+// a code-computable schema, and — as a free side effect — deletes any
+// override row left over for a path that's since been removed from
+// SEO_ROUTES entirely.
+
+// Pages whose Structured Data box maps onto serviceJsonLd(title, description,
+// path) — i.e. every page that describes one Firmity module/service. Every
+// other page's JSON-LD (if any) was hand-typed in the Studio for something
+// refresh has no code equivalent for (e.g. Home's Organization/WebSite data
+// is emitted site-wide elsewhere, not stored here) and is never touched.
+const SERVICE_SCHEMA_PATHS = new Set<string>([
+  "/features",
+  "/facility-task-automation",
+  "/complaint-helpdesk-automation",
+  "/assets-spares-automation",
+  "/inventory-vendor-automation-erp",
+  "/employee-management-automation",
+  "/visitor-management-automation",
+  "/facility-records",
+  "/payroll-automation-erp",
+  "/facility-expense-automation-erp",
+  "/industries/manufacturing",
+  "/industries/educational",
+  "/industries/residential",
+]);
+
+export interface RefreshResult {
+  updated: string[];
+  removedOrphans: string[];
+}
+
+/**
+ * mode "merge": only fills in Structured Data where a page currently has
+ * none saved — never touches a page that already has something, hand-typed
+ * or previously generated.
+ * mode "overwrite": always replaces it with the current computed default —
+ * the marketer explicitly asked to discard whatever was there.
+ */
+export async function refreshPageSeo(mode: "merge" | "overwrite"): Promise<RefreshResult> {
+  const rows = await listPageSeo();
+  const byPath = new Map(rows.map((r) => [r.path, r]));
+  const validPaths = new Set(SEO_ROUTES.map((r) => r.path));
+  const updated: string[] = [];
+  const removedOrphans: string[] = [];
+
+  for (const row of rows) {
+    if (!validPaths.has(row.path)) {
+      await deletePageSeo(row.path);
+      removedOrphans.push(row.path);
+    }
+  }
+
+  for (const path of SERVICE_SCHEMA_PATHS) {
+    const seo = PAGE_SEO[path];
+    if (!seo) continue;
+    const existing = byPath.get(path);
+    if (mode === "merge" && existing?.json_ld) continue;
+
+    const fresh = serviceJsonLd(seo.title, seo.description, path);
+    if (JSON.stringify(existing?.json_ld ?? null) === JSON.stringify(fresh)) continue;
+
+    await upsertPageSeo({
+      path,
+      title: existing?.title ?? null,
+      description: existing?.description ?? null,
+      keywords: existing?.keywords ?? null,
+      og_image_url: existing?.og_image_url ?? null,
+      noindex: existing?.noindex ?? false,
+      sitemap_priority: existing?.sitemap_priority ?? null,
+      sitemap_changefreq: existing?.sitemap_changefreq ?? null,
+      json_ld: fresh,
+    });
+    updated.push(path);
+  }
+
+  return { updated, removedOrphans };
 }
 
 // ── The one function every page's generateMetadata() calls ───────────────────

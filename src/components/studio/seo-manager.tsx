@@ -4,7 +4,7 @@
 // Organization data + robots. Marketers cannot add new pages (registry is fixed).
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Loader2, Save, RotateCcw, ImagePlus, X, Check } from "lucide-react";
+import { Loader2, Save, RotateCcw, ImagePlus, X, Check, RefreshCw } from "lucide-react";
 import { SEO_ROUTES, PAGE_SEO } from "@/src/lib/seo";
 
 interface Override {
@@ -42,6 +42,11 @@ export function SeoManager() {
   const [savedTick, setSavedTick] = useState(false);
   const [err, setErr] = useState("");
   const ogRef = useRef<HTMLInputElement | null>(null);
+
+  // "Refresh from code" (2026-09-23) — see runRefresh below.
+  const [refreshOpen, setRefreshOpen] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshMsg, setRefreshMsg] = useState("");
 
   const load = useCallback(async () => {
     const res = await fetch("/api/blog-admin/seo");
@@ -136,6 +141,36 @@ export function SeoManager() {
     setOverrides((m) => { const n = { ...m }; delete n[form.path]; return n; });
   }
 
+  // Regenerates Structured Data (JSON-LD) from the current page copy in
+  // code — see seo-store.ts::refreshPageSeo for exactly what this does and
+  // doesn't touch (title/description/keywords already always track code
+  // changes live and are never part of this).
+  async function runRefresh(mode: "merge" | "overwrite") {
+    setRefreshOpen(false);
+    setRefreshing(true);
+    setRefreshMsg("");
+    try {
+      const res = await fetch("/api/blog-admin/seo/refresh", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setErr(d.error || "Refresh failed");
+        return;
+      }
+      await load();
+      const parts: string[] = [];
+      if (d.updated?.length) parts.push(`${d.updated.length} page${d.updated.length === 1 ? "" : "s"} refreshed`);
+      if (d.removedOrphans?.length) parts.push(`${d.removedOrphans.length} stale entr${d.removedOrphans.length === 1 ? "y" : "ies"} removed`);
+      setRefreshMsg(parts.length ? parts.join(", ") : "Already up to date.");
+      setTimeout(() => setRefreshMsg(""), 5000);
+    } finally {
+      setRefreshing(false);
+    }
+  }
+
   async function saveSite() {
     setSaving(true);
     await fetch("/api/blog-admin/seo/site", {
@@ -152,8 +187,54 @@ export function SeoManager() {
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-8">
-      <h1 className="mb-1 text-[22px] font-bold text-[#111d35]">SEO Optimisation</h1>
-      <p className="mb-6 text-[13px] text-[#718096]">Edit search metadata for each page. Changes go live within ~60s.</p>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="mb-1 text-[22px] font-bold text-[#111d35]">SEO Optimisation</h1>
+          <p className="text-[13px] text-[#718096]">Edit search metadata for each page. Changes go live within ~60s.</p>
+        </div>
+        <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+          <button
+            onClick={() => setRefreshOpen(true)}
+            disabled={refreshing}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-[#dbe5f0] bg-white px-3 py-2 text-[12.5px] font-medium text-[#4a5568] hover:bg-[#f8fafc] disabled:opacity-60"
+          >
+            {refreshing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw size={14} />} Refresh from code
+          </button>
+          {refreshMsg && <p className="text-[11.5px] text-[#2b6cb0] text-right">{refreshMsg}</p>}
+        </div>
+      </div>
+
+      {refreshOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-sm rounded-xl border border-[#dbe5f0] bg-white p-5 shadow-xl">
+            <p className="mb-1 text-[14px] font-semibold text-[#111d35]">Refresh structured data</p>
+            <p className="mb-4 text-[12.5px] text-[#718096]">
+              Regenerates each page&apos;s Structured Data (JSON-LD) from its current title/description in code. Titles,
+              descriptions and keywords already always track code changes automatically and aren&apos;t touched by this.
+            </p>
+            <div className="space-y-2">
+              <button
+                onClick={() => runRefresh("merge")}
+                className="w-full rounded-lg bg-[#2b6cb0] px-4 py-2.5 text-left text-[12.5px] font-medium text-white hover:bg-[#1a56a0]"
+              >
+                Merge — only fill in pages with no structured data yet
+              </button>
+              <button
+                onClick={() => runRefresh("overwrite")}
+                className="w-full rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-left text-[12.5px] font-medium text-red-600 hover:bg-red-100"
+              >
+                Full overwrite — replace every page&apos;s structured data, discarding manual edits
+              </button>
+              <button
+                onClick={() => setRefreshOpen(false)}
+                className="w-full rounded-lg border border-[#dbe5f0] px-4 py-2.5 text-[12.5px] font-medium text-[#4a5568] hover:bg-[#f8fafc]"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-[220px_1fr]">
         {/* Page list */}

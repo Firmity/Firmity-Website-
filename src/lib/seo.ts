@@ -341,3 +341,25 @@ export function breadcrumbJsonLd(items: { name: string; path: string }[]) {
     })),
   };
 }
+
+// FAQPage structured data (2026-09-23, for the blog post FAQ block — see
+// src/components/blog/blog-faq-section.tsx). Worth knowing going in: Google
+// deprecated the visual FAQ rich-result snippet entirely in May 2026 (it had
+// already been restricted to gov/health sites since Aug 2023) — this
+// markup no longer earns the expanded SERP entry for anyone. It's still
+// emitted because (a) it's free, standards-correct structured data with no
+// downside, and (b) AI answer engines (ChatGPT, Perplexity, Google's own AI
+// Overviews) do still parse Question/acceptedAnswer pairs when citing a
+// page. The real SEO win for these FAQs is the crawlable HTML text itself —
+// see the `hidden`-attribute technique in that component's file comment.
+export function faqJsonLd(items: { q: string; a: string }[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: items.map((it) => ({
+      "@type": "Question",
+      name: it.q,
+      acceptedAnswer: { "@type": "Answer", text: it.a },
+    })),
+  };
+}
