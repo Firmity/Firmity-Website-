@@ -6,7 +6,7 @@ import Image from "next/image";
 import { BlogPostShell } from "@/src/components/blog-post-shell";
 import { BlogFaqSection } from "@/src/components/blog/blog-faq-section";
 import { RelatedPostsSection } from "@/src/components/blog/related-posts-section";
-import { getBySlug, listRecentForSidebar, listRelatedByCategory, categorySlug } from "@/src/lib/blog";
+import { getBySlug, extractToc, listRelatedByCategory, categorySlug } from "@/src/lib/blog";
 import { getAuthorById } from "@/src/lib/blog-authors";
 import { BLOG_SEO_TITLES } from "@/src/lib/blog-seo-titles";
 import { BLOG_PROSE } from "@/src/lib/blog-prose";
@@ -84,12 +84,16 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   if (!post || post.status !== "published") notFound();
 
   const meta = [longDate(post.published_at), post.read_time].filter(Boolean).join(" · ");
-  const [socials, author, sidebarPosts, relatedPosts] = await Promise.all([
+  const [socials, author, relatedPosts] = await Promise.all([
     getSiteSeo().then((s) => s.social_links ?? []),
     post.author_id ? getAuthorById(post.author_id) : Promise.resolve(null),
-    listRecentForSidebar(slug),
     listRelatedByCategory(post.category, slug, 3),
   ]);
+  // Injects an id into every <h2>/<h3> in the article body and returns the
+  // matching sidebar TOC list (2026-09-23) — see blog.ts::extractToc. Pure
+  // string processing, not a DB call, so it runs outside the Promise.all
+  // above rather than alongside it.
+  const { html: contentHtml, toc } = extractToc(post.content_html);
   const showUpdated = isDifferentDay(post.content_updated_at, post.published_at);
   // "Home > Blog > <Category> > <Post>" (2026-09-23) — the URL stays flat
   // (/blog/[slug]), so this can't come from the auto path-segment
@@ -104,7 +108,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     : undefined;
 
   return (
-    <BlogPostShell sidebarPosts={sidebarPosts} breadcrumbOverride={breadcrumbOverride}>
+    <BlogPostShell toc={toc} breadcrumbOverride={breadcrumbOverride}>
       <style>{`@media print{.no-print{display:none!important}nav,header,footer{display:none!important}}`}</style>
       <JsonLd
         data={{
@@ -179,11 +183,13 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           className="w-full h-auto rounded-2xl mb-9"
         />
       )}
-      {/* content_html is sanitized on save (lib/blog.ts::sanitizeContent). */}
-      <div className={BLOG_PROSE} dangerouslySetInnerHTML={{ __html: post.content_html }} />
+      {/* content_html is sanitized on save (lib/blog.ts::sanitizeContent);
+          contentHtml additionally has id="..." on every h2/h3 for the "On
+          this page" sidebar (see extractToc above). */}
+      <div className={BLOG_PROSE} dangerouslySetInnerHTML={{ __html: contentHtml }} />
 
       {/* Renders nothing when post.faqs is empty (see component). */}
-      <BlogFaqSection faqs={post.faqs} />
+      <BlogFaqSection faqs={post.faqs} title={post.faq_title ?? undefined} />
 
       {/* End-of-post author bio card + "Last updated" stamp (2026-09-23).
           Both go here, after the article body — distinct from the plain

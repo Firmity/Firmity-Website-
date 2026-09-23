@@ -53,6 +53,10 @@ interface Form {
    * render at all on the live post (see BlogFaqSection). Half-filled rows
    * (blank question or answer) are dropped server-side on save. */
   faqs: Faq[];
+  /** Optional FAQ section heading override (e.g. "FAQs: Preventive
+   * Maintenance") — blank keeps the plain "FAQs" default (see
+   * BlogFaqSection). Only matters once at least one FAQ is added. */
+  faq_title: string;
 }
 
 // Local (not UTC) date to avoid an off-by-one day near midnight.
@@ -64,7 +68,7 @@ const todayStr = () => {
 const EMPTY: Form = {
   title: "", subtitle: "", slug: "", category: "Guide", author: "", author_id: "",
   read_time: "", meta_description: "", cover_image_url: "", content_html: "",
-  published_at: todayStr(), content_updated_at: todayStr(), faqs: [],
+  published_at: todayStr(), content_updated_at: todayStr(), faqs: [], faq_title: "",
 };
 
 const EMPTY_AUTHOR_DRAFT = { id: "", name: "", bio: "", linkedin_url: "", avatar_url: "" };
@@ -213,6 +217,7 @@ function EditorInner() {
           published_at: (post.published_at ?? post.created_at ?? "").slice(0, 10) || todayStr(),
           content_updated_at: (post.content_updated_at ?? "").slice(0, 10) || todayStr(),
           faqs: Array.isArray(post.faqs) ? post.faqs : [],
+          faq_title: post.faq_title ?? "",
         });
       }
       setLoading(false);
@@ -508,8 +513,24 @@ function EditorInner() {
         </div>
 
         {form.faqs.length === 0 && (
-          <p className="text-[12.5px] text-[#a0aec0]">No FAQs yet — the FAQ section won&apos;t appear on this post until you add one.</p>
+          <p className="mb-3 text-[12.5px] text-[#a0aec0]">No FAQs yet — the FAQ section won&apos;t appear on this post until you add one.</p>
         )}
+
+        {/* Section heading shown on the live post above the Q&A list
+            (2026-09-23) — e.g. "FAQs: Preventive Maintenance" instead of
+            the plain default. Only matters once at least one FAQ exists
+            below, but left visible either way so it's ready when you add one. */}
+        <label className="mb-3 block">
+          <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-[#718096]">
+            FAQ section title (optional)
+          </span>
+          <input
+            value={form.faq_title}
+            onChange={(e) => set("faq_title", e.target.value)}
+            placeholder="FAQs"
+            className="w-full rounded-lg border border-[#cbd5e0] px-3 py-2 text-[13px] focus:border-[#2b6cb0] focus:outline-none"
+          />
+        </label>
 
         <div className="space-y-3">
           {form.faqs.map((item, i) => (

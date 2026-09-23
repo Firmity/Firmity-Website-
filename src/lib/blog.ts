@@ -23,6 +23,8 @@ export interface BlogPost {
   content_updated_at: string | null;
   /** Optional FAQ block shown at the end of the article + emitted as FAQPage JSON-LD (2026-09-23). Empty array when none were added — the section simply doesn't render. */
   faqs: BlogFaq[];
+  /** Editable FAQ section heading (2026-09-23) — e.g. "FAQs: Preventive Maintenance". Null/blank falls back to the literal "FAQs" (see BlogFaqSection). */
+  faq_title: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -51,12 +53,8 @@ export interface BlogPostInput {
   content_updated_at?: string | null;
   /** Optional FAQ list — empty/blank q or a pairs are dropped on save (see upsertPost). */
   faqs?: BlogFaq[];
-}
-
-/** Lean shape for the "More from the blog" sidebar (blog-post-shell.tsx) — just enough to link, no content_html. */
-export interface BlogSidebarPost {
-  slug: string;
-  title: string;
+  /** Optional FAQ section heading override — blank/omitted keeps the "FAQs" default. */
+  faq_title?: string | null;
 }
 
 /** Card shape shared by the /blog index, /blog/category/[slug], and the
@@ -155,6 +153,51 @@ export function excerptFromHtml(html: string): string {
   return text.length <= 155 ? text : text.slice(0, 152).replace(/\s+\S*$/, "") + "…";
 }
 
+export interface BlogTocItem {
+  id: string;
+  text: string;
+  level: 2 | 3;
+}
+
+/** Injects an `id` into every <h2>/<h3> in already-sanitized post HTML and
+ * returns both the modified HTML and the matching table-of-contents list
+ * (2026-09-23) — replaces the old "More from the blog" sidebar with
+ * in-page section links (see blog-post-shell.tsx), per request: "instead
+ * of showing other blogs, we will show section titles from the opened
+ * blog itself and when any title is clicked... scroll to that section."
+ *
+ * A single regex pass is safe here (not a real HTML parser) because
+ * sanitizeContent's allowedTags guarantee headings only ever contain
+ * inline children (strong/em/a/etc, never a nested h2/h3) and never carry
+ * attributes of their own — the Tiptap toolbar only emits bare
+ * <h2>/<h3>text</h2>. */
+export function extractToc(html: string): { html: string; toc: BlogTocItem[] } {
+  const toc: BlogTocItem[] = [];
+  const seen = new Map<string, number>();
+  const out = html.replace(/<(h[23])(\s[^>]*)?>([\s\S]*?)<\/\1>/gi, (match, tag: string, attrs: string | undefined, inner: string) => {
+    const text = inner
+      .replace(/<[^>]+>/g, " ")
+      .replace(/&nbsp;/gi, " ")
+      .replace(/&amp;/gi, "&")
+      .replace(/&lt;/gi, "<")
+      .replace(/&gt;/gi, ">")
+      .replace(/&quot;/gi, '"')
+      .replace(/&#0?39;/gi, "'")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (!text) return match; // an empty heading has nothing to link to or label a TOC row with
+
+    let id = slugify(text);
+    const priorCount = seen.get(id) ?? 0;
+    seen.set(id, priorCount + 1);
+    if (priorCount > 0) id = `${id}-${priorCount + 1}`; // de-dupe two headings with the same text
+
+    toc.push({ id, text, level: tag.toLowerCase() === "h3" ? 3 : 2 });
+    return `<${tag} id="${id}"${attrs ?? ""}>${inner}</${tag}>`;
+  });
+  return { html: out, toc };
+}
+
 export async function listPublished(): Promise<BlogPost[]> {
   const { data, error } = await getSupabaseAdmin()
     .from(TABLE)
@@ -215,6 +258,7 @@ export async function upsertPost(input: BlogPostInput): Promise<BlogPost> {
           .map((f) => ({ q: (f.q ?? "").trim(), a: (f.a ?? "").trim() }))
           .filter((f) => f.q && f.a)
       : [],
+    faq_title: input.faq_title?.trim() || null,
   };
 
   // A user-chosen date always wins; otherwise fall back to the auto stamp.
@@ -249,24 +293,6 @@ export async function upsertPost(input: BlogPostInput): Promise<BlogPost> {
     .single();
   if (error) throw new Error(`[BLOG_DB_ERR] insert: ${error.message}`);
   return data as BlogPost;
-}
-
-/** Lean list for the "More from the blog" sidebar shown on article pages
- * (blog-post-shell.tsx) — excludes the current post, newest first. Selects
- * only slug+title (no content_html) since it's just rendering links. */
-export async function listRecentForSidebar(excludeSlug: string, limit = 6): Promise<BlogSidebarPost[]> {
-  const { data, error } = await getSupabaseAdmin()
-    .from(TABLE)
-    .select("slug,title")
-    .eq("status", "published")
-    .neq("slug", excludeSlug)
-    .order("published_at", { ascending: false })
-    .limit(limit);
-  if (error) {
-    console.error("[BLOG_DB_ERR] listRecentForSidebar", error);
-    return [];
-  }
-  return (data ?? []) as BlogSidebarPost[];
 }
 
 /** All published posts in one category, newest first — backs
