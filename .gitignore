@@ -45,3 +45,6 @@ Claude outputs*
 scripts/
 
 llms copy.txt
+
+# internal working notes, not project documentation
+post-page_updates.md

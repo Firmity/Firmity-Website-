@@ -547,7 +547,6 @@ const MODULE_INDICATOR_LABELS = [
 ]
 
 export const MODULE_PAGES: Record<string, string> = {
-  "facility-records":            "/facility-records",
   "preventive-maintenance":      "/facility-task-automation",
   "complaint-management":        "/complaint-helpdesk-automation",
   "asset-management":            "/assets-spares-automation",

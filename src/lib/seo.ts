@@ -149,12 +149,6 @@ export const PAGE_SEO: Record<string, PageSeo> = {
       "Digitise gate entry with Firmity's visitor management — pre-approvals, passes and audit logs for secure, seamless visitor access at your facility.",
     keywords: [...BASE_KEYWORDS, "visitor management system", "gate management", "visitor pass"],
   },
-  "/facility-records": {
-    title: "Facility Records & Compliance",
-    description:
-      "Keep every facility record, register and compliance document in one place with Firmity — audit-ready logbooks, certificates and SOPs at your fingertips.",
-    keywords: [...BASE_KEYWORDS, "facility records", "compliance management", "digital logbook"],
-  },
   "/payroll-automation-erp": {
     title: "Payroll Automation ERP",
     description:
@@ -206,6 +200,12 @@ export const PAGE_SEO: Record<string, PageSeo> = {
     title: "Search Firmity",
     description: "Search Firmity's pages, features and blog for facility management guides, modules and resources.",
   },
+  "/cafm-software": {
+    title: "CAFM Software | Computer Aided Facility Management",
+    description:
+      "CAFM software (computer aided facility management) gives facility teams one system for maintenance, assets, compliance, and space management. See how Firmity's CAFM platform works.",
+    keywords: [...BASE_KEYWORDS, "CAFM software", "computer aided facility management", "CAFM system"],
+  },
 };
 
 /** Absolute canonical URL for a path. */
@@ -231,7 +231,7 @@ export const SEO_ROUTES: { path: string; label: string }[] = [
   { path: "/inventory-vendor-automation-erp", label: "Inventory Management" },
   { path: "/employee-management-automation", label: "Staff Attendance" },
   { path: "/visitor-management-automation", label: "Visitor Management" },
-  { path: "/facility-records", label: "Facility Records" },
+  { path: "/cafm-software", label: "CAFM Software" },
   { path: "/payroll-automation-erp", label: "Payroll Management" },
   { path: "/facility-expense-automation-erp", label: "Facility Expense Management" },
   { path: "/industries/manufacturing", label: "Industries — Manufacturing" },

@@ -309,8 +309,7 @@
 
 import { Navigation } from "@/src/components/navigation"
 import { Footer } from "@/src/components/footer"
-import { BrochureDownloadForm } from "@/src/components/brochure-download-form"
-import { OverviewContactForm } from "@/src/components/overview-contact-form"
+import { ContactWalkthroughSection } from "@/src/components/contact-walkthrough-section"
 import { SurveyPopup } from "@/src/components/survey-popup"
 import { ClientsCarousel } from "@/src/components/clients-carousel"
 import { HowDidYouHearSection } from "@/src/components/how-did-you-hear-section"
@@ -325,9 +324,8 @@ import {
 } from "@/src/components/home-sections"
 import Link from "next/link"
 import Image from "next/image"
-import { ArrowRight, ChevronDown, Lock, Zap, Download, X } from "lucide-react"
+import { ArrowRight, ChevronDown } from "lucide-react"
 import { useState, useEffect } from "react"
-import { buildInlineVideoUrl } from "@/src/lib/video"
 
 // ─── Brochure animated SVG illustration ──────────────────────────────────────
 function BrochureIllustration() {
@@ -742,18 +740,6 @@ function FaqSection() {
 }
 
 export default function FirmityHome({ initialPosts, initialCaseStudies }: { initialPosts: LatestPost[]; initialCaseStudies: LatestPost[] }) {
-  const [inlineVideoPlaying, setInlineVideoPlaying] = useState<boolean>(false)
-  const videoUrl = process.env.NEXT_PUBLIC_VIDEO_URL ?? ""
-  // Brochure download popup (2026-09-04) — triggered from the "Download
-  // Brochure" link in the "Get the complete Firmity overview" section
-  // (was "Book a Tech Demo" → /contact; per request: "change... to download
-  // brochure which when clicked opens the download brochure form as a
-  // popup"). Reuses the original BrochureDownloadForm unchanged — that
-  // form's own name/email/phone/city → PDF-download logic still lives in
-  // brochure-download-form.tsx.
-  const [brochurePopupOpen, setBrochurePopupOpen] = useState<boolean>(false)
-
-
   return (
     <>
       {/* Ambient page wash: was a slow-moving beige/cream gradient behind the
@@ -862,123 +848,7 @@ export default function FirmityHome({ initialPosts, initialCaseStudies }: { init
             unchanged from the prior rebuild — see git history for that
             rebuild's full rationale.
         ── */}
-        <section className="bg-white">
-          <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 py-10 lg:py-14">
-            <h3 className="font-serif text-[clamp(1.6rem,4vw,2.6rem)] font-light leading-[1.15] text-[#114dac] tracking-tight mb-2">
-              Contact Us for a Walkthrough
-            </h3>
-            <p className="text-[13.5px] font-light leading-[1.8] text-[#000000] mb-6 max-w-[460px]">
-              Tell us about your requirements and we will get back to you within 24hrs.
-            </p>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 lg:items-stretch">
-
-              {/* Form card — grey now that the section itself is white (was
-                  white-on-grey before the section swap above). */}
-              <div className="bg-[#f7f7f7] rounded-[4px] border border-[#dbe5f0] shadow-[0_8px_32px_rgba(17,29,53,0.09)] p-5 sm:p-6 max-w-[460px] w-full">
-                <OverviewContactForm />
-              </div>
-
-              {/* Right — video, grey panel to match the form card (was white
-                  before the section swap above). */}
-              <div className="relative rounded-[4px] overflow-hidden bg-[#f7f7f7] border border-[#dbe5f0] min-h-[280px] lg:min-h-0 lg:h-full">
-                {!inlineVideoPlaying && (
-                  <button
-                    onClick={() => setInlineVideoPlaying(true)}
-                    className="group absolute inset-0 w-full h-full cursor-pointer flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2b6cb0]"
-                    aria-label="Play Firmity demo video inline"
-                  >
-                    <div className="w-16 h-16 rounded-full bg-[#114dac] group-hover:bg-[#0e3e8a] flex items-center justify-center shadow-[0_8px_24px_rgba(17,77,172,0.28)] transition-all duration-300 group-hover:scale-110">
-                      <div className="w-0 h-0 ml-1" style={{ borderTop: "9px solid transparent", borderBottom: "9px solid transparent", borderLeft: "15px solid #fff" }} />
-                    </div>
-                  </button>
-                )}
-
-                {/* Inline iframe — proper autoplay URL for YouTube, Vimeo, direct */}
-                {inlineVideoPlaying && videoUrl && (
-                  <iframe
-                    src={buildInlineVideoUrl(videoUrl)}
-                    className="absolute inset-0 w-full h-full border-0"
-                    allow="autoplay; fullscreen; picture-in-picture"
-                    allowFullScreen
-                    title="Firmity CMMS Demo"
-                  />
-                )}
-
-                {inlineVideoPlaying && !videoUrl && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-[#f7f7f7]">
-                    <div className="text-center">
-                      <p className="text-[#4a5568] text-sm mb-2">No video URL configured</p>
-                      <p className="text-[#a0aec0] text-xs font-sans">Set NEXT_PUBLIC_VIDEO_URL</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Trust chips — left-aligned, sits under the form column thanks
-                to the shared max-w-[460px] + this section's own left inset. */}
-            <div className="flex items-center gap-5 mt-4 flex-wrap max-w-[460px]">
-              {[
-                { Icon: Lock, label: "No spam" },
-                { Icon: Zap, label: "24hr response" },
-              ].map(function(chip) {
-                const ChipIcon = chip.Icon
-                return (
-                  <span key={chip.label} className="flex items-center gap-1.5 text-[10.5px] font-light text-[#000000]">
-                    <ChipIcon size={12} strokeWidth={1.75} className="text-[#000000]" />
-                    {chip.label}
-                  </span>
-                )
-              })}
-            </div>
-
-            {/* Secondary CTA — opens the brochure-download popup below. */}
-            <div className="mt-5 flex items-center gap-2 max-w-[460px]">
-              <span className="text-[11px] text-[#000000] font-light">Prefer a quick read first?</span>
-              <button
-                type="button"
-                onClick={() => setBrochurePopupOpen(true)}
-                className="cursor-pointer inline-flex items-center gap-1.5 rounded-[4px] border border-[#2b6cb0]/30 px-3 py-1 text-[11px] text-[#2b6cb0] font-semibold hover:border-[#2b6cb0] hover:bg-[#2b6cb0]/[0.06] transition-colors"
-              >
-                <Download size={11} strokeWidth={2} />
-                Download Brochure
-              </button>
-            </div>
-          </div>
-        </section>
-
-        {/* Brochure-download popup (2026-09-04) — triggered by "Download
-            Brochure" above. Same modal pattern as SurveyPopup's own card:
-            fixed overlay + centered white panel, backdrop click and the X
-            button both close it, inner click stopped from bubbling to the
-            backdrop. Reuses BrochureDownloadForm unmodified. */}
-        {brochurePopupOpen && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-[3px]"
-            onClick={() => setBrochurePopupOpen(false)}
-          >
-            <div
-              className="relative w-full max-w-[440px] bg-white rounded-[4px] p-6 sm:p-7 shadow-[0_32px_80px_rgba(17,29,53,0.28)]"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button
-                onClick={() => setBrochurePopupOpen(false)}
-                aria-label="Close"
-                className="cursor-pointer absolute top-4 right-4 w-8 h-8 rounded-full bg-[#f7f7f7] hover:bg-[#e8f0fb] flex items-center justify-center transition-colors"
-              >
-                <X size={15} className="text-[#114dac]" />
-              </button>
-              <h3 className="font-serif text-[19px] font-light text-[#114dac] mb-1 pr-8">
-                Download the Firmity brochure
-              </h3>
-              <p className="text-[12.5px] text-[#000000] font-light leading-relaxed mb-5">
-                Modules, pricing, integrations, and deployment guide — all in one PDF.
-              </p>
-              <BrochureDownloadForm />
-            </div>
-          </div>
-        )}
+        <ContactWalkthroughSection />
 
         {/* ── BLOG PREVIEW — 4 latest posts, fetched client-side via /api/blog/latest ──
             Moved here 2026-09-18, directly after "Contact Us for a

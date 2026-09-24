@@ -173,6 +173,11 @@ export default async function GuidePage({
                 already used on /features' module sidebar (same border-black
                 divider rail, no invented colors). */}
             <aside className="hidden lg:block lg:col-start-1 lg:row-start-1">
+              {/* Autoscroll/reachability now lives inside
+                  ModuleSolutionsSidebar itself (its own <nav> is the
+                  bounded, scrollable, active-item-tracking element) — this
+                  wrapper just needs to stay pinned. See that component's
+                  file-header comment. */}
               <div className="sticky top-24">
                 <h2 className="text-[11px] font-semibold tracking-[0.2em] uppercase text-black mb-4">
                   Explore our solutions

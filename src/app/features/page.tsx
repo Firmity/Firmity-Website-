@@ -942,7 +942,13 @@ export default function FeaturesPage() {
             self-contained static HTML/Chart.js mock of the real dashboard,
             kept as an <iframe> since it does its own canvas/DOM work that
             isn't safe to hydrate. Hidden below md — its own internal layout
-            only degrades gracefully to ~760px. ── */}
+            only degrades gracefully to ~760px.
+            HIDDEN (2026-09-24, per request: "hide the 'A live look inside
+            the Firmity dashboard' section"). Gated behind `false &&` rather
+            than deleted/JSX-commented — this block's own inner comments
+            would break out of an outer JSX comment wrapper, and the guard
+            keeps the markup a one-line flip to restore. ── */}
+        {false && (
         <section className="hidden md:block bg-[#f7f7f7] py-8 lg:py-10">
           <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16">
             <Reveal>
@@ -993,6 +999,7 @@ export default function FeaturesPage() {
             </Reveal>
           </div>
         </section>
+        )}
 
         {/* ── DEPLOYMENT — Firmity Cloud vs. Firmity On-Premise ─────────
             (2026-09-16 — one static "Built cloud-first. On-prem if your

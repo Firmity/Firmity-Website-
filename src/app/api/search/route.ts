@@ -44,7 +44,7 @@ const STATIC_PAGES: SearchResult[] = [
   { title: "Inventory & Vendor Management", url: "/inventory-vendor-automation-erp", description: "Stock tracking, auto-reorder triggers, and vendor workflows — purchase to delivery in one place." },
   { title: "Visitor Management", url: "/visitor-management-automation", description: "Digital gate entries, host approvals, and badge printing — contactless and fully audit-ready." },
   { title: "Staff Attendance", url: "/employee-management-automation", description: "Face-recognition attendance, shift scheduling, and real-time presence tracking across all sites." },
-  { title: "Facility Records", url: "/facility-records", description: "Centralised, always-accessible records for every asset, vendor, and compliance document." },
+  { title: "CAFM Software", url: "/cafm-software", description: "What CAFM software (computer aided facility management) is, what it does, and how Firmity's CAFM platform works." },
   { title: "Privacy Policy", url: "/privacy", description: "How Firmity and UFIRM Technologies collect, use, and protect your data." },
   { title: "Terms & Conditions", url: "/terms", description: "The terms and conditions governing your use of the Firmity facility management platform." },
 ];
@@ -66,7 +66,15 @@ export async function GET(req: Request) {
     try {
       const posts = await listPublished();
       blogResults = posts
-        .filter((p) => matches(`${p.title} ${p.subtitle ?? ""} ${p.meta_description ?? ""} ${p.category ?? ""}`, q))
+        .filter((p) => {
+          // FAQ q/a text wasn't part of the haystack before (2026-09-24 fix,
+          // per request: "when i search for something, it doesn't search in
+          // faqs even if faqs have the results") — a post whose FAQ answers
+          // the query but whose title/subtitle/description/category don't
+          // mention the term was simply invisible to search.
+          const faqText = (p.faqs ?? []).map((f) => `${f.q} ${f.a}`).join(" ");
+          return matches(`${p.title} ${p.subtitle ?? ""} ${p.meta_description ?? ""} ${p.category ?? ""} ${faqText}`, q);
+        })
         .map((p) => ({
           title: p.title,
           url: `/blog/${p.slug}`,
