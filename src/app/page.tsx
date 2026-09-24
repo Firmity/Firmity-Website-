@@ -45,10 +45,20 @@ function softwareApplicationJsonLd() {
   }
 }
 
-async function latestPosts(): Promise<LatestPost[]> {
+// Keep this in sync with api/blog/case-studies/route.ts's own copy — see
+// that file's comment for why case studies get their own unbounded query.
+const CASE_STUDY_FALLBACK_SLUG = "spreadsheets-to-cmms"
+
+// Single listPublished() call feeding BOTH the "Browse our latest resources"
+// section (top 4 only) and "What our customers say" (2026-09-24 fix): that
+// second section used to filter the SAME top-4 slice client-side, so its one
+// case study silently vanished — replaced by a hardcoded no-cover stub —
+// the moment newer posts pushed it past position 4. caseStudyPosts is
+// filtered from the FULL published list instead, so it's immune to that.
+async function homeBlogData(): Promise<{ initialPosts: LatestPost[]; caseStudyPosts: LatestPost[] }> {
   try {
     const posts = await listPublished()
-    return posts.slice(0, 4).map((p) => ({
+    const toLatestPost = (p: (typeof posts)[number]): LatestPost => ({
       slug: p.slug,
       title: p.title,
       description: p.subtitle || p.meta_description || "",
@@ -58,22 +68,28 @@ async function latestPosts(): Promise<LatestPost[]> {
         ? new Date(p.published_at).toLocaleDateString("en-US", { month: "short", year: "numeric" })
         : "",
       cover: p.cover_image_url ?? null,
-    }))
+    })
+    return {
+      initialPosts: posts.slice(0, 4).map(toLatestPost),
+      caseStudyPosts: posts
+        .filter((p) => p.category === "Case Study" || p.slug === CASE_STUDY_FALLBACK_SLUG)
+        .map(toLatestPost),
+    }
   } catch (err) {
     console.error("[HOME_LATEST_POSTS_ERR]", err)
-    return []
+    return { initialPosts: [], caseStudyPosts: [] }
   }
 }
 
 export default async function HomePage() {
   // Marketing Studio can override the homepage JSON-LD (page_seo path "/").
-  const [row, initialPosts] = await Promise.all([getPageSeo("/"), latestPosts()])
+  const [row, { initialPosts, caseStudyPosts }] = await Promise.all([getPageSeo("/"), homeBlogData()])
   const custom = row?.json_ld as Record<string, unknown> | null | undefined
   return (
     <>
       <JsonLd data={softwareApplicationJsonLd()} />
       {custom ? <JsonLd data={custom} /> : null}
-      <FirmityHome initialPosts={initialPosts} />
+      <FirmityHome initialPosts={initialPosts} initialCaseStudies={caseStudyPosts} />
     </>
   )
 }
