@@ -555,50 +555,33 @@ function HomeBlogSection({ initialPosts }: { initialPosts: LatestPost[] }) {
 // there 2026-09-04 per request — was originally rendered after it) — copies
 // planonsoftware.com/us's "What our customers say" 3-card layout
 // (solid-blue "Case Studies" header bar + photo + blue title + "Explore
-// now"). Only ONE known case study exists on this site right now — "Why
-// Your Facility Team Is Still Running on Spreadsheets"
-// (/blog/spreadsheets-to-cmms) — flagged earlier in this session as needing
-// its DB `category` field set to "Case Study" via /blog-admin (not
-// file-editable from here). This section can't assume that field is set
-// yet, so it fetches the same /api/blog/latest list HomeBlogSection uses
-// above and matches EITHER category === "Case Study" OR the known slug,
-// falling back to a hardcoded stub for that one post if neither matches
-// (e.g. if it ages out of the "latest 4" the API returns). Temporary —
-// once the DB category is actually set and there's more than one case
-// study, replace this with a real /api/blog/case-studies endpoint that
-// queries by category server-side instead of filtering client-side.
-const KNOWN_CASE_STUDY_SLUG = "spreadsheets-to-cmms"
-const KNOWN_CASE_STUDY_FALLBACK: LatestPost = {
-  slug: KNOWN_CASE_STUDY_SLUG,
-  title: "Why Your Facility Team Is Still Running on Spreadsheets",
-  description: "What spreadsheet-based maintenance tracking is really costing facility teams and how to move to a CMMS without a six-month project.",
-  category: "Case Study",
-  readTime: "3 min read",
-  date: "Jul 2026",
-  cover: null,
-}
-
-function CustomersSaySection({ initialPosts }: { initialPosts: LatestPost[] }) {
-  const [posts, setPosts] = useState<LatestPost[]>(initialPosts)
-  const [loaded, setLoaded] = useState(initialPosts.length > 0)
+// now").
+//
+// 2026-09-24 fix: this used to filter HomeBlogSection's SAME top-4-posts
+// list client-side for category === "Case Study" (or the one known
+// pre-tagging slug), falling back to a hardcoded stub with `cover: null`
+// when nothing matched. That stub is exactly what was rendering as a blank
+// gradient box on the homepage — it was silently kicking in every time a
+// newer post pushed the real case study out of that capped top-4 list, so
+// the section fell back to fabricated data with no cover image instead of
+// the real post's real cover. Now sourced from api/blog/case-studies (see
+// that file), which queries ALL published posts for the same category/slug
+// match with no "top N" cap — the real post's real cover_image_url is used
+// whenever it's still published, full stop.
+function CustomersSaySection({ initialCaseStudies }: { initialCaseStudies: LatestPost[] }) {
+  const [caseStudies, setCaseStudies] = useState<LatestPost[]>(initialCaseStudies)
+  const [loaded, setLoaded] = useState(initialCaseStudies.length > 0)
 
   useEffect(function() {
-    if (initialPosts.length > 0) return
-    fetch("/api/blog/latest")
+    if (initialCaseStudies.length > 0) return
+    fetch("/api/blog/case-studies")
       .then(function(r) { return r.ok ? r.json() : [] })
       .then(function(data: LatestPost[]) {
-        setPosts(data)
+        setCaseStudies(data)
         setLoaded(true)
       })
       .catch(function() { setLoaded(true) })
   }, [])
-
-  const caseStudies: LatestPost[] = loaded
-    ? (function() {
-        const matched = posts.filter(function(p) { return p.category === "Case Study" || p.slug === KNOWN_CASE_STUDY_SLUG })
-        return matched.length > 0 ? matched : [KNOWN_CASE_STUDY_FALLBACK]
-      })()
-    : []
 
   if (loaded && caseStudies.length === 0) return null
 
@@ -758,7 +741,7 @@ function FaqSection() {
   )
 }
 
-export default function FirmityHome({ initialPosts }: { initialPosts: LatestPost[] }) {
+export default function FirmityHome({ initialPosts, initialCaseStudies }: { initialPosts: LatestPost[]; initialCaseStudies: LatestPost[] }) {
   const [inlineVideoPlaying, setInlineVideoPlaying] = useState<boolean>(false)
   const videoUrl = process.env.NEXT_PUBLIC_VIDEO_URL ?? ""
   // Brochure download popup (2026-09-04) — triggered from the "Download
@@ -1023,7 +1006,7 @@ export default function FirmityHome({ initialPosts }: { initialPosts: LatestPost
             above (CustomersSaySection), same file — follows HomeBlogSection's
             fetch pattern since it also needs client-side blog data. See that
             function's own comment for the category-filter caveat. ── */}
-        <CustomersSaySection initialPosts={initialPosts} />
+        <CustomersSaySection initialCaseStudies={initialCaseStudies} />
 
         {/* ── KEEP IN TOUCH — newsletter + social links (2026-09-04) ──
             Implementation lives in src/components/home-sections.tsx. Now
