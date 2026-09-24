@@ -88,6 +88,7 @@ export interface ChecklistItem {
   id: string;
   text: string;
   answer_type: SubAnswerType;
+  good_answer?: string | null;  // per-sub compliant answer ('yes' | 'no')
 }
 
 export interface Question {
@@ -100,6 +101,8 @@ export interface Question {
   facility_types: string[];
   sort_order: number;
   source?: "bank" | "custom"; // survey-scoped questions carry this so the UI can allow delete
+  good_answer?: string | null; // 'yes' | 'no'; which answer is compliant
+  origin_question_id?: string | null; // set when snapshotted from a bank question -> enables "discard edits"
   checklist?: ChecklistItem[]; // only when answer_type === "checklist"
 }
 
@@ -364,6 +367,7 @@ export interface CustomQuestionBody {
   text: string;
   answer_type: AnswerType;
   needs_photo?: boolean;
+  good_answer?: string | null;      // 'yes' | 'no'; which answer is compliant
   checklist?: ChecklistItem[];
 }
 
@@ -381,6 +385,50 @@ export const reorderSurveyQuestions = (surveyId: string, orderedIds: string[]) =
     method: "PUT",
     body: JSON.stringify({ ordered_ids: orderedIds }),
   });
+
+// --- Item 2: move a question to another area (answers + photos follow) ---
+export const moveSurveyQuestion = (surveyId: string, sqId: string, areaId: string) =>
+  http<SurveyQuestion>(`/surveys/${surveyId}/questions/${sqId}/move`, {
+    method: "POST",
+    body: JSON.stringify({ area_id: areaId }),
+  });
+
+// --- Item 6: copy a question into another area and/or category (no answers copied) ---
+export const copySurveyQuestion = (
+  surveyId: string, sqId: string,
+  body: { area_id?: string | null; domain_slug?: string | null; id?: string }
+) =>
+  http<SurveyQuestion>(`/surveys/${surveyId}/questions/${sqId}/copy`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+
+// --- Item 3: discard a surveyor's edits and revert to the bank original ---
+export const discardSurveyQuestionEdits = (surveyId: string, sqId: string) =>
+  http<SurveyQuestion>(`/surveys/${surveyId}/questions/${sqId}/discard`, { method: "POST" });
+
+// --- Item 4: survey-scoped categories (SC) ---
+export interface SurveyCategory {
+  id: string;
+  survey_id: string;
+  slug: string;
+  name: string;
+  is_key: boolean;
+  sort_order: number;
+}
+
+export const getSurveyCategories = (surveyId: string) =>
+  http<SurveyCategory[]>(`/surveys/${surveyId}/categories`);
+
+export const addSurveyCategory = (surveyId: string, name: string, isKey = false) =>
+  http<SurveyCategory>(`/surveys/${surveyId}/categories`, {
+    method: "POST",
+    body: JSON.stringify({ name, is_key: isKey }),
+  });
+
+export const deleteSurveyCategory = (surveyId: string, slug: string) =>
+  http<{ ok: boolean; deleted_questions: number }>(
+    `/surveys/${surveyId}/categories/${slug}`, { method: "DELETE" });
 
 // --- Admin: create a survey directly (role-gated server-side) ---
 export interface AdminSurveyBody {

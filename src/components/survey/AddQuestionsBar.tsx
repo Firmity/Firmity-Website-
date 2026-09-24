@@ -5,8 +5,9 @@
 // that lives only on this survey. Both write to survey_questions via the hook.
 
 import { useCallback, useEffect, useState } from "react";
-import { Check, Loader2, Plus, X } from "lucide-react";
-import { getQuestions, type CustomQuestionBody, type Question } from "@/src/lib/survey-api";
+import { Check, Loader2, Plus, Trash2, X } from "lucide-react";
+import { getQuestions, type ChecklistItem, type CustomQuestionBody, type Question } from "@/src/lib/survey-api";
+import { uuid } from "@/src/lib/uuid";
 
 const norm = (t: string) => t.trim().toLowerCase().replace(/\s+/g, " ");
 
@@ -17,7 +18,30 @@ const CUSTOM_TYPES: { value: CustomQuestionBody["answer_type"]; label: string }[
   { value: "number", label: "Number" },
   { value: "text", label: "Free text" },
   { value: "remarks", label: "Remarks only" },
+  { value: "checklist", label: "Checklist (sub-questions)" },
 ];
+
+// Sub-questions reuse the simple types (no nested checklists).
+const SUB_TYPES: { value: ChecklistItem["answer_type"]; label: string }[] = [
+  { value: "yes_no", label: "Yes / No" }, { value: "rating", label: "Rating" },
+  { value: "number", label: "Number" }, { value: "text", label: "Free text" },
+];
+
+// Compact "which answer is compliant" toggle for a yes/no question or sub-question.
+function GoodToggle({ value, onChange }: { value?: string | null; onChange: (v: string) => void }) {
+  const cur = value === "no" ? "no" : "yes";
+  return (
+    <span className="inline-flex items-center gap-1" title="Which answer passes (is compliant)?">
+      <span className="text-[10px] uppercase text-slate-400">OK</span>
+      {(["yes", "no"] as const).map((v) => (
+        <button key={v} type="button" onClick={() => onChange(v)}
+          className={`rounded px-1.5 py-0.5 text-xs font-medium ${cur === v ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}>
+          {v === "yes" ? "Yes" : "No"}
+        </button>
+      ))}
+    </span>
+  );
+}
 
 interface Props {
   domain: string;
@@ -69,10 +93,14 @@ export default function AddQuestionsBar({
         <CustomForm
           domainLabel={domainLabel} busy={busy}
           onCancel={() => setMode(null)}
-          onAdd={async (text, type) => {
+          onAdd={async (draft) => {
             setBusy(true);
             try {
-              await onAddCustom({ area_id: areaId, domain_slug: domain, text, answer_type: type, needs_photo: false });
+              await onAddCustom({
+                area_id: areaId, domain_slug: domain, needs_photo: false,
+                text: draft.text, answer_type: draft.answer_type,
+                good_answer: draft.good_answer ?? null, checklist: draft.checklist ?? [],
+              });
               setMode(null);
               onAdded?.();
             } finally { setBusy(false); }
@@ -167,14 +195,46 @@ function BankPicker({
   );
 }
 
+export interface CustomDraft {
+  text: string;
+  answer_type: CustomQuestionBody["answer_type"];
+  good_answer?: string | null;
+  checklist?: ChecklistItem[];
+}
+
 function CustomForm({
   domainLabel, busy, onCancel, onAdd,
 }: {
   domainLabel: string; busy: boolean;
-  onCancel: () => void; onAdd: (text: string, type: CustomQuestionBody["answer_type"]) => Promise<void>;
+  onCancel: () => void; onAdd: (draft: CustomDraft) => Promise<void>;
 }) {
   const [text, setText] = useState("");
   const [type, setType] = useState<CustomQuestionBody["answer_type"]>("rating");
+  const [good, setGood] = useState<string>("yes");
+  const [subs, setSubs] = useState<ChecklistItem[]>([]);
+
+  const isChecklist = type === "checklist";
+  const addSub = () => setSubs((s) => [...s, { id: uuid(), text: "", answer_type: "yes_no", good_answer: "yes" }]);
+  const updSub = (id: string, patch: Partial<ChecklistItem>) =>
+    setSubs((s) => s.map((x) => (x.id === id ? { ...x, ...patch } : x)));
+  const rmSub = (id: string) => setSubs((s) => s.filter((x) => x.id !== id));
+
+  const canAdd = !!text.trim() && (!isChecklist || subs.some((s) => s.text.trim()));
+
+  const submit = () => {
+    const draft: CustomDraft = { text: text.trim(), answer_type: type };
+    if (type === "yes_no") draft.good_answer = good;
+    if (isChecklist) {
+      draft.checklist = subs
+        .filter((s) => s.text.trim())
+        .map((s) => ({
+          id: s.id, text: s.text.trim(), answer_type: s.answer_type,
+          good_answer: s.answer_type === "yes_no" ? (s.good_answer ?? "yes") : null,
+        }));
+    }
+    return onAdd(draft);
+  };
+
   return (
     <div>
       <div className="mb-2 flex items-center justify-between">
@@ -183,15 +243,44 @@ function CustomForm({
       </div>
       <input
         value={text} onChange={(e) => setText(e.target.value)} autoFocus
-        placeholder="Question text"
+        placeholder={isChecklist ? "Checklist title (e.g. Pool cleaning)" : "Question text"}
         className="mb-2 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
       />
+
+      {isChecklist && (
+        <div className="mb-2 rounded-lg border border-slate-200 bg-white p-2">
+          <div className="mb-1.5 flex items-center justify-between">
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Sub-questions</span>
+            <button type="button" onClick={addSub} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-2 py-1 text-[11px] font-medium text-slate-600 hover:bg-slate-100">
+              <Plus className="h-3 w-3" /> Add sub-question
+            </button>
+          </div>
+          {subs.length === 0 && <p className="text-[11px] text-slate-400">No sub-questions yet.</p>}
+          <div className="flex flex-col gap-1.5">
+            {subs.map((s, i) => (
+              <div key={s.id} className="flex items-center gap-1.5">
+                <span className="w-4 shrink-0 text-[11px] text-slate-400">{i + 1}.</span>
+                <input value={s.text} onChange={(e) => updSub(s.id, { text: e.target.value })}
+                  placeholder="Sub-question" className="min-w-0 flex-1 rounded-lg border border-slate-300 px-2 py-1 text-xs" />
+                <select value={s.answer_type} onChange={(e) => updSub(s.id, { answer_type: e.target.value as ChecklistItem["answer_type"] })}
+                  className="shrink-0 rounded-lg border border-slate-300 px-1.5 py-1 text-xs">
+                  {SUB_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                </select>
+                {s.answer_type === "yes_no" && <GoodToggle value={s.good_answer} onChange={(v) => updSub(s.id, { good_answer: v })} />}
+                <button type="button" onClick={() => rmSub(s.id)} aria-label="Remove" className="shrink-0 rounded border border-red-200 p-1 text-red-500 hover:bg-red-50"><Trash2 className="h-3.5 w-3.5" /></button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-wrap items-center justify-end gap-2">
+        {type === "yes_no" && <GoodToggle value={good} onChange={setGood} />}
         <select value={type} onChange={(e) => setType(e.target.value as CustomQuestionBody["answer_type"])}
           className="rounded-lg border border-slate-300 px-2 py-1.5 text-xs">
           {CUSTOM_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
         </select>
-        <button type="button" disabled={busy || !text.trim()} onClick={() => onAdd(text.trim(), type)}
+        <button type="button" disabled={busy || !canAdd} onClick={submit}
           className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50">
           {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />} Add
         </button>
