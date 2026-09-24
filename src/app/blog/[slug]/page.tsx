@@ -109,7 +109,27 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     : undefined;
 
   return (
-    <BlogPostShell toc={toc} breadcrumbOverride={breadcrumbOverride} postTitle={post.title}>
+    <BlogPostShell
+      toc={toc}
+      breadcrumbOverride={breadcrumbOverride}
+      afterContent={
+        <>
+          {/* Lead-gen CTA (2026-09-24) — moved here, per request: "Talk to
+              our team will be after faqs and author and will be full
+              width and not a weird small box." Rendered by BlogPostShell
+              below the TOC+article grid, so it spans the full content
+              width instead of being squeezed into the narrow article
+              column next to a sticky sidebar. */}
+          <BlogCtaForm postTitle={post.title} />
+
+          {/* "More on <category>" cards (2026-09-23) — last thing on the
+              page, per request: "3 category-wise blog cards at the end of
+              each blog." Renders nothing without a category or without
+              other posts in it (see the component and listRelatedByCategory). */}
+          {post.category && <RelatedPostsSection category={post.category} posts={relatedPosts} />}
+        </>
+      }
+    >
       <style>{`@media print{.no-print{display:none!important}nav,header,footer{display:none!important}}`}</style>
       <JsonLd
         data={{
@@ -235,23 +255,6 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           )}
         </div>
       )}
-
-      {/* Mobile/tablet lead-gen form (2026-09-23) — desktop's copy lives in
-          the right-hand rail (blog-post-shell.tsx); this is the SAME
-          component re-rendered inline for narrower viewports, per request:
-          "on mobiles, find a good place to put this, maybe at the end of
-          the blog after author" — placed right after the author bio /
-          "Last updated" block, before the related-posts cards. Hidden at
-          lg+ so it doesn't double-render alongside the desktop rail. */}
-      <div className="mt-10 lg:hidden">
-        <BlogCtaForm postTitle={post.title} />
-      </div>
-
-      {/* "More on <category>" cards (2026-09-23) — last thing on the page,
-          per request: "3 category-wise blog cards at the end of each
-          blog." Renders nothing without a category or without other posts
-          in it (see the component and listRelatedByCategory). */}
-      {post.category && <RelatedPostsSection category={post.category} posts={relatedPosts} />}
     </BlogPostShell>
   );
 }

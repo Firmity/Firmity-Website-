@@ -261,6 +261,13 @@ export function Footer() {
             <Link href="/blog" className={colLink}>Blog</Link>
             <Link href="/resources" className={colLink}>Resources</Link>
             <Link href={`/blog?category=${encodeURIComponent("Case Study")}`} className={colLink}>Case Studies</Link>
+            {/* CAFM/CMMS/ERP (2026-09-24) — CAFM links to the new dedicated
+                /cafm-software page; CMMS/ERP have no dedicated page yet, so
+                they deep-link into /blog pre-filtered to that topic, same
+                pattern as "Case Studies" above. */}
+            <Link href="/cafm-software" className={colLink}>CAFM</Link>
+            <Link href={`/blog?category=${encodeURIComponent("CMMS")}`} className={colLink}>CMMS</Link>
+            <Link href={`/blog?category=${encodeURIComponent("ERP")}`} className={colLink}>ERP</Link>
           </div>
 
           {/* Portals */}
@@ -276,10 +283,11 @@ export function Footer() {
             <h4 className={colHeading}>Contact Us</h4>
             {/* mailto: link (2026-09-04, per request: "when someone clicks
                 on demo@firmity.in in the footer, it should open their
-                email") — was a plain non-interactive <span>. */}
-            <a href="mailto:demo@firmity.in" className="flex items-start gap-2 hover:underline">
+                email") — was a plain non-interactive <span>. Address
+                updated to sales@firmity.in (2026-09-24). */}
+            <a href="mailto:sales@firmity.in" className="flex items-start gap-2 hover:underline">
               <Mail size={14} className="text-[#114dac] flex-shrink-0 mt-0.5" />
-              <span className="text-[13px] text-[#1a4a8a] font-light">demo@firmity.in</span>
+              <span className="text-[13px] text-[#1a4a8a] font-light">sales@firmity.in</span>
             </a>
             <div className="flex items-start gap-2">
               <MapPin size={14} className="text-[#114dac] flex-shrink-0 mt-0.5" />

@@ -5,13 +5,14 @@
 // the blog when opened... first name, last name, email, phone number and
 // submit... make it look nice like the contact form on the homepage."
 //
-// Rendered TWICE on every published post: once in the desktop right rail
-// (blog-post-shell.tsx, hidden below lg), once inline after the author bio
-// for mobile/tablet (blog/[slug]/page.tsx, hidden at lg+) — per request:
-// "on mobiles, find a good place to put this, maybe at the end of the blog
-// after author." Only one copy is ever visible at a given viewport width,
-// but both sit in the DOM at once, so every input id is namespaced with
-// useId() to avoid duplicate-id / <label htmlFor> collisions between them.
+// MOVED (2026-09-24, per request: "move Talk to our team contact when a
+// blog is opened at the bottom... this way the blog itself won't get
+// squished between the sidebar and the contact") from a desktop sticky
+// right rail + separate mobile-only inline copy to a single full-width
+// render, for every viewport, right before the FAQ section at the bottom
+// of the post (see blog/[slug]/page.tsx). useId() namespacing was kept
+// even though there's only one instance now — harmless, and cheaper than
+// stripping it back out.
 //
 // Styling (label/input classes, button, honeypot + MIN_SUBMIT_MS bot guard)
 // copied from overview-contact-form.tsx — the homepage's own contact form —
@@ -113,16 +114,27 @@ export function BlogCtaForm({ postTitle }: { postTitle?: string }) {
     )
   }
 
+  // FULL-WIDTH LAYOUT (2026-09-24, per request: "talk to our team is still
+  // not full content width... fix this"). The card itself now stretches to
+  // fill its parent (page.tsx no longer wraps it in a max-w constraint) —
+  // but letting the actual <input> fields stretch to that same ~1100px
+  // width would look broken, so a two-column split (heading/copy left,
+  // form capped at 420px right) fills the width usefully instead, echoing
+  // the same text+form side-by-side pattern as "Contact Us for a
+  // Walkthrough" (contact-walkthrough-section.tsx) elsewhere on the site.
   return (
-    <div className="bg-[#f7f7f7] rounded-[4px] border border-[#dbe5f0] shadow-[0_8px_32px_rgba(17,29,53,0.09)] p-5">
-      <h2 className="font-serif text-[1.35rem] font-light leading-tight text-[#114dac] tracking-tight mb-2">
-        Talk to our team
-      </h2>
-      <p className="text-[12.5px] font-light leading-[1.7] text-[#000000] mb-4">
-        Questions about facility management software? Leave your details and we&apos;ll get back to you within 24 hours.
-      </p>
+    <div className="bg-[#f7f7f7] rounded-[4px] border border-[#dbe5f0] shadow-[0_8px_32px_rgba(17,29,53,0.09)] p-6 sm:p-8">
+      <div className="md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,420px)] md:gap-10 md:items-center">
+        <div className="mb-5 md:mb-0">
+          <h2 className="font-serif text-[1.5rem] font-light leading-tight text-[#114dac] tracking-tight mb-2">
+            Talk to our team
+          </h2>
+          <p className="text-[13px] font-light leading-[1.7] text-[#000000] max-w-md">
+            Questions about facility management software? Leave your details and we&apos;ll get back to you within 24 hours.
+          </p>
+        </div>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-2.5">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-2.5">
         {/* Honeypot — hidden off-screen, same pattern as overview-contact-form.tsx */}
         <div className="absolute -left-[9999px] w-px h-px overflow-hidden" aria-hidden="true">
           <label htmlFor={`${uid}-website`}>Website</label>
@@ -217,7 +229,8 @@ export function BlogCtaForm({ postTitle }: { postTitle?: string }) {
             </>
           )}
         </button>
-      </form>
+        </form>
+      </div>
     </div>
   )
 }

@@ -89,7 +89,7 @@ const SERVICE_SCHEMA_PATHS = new Set<string>([
   "/inventory-vendor-automation-erp",
   "/employee-management-automation",
   "/visitor-management-automation",
-  "/facility-records",
+  "/cafm-software",
   "/payroll-automation-erp",
   "/facility-expense-automation-erp",
   "/industries/manufacturing",

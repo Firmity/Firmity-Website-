@@ -23,7 +23,6 @@ const industryItems = [
       { label: "PPM Scheduling", href: "/facility-task-automation" },
       { label: "Asset Tracking", href: "/assets-spares-automation" },
       { label: "Breakdown Management", href: "/complaint-helpdesk-automation" },
-      { label: "Compliance Records", href: "/facility-records" },
     ],
   },
   {
@@ -32,7 +31,6 @@ const industryItems = [
     accent: "#d97706",
     subItems: [
       { label: "Campus Help Desk", href: "/complaint-helpdesk-automation" },
-      { label: "Hostel & Block Records", href: "/facility-records" },
       { label: "Visitor Management", href: "/visitor-management-automation" },
       { label: "Staff Attendance", href: "/employee-management-automation" },
     ],
@@ -45,7 +43,6 @@ const industryItems = [
       { label: "Gate & Visitor Logs", href: "/visitor-management-automation" },
       { label: "Resident Complaints", href: "/complaint-helpdesk-automation" },
       { label: "Common Area PPM", href: "/facility-task-automation" },
-      { label: "Society Records", href: "/facility-records" },
     ],
   },
 ]

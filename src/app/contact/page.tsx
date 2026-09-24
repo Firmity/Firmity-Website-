@@ -212,7 +212,7 @@ export default function ContactPage() {
                   Let&apos;s get your facility{" "}
                   <em className="not-italic text-[#63b3ed]">running on Firmity.</em>
                 </h1>
-                <p className="text-[13.5px] font-light text-white/[0.45] leading-[1.85] mt-4 max-w-sm">
+                <p className="text-[13.5px] font-light text-white/75 leading-[1.85] mt-4 max-w-sm">
                   Contact Firmity, the cloud-based CMMS and ERP platform for facility management in India, to schedule a personalised demo or reach out directly. Our team responds
                   within 24 hours and stays with you through onboarding.
                 </p>
@@ -222,13 +222,13 @@ export default function ContactPage() {
               <div className="flex flex-col gap-4">
                 {CHANNELS.map(({ Icon, title, detail, sub }) => (
                   <div key={title} className="flex items-start gap-4 group">
-                    <div className="flex-shrink-0 w-9 h-9 rounded-xl border border-white/[0.1] bg-white/[0.04] flex items-center justify-center text-[#63b3ed] group-hover:border-[#2b6cb0]/60 group-hover:bg-[#2b6cb0]/10 transition-all duration-300">
+                    <div className="flex-shrink-0 w-9 h-9 rounded-xl border border-white/25 bg-white/[0.08] flex items-center justify-center text-[#63b3ed] group-hover:border-[#2b6cb0]/60 group-hover:bg-[#2b6cb0]/10 transition-all duration-300">
                       <Icon size={15} strokeWidth={1.5} />
                     </div>
                     <div>
-                      <div className="text-[10px] font-semibold tracking-[0.12em] uppercase text-white/[0.35] mb-0.5">{title}</div>
-                      <div className="text-[13px] font-light text-white/[0.75]">{detail}</div>
-                      <div className="text-[11px] font-light text-white/[0.35]">{sub}</div>
+                      <div className="text-[10px] font-semibold tracking-[0.12em] uppercase text-white/60 mb-0.5">{title}</div>
+                      <div className="text-[13px] font-light text-white/90">{detail}</div>
+                      <div className="text-[11px] font-light text-white/60">{sub}</div>
                     </div>
                   </div>
                 ))}
@@ -236,15 +236,15 @@ export default function ContactPage() {
 
               {/* What happens next */}
               <div className="mt-auto">
-                <div className="text-[10px] font-semibold tracking-[0.16em] uppercase text-white/[0.35] mb-4">What happens next</div>
+                <div className="text-[10px] font-semibold tracking-[0.16em] uppercase text-white/60 mb-4">What happens next</div>
                 <div className="flex flex-col gap-2.5">
                   {NEXT_STEPS.map(({ Icon, label }, i) => (
                     <div key={label} className="flex items-center gap-3">
-                      <span className="text-[9px] font-semibold text-[#2b6cb0]/50 w-4 text-right flex-shrink-0">0{i + 1}</span>
-                      <div className="w-[26px] h-[26px] flex-shrink-0 rounded-lg border border-white/[0.08] bg-white/[0.03] flex items-center justify-center">
+                      <span className="text-[9px] font-semibold text-[#63b3ed] w-4 text-right flex-shrink-0">0{i + 1}</span>
+                      <div className="w-[26px] h-[26px] flex-shrink-0 rounded-lg border border-white/25 bg-white/[0.08] flex items-center justify-center">
                         <Icon size={12} className="text-[#63b3ed]" strokeWidth={1.5} />
                       </div>
-                      <span className="text-[12px] font-light text-white/[0.5]">{label}</span>
+                      <span className="text-[12px] font-light text-white/80">{label}</span>
                     </div>
                   ))}
                 </div>

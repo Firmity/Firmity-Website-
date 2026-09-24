@@ -89,10 +89,16 @@ export default function SearchPage() {
       <Navigation />
       <main className="bg-white min-h-[60vh]">
         <section className="max-w-4xl mx-auto px-6 sm:px-10 lg:px-16 pt-14 pb-16">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-6 h-px bg-[#2b6cb0]" />
-            <span className="text-[#2b6cb0] text-[10px] font-semibold tracking-[0.2em] uppercase">Search</span>
-          </div>
+          {/* Kicker hidden once a search has actually run (2026-09-24, per
+              request: "remove the Search kicker in the search page after i
+              have searched something") — still shown on the empty/first-
+              load state. */}
+          {!query && (
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-6 h-px bg-[#2b6cb0]" />
+              <span className="text-[#2b6cb0] text-[10px] font-semibold tracking-[0.2em] uppercase">Search</span>
+            </div>
+          )}
           <h1 className="font-serif text-[clamp(1.6rem,4vw,2.4rem)] font-light text-[#114dac] tracking-tight mb-7">
             Search results
           </h1>

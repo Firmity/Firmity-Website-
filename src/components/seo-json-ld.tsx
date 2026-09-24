@@ -79,6 +79,7 @@ const DEFAULT_PAGE_TYPES: Record<string, string> = {
   "/complaint-helpdesk-automation": "ItemPage",
   "/inventory-vendor-automation-erp": "ItemPage",
   "/visitor-management-automation": "ItemPage",
+  "/cafm-software": "ItemPage",
   "/employee-management-automation": "ItemPage",
   "/payroll-automation-erp": "ItemPage",
   "/facility-expense-automation-erp": "ItemPage",

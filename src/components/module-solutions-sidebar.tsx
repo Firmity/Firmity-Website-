@@ -34,11 +34,30 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { MODULES_LIST, MODULE_PAGES } from "@/src/components/home-sections"
 
+// AUTOSCROLL, NOT A SCROLLBAR (2026-09-24, per request: "this behaviour
+// should be for all sidebars"). Bounded + scrollable so every item stays
+// reachable no matter how long MODULES_LIST grows, with the native
+// scrollbar hidden so nothing reads as manual.
+//
+// NO auto-scroll-into-view on the active item here (2026-09-24 follow-up
+// fix — an earlier version of this component did call
+// `scrollIntoView({block:"nearest"})` on the active link whenever
+// `pathname` changed, same pattern as blog-post-shell.tsx's TOC). That was
+// wrong for THIS sidebar: unlike the TOC (a scrollspy that tracks reading
+// position on ONE page), this component's "active" item only changes via
+// a full route navigation to a brand new page — and calling scrollIntoView
+// right after that navigation was scrolling the whole newly-loaded PAGE
+// down to the sidebar item's position, skipping straight past that page's
+// own hero section instead of landing at the top like every other link on
+// the site. A reader landing on a new page should always see it from the
+// top; the bounded/scrollable container below is enough on its own to
+// keep every item technically reachable (this list is short enough in
+// practice that it never actually needs to).
 export function ModuleSolutionsSidebar() {
   const pathname = usePathname()
 
   return (
-    <nav className="relative">
+    <nav className="relative max-h-[calc(100vh-9rem)] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
       <div className="absolute left-0 top-0 bottom-0 w-px bg-[#e2e8f0]" aria-hidden="true" />
       <ul className="flex flex-col">
         {MODULES_LIST.map(({ slug, title }) => {

@@ -36,7 +36,7 @@ const STATIC_ROUTES = [
   "/inventory-vendor-automation-erp",
   "/employee-management-automation",
   "/visitor-management-automation",
-  "/facility-records",
+  "/cafm-software",
   "/payroll-automation-erp",
   "/facility-expense-automation-erp",
   "/resources",

@@ -616,6 +616,12 @@ export function ModulePageTemplate({ config }: { config: ModulePageConfig }) {
                           instant Feature groups ends — see the file-header
                           note for why that's the whole fix. */}
                       <aside className="hidden lg:block">
+                        {/* Autoscroll/reachability now lives inside
+                            ModuleSolutionsSidebar itself (its own <nav> is
+                            the bounded, scrollable, active-item-tracking
+                            element) — this wrapper just needs to stay
+                            pinned. See that component's file-header
+                            comment. */}
                         <div className="sticky top-24">
                           <h2 className="text-[11px] font-semibold tracking-[0.2em] uppercase text-black mb-4">
                             Explore our solutions
