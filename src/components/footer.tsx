@@ -394,6 +394,7 @@ export function Footer() {
           <div className="flex flex-wrap items-center justify-center sm:justify-end gap-x-6 gap-y-2 flex-shrink-0">
             <Link href="/privacy" className="text-[12px] text-[#114dac] hover:underline font-light">Privacy Policy</Link>
             <Link href="/terms" className="text-[12px] text-[#114dac] hover:underline font-light">Terms &amp; Conditions</Link>
+            <Link href="/modern-slavery-statement" className="text-[12px] text-[#114dac] hover:underline font-light">Modern Slavery Statement</Link>
             <Link href="/sitemap.xml" className="text-[12px] text-[#114dac] hover:underline font-light">Sitemap</Link>
             <Link href="/contact" className="text-[12px] text-[#114dac] hover:underline font-light">Contact</Link>
           </div>

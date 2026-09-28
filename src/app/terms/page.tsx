@@ -235,10 +235,13 @@ export default function TermsPage() {
         {/* ── RELATED LINKS ── */}
         <section className="bg-[#114dac]">
           <div className="max-w-5xl mx-auto px-6 sm:px-10 lg:px-16 py-12 flex flex-col sm:flex-row items-center justify-between gap-6">
-            <div>
-              <p className="text-[11px] font-semibold tracking-[0.18em] text-[#63b3ed] uppercase mb-1">Related policies</p>
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-6">
+              <p className="text-[11px] font-semibold tracking-[0.18em] text-[#63b3ed] uppercase mb-1 sm:mb-0 sm:self-center">Related policies</p>
               <Link href="/privacy" className="text-white/70 hover:text-white text-[13px] font-light transition-colors hover:underline">
                 Privacy Policy →
+              </Link>
+              <Link href="/modern-slavery-statement" className="text-white/70 hover:text-white text-[13px] font-light transition-colors hover:underline">
+                Modern Slavery Statement →
               </Link>
             </div>
             <Link

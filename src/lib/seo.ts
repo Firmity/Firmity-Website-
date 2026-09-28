@@ -192,6 +192,21 @@ export const PAGE_SEO: Record<string, PageSeo> = {
     description:
       "The terms and conditions governing your use of the Firmity facility management platform, software and related services.",
   },
+  "/modern-slavery-statement": {
+    title: "Modern Slavery Statement",
+    description:
+      "Firmity's Modern Slavery Statement: how Ufirm Technologies prevents forced labour, child labour and human trafficking across our hiring, operations and supply chains.",
+    keywords: [
+      "modern slavery statement",
+      "anti slavery policy",
+      "human trafficking statement",
+      "forced labour policy",
+      "ethical supply chain",
+      "UK Modern Slavery Act 2015",
+      "Firmity compliance",
+      "UFIRM Technologies compliance",
+    ],
+  },
   "/event-booking": {
     title: "Book an Event or Demo",
     description: "Schedule a Firmity demo or book an event or room slot, with intelligent calendar management and real-time availability for facilities in India.",
@@ -239,6 +254,7 @@ export const SEO_ROUTES: { path: string; label: string }[] = [
   { path: "/industries/residential", label: "Industries — Residential" },
   { path: "/privacy", label: "Privacy Policy" },
   { path: "/terms", label: "Terms & Conditions" },
+  { path: "/modern-slavery-statement", label: "Modern Slavery Statement" },
 ];
 
 /**

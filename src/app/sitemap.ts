@@ -51,6 +51,7 @@ const STATIC_ROUTES = [
   "/industries/residential",
   "/privacy",
   "/terms",
+  "/modern-slavery-statement",
 ]
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
