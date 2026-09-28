@@ -212,7 +212,10 @@ export default function TermsPage() {
                       <p className="font-semibold text-[#1a202c] mb-1">Ufirm Technologies Private Limited</p>
                       <p className="text-[#4a5568]">Brand Name: Firmity</p>
                       <p className="text-[#4a5568]">Website: <a href="https://www.firmity.in" className="text-[#2b6cb0] hover:underline">www.firmity.in</a></p>
-                      <p className="text-[#4a5568]">Support: <a href="mailto:firmityglobal@firmity.in" className="text-[#2b6cb0] hover:underline">firmityglobal@firmity.in</a></p>
+                      <p className="text-[#4a5568]">Support: <a href="mailto:support@firmity.in" className="text-[#2b6cb0] hover:underline">support@firmity.in</a></p>
+                      <p className="text-[#4a5568]">Sales: <a href="mailto:sales@firmity.in" className="text-[#2b6cb0] hover:underline">sales@firmity.in</a>
+                      </p>
+                      <p className="text-[#4a5568]">M: +91 92173 40884, +91 97970 39690</p>
                     </div>
                     <div>
                       <p className="font-semibold text-[#1a202c] mb-1">Grievance Officer</p>
