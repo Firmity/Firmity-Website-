@@ -206,7 +206,8 @@ export default function ModernSlaveryStatementPage() {
                     </div>
                     <div>
                       <p className="font-semibold text-[#1a202c] mb-1">General Contact</p>
-                      <p className="text-[#4a5568]">Support: <a href="mailto:support@firmity.in" className="text-[#2b6cb0] hover:underline">support@firmity.in</a></p>
+                      <p className="text-[#4a5568]">Support: <a href="mailto:support@firmity.in" className="text-[#2b6cb0] hover:underline">sales@firmity.in</a></p>
+                      <p className="text-[#4a5568]">M: +91 92173 40884, +91 97970 39690</p>
                     </div>
                     <div>
                       <p className="font-semibold text-[#1a202c] mb-1">Registered Office</p>
