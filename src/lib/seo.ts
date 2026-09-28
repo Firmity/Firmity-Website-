@@ -201,9 +201,9 @@ export const PAGE_SEO: Record<string, PageSeo> = {
     description: "Search Firmity's pages, features and blog for facility management guides, modules and resources.",
   },
   "/cafm-software": {
-    title: "CAFM Software | Computer Aided Facility Management",
+    title: "CAFM Software for Multi-Site Facility Teams",
     description:
-      "CAFM software (computer aided facility management) gives facility teams one system for maintenance, assets, compliance, and space management. See how Firmity's CAFM platform works.",
+      "Firmity's CAFM software gives facility teams one live system for maintenance, assets, compliance, and space management across every site. Book a walkthrough.",
     keywords: [...BASE_KEYWORDS, "CAFM software", "computer aided facility management", "CAFM system"],
   },
 };

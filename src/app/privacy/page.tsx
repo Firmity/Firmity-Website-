@@ -262,7 +262,11 @@ export default function PrivacyPage() {
                     </div>
                     <div>
                       <p className="font-semibold text-[#1a202c] mb-1">Support</p>
-                      <p className="text-[#4a5568]">Email: <a href="mailto:firmityglobal@firmity.in" className="text-[#2b6cb0] hover:underline">firmityglobal@firmity.in</a></p>
+                      <p className="text-[#4a5568] mb-1">Support: <a href="mailto:support@firmity.in" className="text-[#2b6cb0] hover:underline">support@firmity.in</a></p>
+                      <p className="font-semibold text-[#1a202c] mb-0">Talk to sales</p>
+                      <p className="text-[#4a5568]">Sales: <a href="mailto:sales@firmity.in" className="text-[#2b6cb0] hover:underline">sales@firmity.in</a>
+                      </p>
+                      <p className="text-[#4a5568]">M: +91 92173 40884, +91 97970 39690</p>
                       <p className="text-[#4a5568] mt-2 font-semibold">Data Protection Officer</p>
                       <p className="text-[#4a5568]"><a href="mailto:dpo@firmity.in" className="text-[#2b6cb0] hover:underline">dpo@firmity.in</a></p>
                     </div>
