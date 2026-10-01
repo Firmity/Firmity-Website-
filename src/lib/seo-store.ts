@@ -95,6 +95,15 @@ const SERVICE_SCHEMA_PATHS = new Set<string>([
   "/industries/manufacturing",
   "/industries/educational",
   "/industries/residential",
+  // 8 pillar pages added 2026-09-30, from the SEO tracker spreadsheet.
+  "/cmms-software",
+  "/erp-software",
+  "/asset-management-software",
+  "/complaint-management-software",
+  "/visitor-management-software",
+  "/employee-management-software",
+  "/payroll-management-software",
+  "/inventory-management-software",
 ]);
 
 export interface RefreshResult {

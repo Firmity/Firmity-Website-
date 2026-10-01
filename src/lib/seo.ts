@@ -221,6 +221,56 @@ export const PAGE_SEO: Record<string, PageSeo> = {
       "Firmity's CAFM software gives facility teams one live system for maintenance, assets, compliance, and space management across every site. Book a walkthrough.",
     keywords: [...BASE_KEYWORDS, "CAFM software", "computer aided facility management", "CAFM system"],
   },
+  // ─── 8 pillar pages added 2026-09-30, from the SEO tracker spreadsheet.
+  // Meta title/description below are the client-supplied copy, used verbatim.
+  "/cmms-software": {
+    title: "CMMS Software for Maintenance Management | Firmity",
+    description:
+      "Manage work orders, preventive maintenance, assets, inventory, and maintenance teams with Firmity CMMS software. Streamline maintenance operations today.",
+    keywords: [...BASE_KEYWORDS, "CMMS software", "computerized maintenance management system", "maintenance management software"],
+  },
+  "/erp-software": {
+    title: "ERP Software for Business Management | Firmity",
+    description:
+      "Streamline business operations with Firmity ERP software. Manage assets, maintenance, inventory, employees, expenses, compliance, and workflows in one platform.",
+    keywords: [...BASE_KEYWORDS, "ERP software", "enterprise resource planning software", "business management software"],
+  },
+  "/asset-management-software": {
+    title: "Asset Management Software for Smarter Asset Tracking | Firmity",
+    description:
+      "Manage and track assets with Firmity asset management software. Monitor asset records, locations, maintenance, lifecycle details, and performance from one platform.",
+    keywords: [...BASE_KEYWORDS, "asset management software", "asset tracking software"],
+  },
+  "/complaint-management-software": {
+    title: "Complaint Management Software for Faster Resolution | Firmity",
+    description:
+      "Manage complaints efficiently with Firmity complaint management software. Track requests, assign tasks, monitor resolution status, and improve service operations.",
+    keywords: [...BASE_KEYWORDS, "complaint management software", "complaint tracking software"],
+  },
+  "/visitor-management-software": {
+    title: "Visitor Management Software for Offices | Firmity",
+    description:
+      "Simplify visitor registration and tracking with Firmity visitor management software. Manage check-ins, approvals, visitor records, and access efficiently.",
+    keywords: [...BASE_KEYWORDS, "visitor management software", "visitor management system"],
+  },
+  "/employee-management-software": {
+    title: "Employee Management Software for Workforce Operations | Firmity",
+    description:
+      "Simplify employee management with Firmity. Manage employee records, attendance, tasks, payroll, and workforce operations from one centralized platform.",
+    keywords: [...BASE_KEYWORDS, "employee management software", "workforce management software"],
+  },
+  "/payroll-management-software": {
+    title: "Payroll Management Software for Easy Payroll Processing | Firmity",
+    description:
+      "Simplify payroll operations with Firmity payroll management software. Manage employee payroll, attendance, salary records, and payroll workflows from one platform.",
+    keywords: [...BASE_KEYWORDS, "payroll management software", "payroll processing software"],
+  },
+  "/inventory-management-software": {
+    title: "Inventory Management Software for Tracking & Managing Stock | Firmity",
+    description:
+      "Manage inventory efficiently with Firmity. Track stock, spare parts, purchases, usage, and inventory records while improving visibility across facility operations.",
+    keywords: [...BASE_KEYWORDS, "inventory management software", "stock management software"],
+  },
 };
 
 /** Absolute canonical URL for a path. */
@@ -249,6 +299,15 @@ export const SEO_ROUTES: { path: string; label: string }[] = [
   { path: "/cafm-software", label: "CAFM Software" },
   { path: "/payroll-automation-erp", label: "Payroll Management" },
   { path: "/facility-expense-automation-erp", label: "Facility Expense Management" },
+  // ─── 8 pillar pages added 2026-09-30, from the SEO tracker spreadsheet.
+  { path: "/cmms-software", label: "CMMS Software" },
+  { path: "/erp-software", label: "ERP Software" },
+  { path: "/asset-management-software", label: "Asset Management Software" },
+  { path: "/complaint-management-software", label: "Complaint Management Software" },
+  { path: "/visitor-management-software", label: "Visitor Management Software" },
+  { path: "/employee-management-software", label: "Employee Management Software" },
+  { path: "/payroll-management-software", label: "Payroll Management Software" },
+  { path: "/inventory-management-software", label: "Inventory Management Software" },
   { path: "/industries/manufacturing", label: "Industries — Manufacturing" },
   { path: "/industries/educational", label: "Industries — Educational" },
   { path: "/industries/residential", label: "Industries — Residential" },

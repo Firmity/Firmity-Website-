@@ -45,6 +45,15 @@ const STATIC_PAGES: SearchResult[] = [
   { title: "Visitor Management", url: "/visitor-management-automation", description: "Digital gate entries, host approvals, and badge printing — contactless and fully audit-ready." },
   { title: "Staff Attendance", url: "/employee-management-automation", description: "Face-recognition attendance, shift scheduling, and real-time presence tracking across all sites." },
   { title: "CAFM Software", url: "/cafm-software", description: "What CAFM software (computer aided facility management) is, what it does, and how Firmity's CAFM platform works." },
+  // 8 pillar pages added 2026-09-30, from the SEO tracker spreadsheet.
+  { title: "CMMS Software for Maintenance Management", url: "/cmms-software", description: "Manage work orders, preventive maintenance, assets, and inventory with Firmity CMMS software." },
+  { title: "ERP Software for Business Management", url: "/erp-software", description: "Manage assets, maintenance, inventory, employees, expenses, and compliance with Firmity ERP software." },
+  { title: "Asset Management Software", url: "/asset-management-software", description: "Track asset records, locations, maintenance, and lifecycle details with Firmity asset management software." },
+  { title: "Complaint Management Software", url: "/complaint-management-software", description: "Track complaints, assign tasks, and monitor resolution status with Firmity complaint management software." },
+  { title: "Visitor Management Software", url: "/visitor-management-software", description: "Manage check-ins, approvals, and visitor records with Firmity visitor management software." },
+  { title: "Employee Management Software", url: "/employee-management-software", description: "Manage employee records, attendance, tasks, and payroll with Firmity employee management software." },
+  { title: "Payroll Management Software", url: "/payroll-management-software", description: "Manage employee payroll, attendance, and salary records with Firmity payroll management software." },
+  { title: "Inventory Management Software", url: "/inventory-management-software", description: "Track stock, spare parts, purchases, and usage with Firmity inventory management software." },
   { title: "Privacy Policy", url: "/privacy", description: "How Firmity and UFIRM Technologies collect, use, and protect your data." },
   { title: "Terms & Conditions", url: "/terms", description: "The terms and conditions governing your use of the Firmity facility management platform." },
 ];

@@ -261,13 +261,26 @@ export function Footer() {
             <Link href="/blog" className={colLink}>Blog</Link>
             <Link href="/resources" className={colLink}>Resources</Link>
             <Link href={`/blog?category=${encodeURIComponent("Case Study")}`} className={colLink}>Case Studies</Link>
-            {/* CAFM/CMMS/ERP (2026-09-24) — CAFM links to the new dedicated
-                /cafm-software page; CMMS/ERP have no dedicated page yet, so
-                they deep-link into /blog pre-filtered to that topic, same
-                pattern as "Case Studies" above. */}
-            <Link href="/cafm-software" className={colLink}>CAFM</Link>
-            <Link href={`/blog?category=${encodeURIComponent("CMMS")}`} className={colLink}>CMMS</Link>
-            <Link href={`/blog?category=${encodeURIComponent("ERP")}`} className={colLink}>ERP</Link>
+            {/* CAFM/CMMS/ERP (2026-09-24) — CAFM already had its own
+                dedicated page; CMMS/ERP used to deep-link into /blog
+                pre-filtered to that topic since neither had a page yet.
+                2026-09-30: CMMS and ERP now have their own dedicated pillar
+                pages too, so both now link directly instead of via the blog
+                category filter. Labels renamed to their full "<X> Software"
+                form per request, matching the other pillar-page labels below. */}
+            <Link href="/cafm-software" className={colLink}>CAFM Software</Link>
+            <Link href="/cmms-software" className={colLink}>CMMS Software</Link>
+            <Link href="/erp-software" className={colLink}>ERP Software</Link>
+            {/* Remaining 6 pillar pages added 2026-09-30, from the SEO
+                tracker spreadsheet — same "Company" column placement as
+                CAFM/CMMS/ERP above, per the post-page checklist's footer
+                discoverability step. */}
+            <Link href="/asset-management-software" className={colLink}>Asset Management Software</Link>
+            <Link href="/complaint-management-software" className={colLink}>Complaint Management Software</Link>
+            <Link href="/visitor-management-software" className={colLink}>Visitor Management Software</Link>
+            <Link href="/employee-management-software" className={colLink}>Employee Management Software</Link>
+            <Link href="/payroll-management-software" className={colLink}>Payroll Management Software</Link>
+            <Link href="/inventory-management-software" className={colLink}>Inventory Management Software</Link>
           </div>
 
           {/* Portals */}

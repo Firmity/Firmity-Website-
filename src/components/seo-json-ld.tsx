@@ -79,10 +79,18 @@ const DEFAULT_PAGE_TYPES: Record<string, string> = {
   "/complaint-helpdesk-automation": "ItemPage",
   "/inventory-vendor-automation-erp": "ItemPage",
   "/visitor-management-automation": "ItemPage",
-  "/cafm-software": "ItemPage",
   "/employee-management-automation": "ItemPage",
   "/payroll-automation-erp": "ItemPage",
   "/facility-expense-automation-erp": "ItemPage",
+  // 8 pillar pages added 2026-09-30, from the SEO tracker spreadsheet.
+  "/cmms-software": "ItemPage",
+  "/erp-software": "ItemPage",
+  "/asset-management-software": "ItemPage",
+  "/complaint-management-software": "ItemPage",
+  "/visitor-management-software": "ItemPage",
+  "/employee-management-software": "ItemPage",
+  "/payroll-management-software": "ItemPage",
+  "/inventory-management-software": "ItemPage",
 };
 
 // Supported Currencies for Global Enterprise Software Indexing
