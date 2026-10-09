@@ -11,6 +11,36 @@ const COLOR = [
   /^rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*(,\s*[\d.]+\s*)?\)$/i,
 ];
 
+// Hosts that count as "our own site" for link-rel purposes (www. and any
+// subdomain of firmity.in). Keep in step with SITE.url in lib/seo.ts.
+const INTERNAL_HOST = /(^|\.)firmity\.in$/i;
+
+/** Relative URLs, #anchors and firmity.in links are internal; everything else
+ * (including mailto:/tel:, which carry no ranking value either way) is not. */
+export function isInternalHref(href: string): boolean {
+  const h = href.trim();
+  if (h.startsWith("#") || (h.startsWith("/") && !h.startsWith("//"))) return true;
+  try {
+    return INTERNAL_HOST.test(new URL(h, "https://www.firmity.in").hostname) && /^(https?:)?\/\//i.test(h);
+  } catch {
+    return false;
+  }
+}
+
+/** Internal links: plain followed links in the same tab, so the post passes
+ * ranking credit to the page it points at. External links: nofollow, because
+ * authors can paste any URL and we shouldn't vouch for it by default. */
+function transformAnchor(tagName: string, attribs: sanitizeHtml.Attributes) {
+  const next = { ...attribs };
+  if (next.href && isInternalHref(next.href)) {
+    delete next.rel;
+    delete next.target;
+  } else {
+    next.rel = "noopener noreferrer nofollow";
+  }
+  return { tagName, attribs: next };
+}
+
 export const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
   allowedTags: [
     "p", "br", "hr", "h1", "h2", "h3", "h4",
@@ -57,8 +87,7 @@ export const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
   exclusiveFilter: (frame) =>
     (frame.tag === "iframe" && !frame.attribs.src) || (frame.tag === "input" && frame.attribs.type !== "checkbox"),
   transformTags: {
-    // Force safe link attrs on every anchor.
-    a: sanitizeHtml.simpleTransform("a", { rel: "noopener noreferrer nofollow" }),
+    a: transformAnchor,
     // Checklists on the live page are read-only.
     input: sanitizeHtml.simpleTransform("input", { disabled: "disabled" }),
     // Below-the-fold media shouldn't compete with the LCP image for bandwidth.

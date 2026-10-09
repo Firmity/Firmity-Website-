@@ -7,7 +7,7 @@ import { BlogPostShell } from "@/src/components/blog-post-shell";
 import { BlogFaqSection } from "@/src/components/blog/blog-faq-section";
 import { BlogCtaForm } from "@/src/components/blog/blog-cta-form";
 import { RelatedPostsSection } from "@/src/components/blog/related-posts-section";
-import { getBySlug, extractToc, listRelatedByCategory, categorySlug } from "@/src/lib/blog";
+import { getBySlug, extractToc, sanitizeContent, listRelatedByCategory, categorySlug } from "@/src/lib/blog";
 import { getAuthorById } from "@/src/lib/blog-authors";
 import { BLOG_SEO_TITLES } from "@/src/lib/blog-seo-titles";
 import { BLOG_PROSE } from "@/src/lib/blog-prose";
@@ -102,7 +102,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   // matching sidebar TOC list (2026-09-23) — see blog.ts::extractToc. Pure
   // string processing, not a DB call, so it runs outside the Promise.all
   // above rather than alongside it.
-  const { html: contentHtml, toc } = extractToc(post.content_html);
+  const { html: contentHtml, toc } = extractToc(sanitizeContent(post.content_html));
   // "Home > Blog > <Category> > <Post>" (2026-09-23) — the URL stays flat
   // (/blog/[slug]), so this can't come from the auto path-segment
   // breadcrumb; see breadcrumbs.tsx's `override` prop. Posts with no
