@@ -7,17 +7,23 @@ import { BubbleMenu } from "@tiptap/react/menus";
 import { Bold, Italic, Underline as UnderlineIcon, Link as LinkIcon, Highlighter, Code } from "lucide-react";
 import { Divider, ToolbarButton } from "./ui";
 
+// MUST be stable references (module level, never inline in JSX): BubbleMenu
+// re-dispatches an editor transaction whenever `options` or `shouldShow`
+// change identity, and the editor re-renders on every transaction — so inline
+// values here cause an infinite render loop (React error #185).
+const BUBBLE_OPTIONS = { placement: "top" } as const;
+const shouldShowBubble: NonNullable<React.ComponentProps<typeof BubbleMenu>["shouldShow"]> = ({ editor, state }) =>
+  editor.isEditable &&
+  isTextSelection(state.selection) &&
+  !state.selection.empty &&
+  !editor.isActive("codeBlock");
+
 export function BubbleToolbar({ editor: E, onLink }: { editor: Editor; onLink: () => void }) {
   return (
     <BubbleMenu
       editor={E}
-      options={{ placement: "top" }}
-      shouldShow={({ editor, state }) =>
-        editor.isEditable &&
-        isTextSelection(state.selection) &&
-        !state.selection.empty &&
-        !editor.isActive("codeBlock")
-      }
+      options={BUBBLE_OPTIONS}
+      shouldShow={shouldShowBubble}
       className="flex items-center gap-0.5 rounded-lg border border-[#dbe5f0] bg-white p-1 shadow-lg"
     >
       <ToolbarButton title="Bold" active={E.isActive("bold")} onClick={() => E.chain().focus().toggleBold().run()}><Bold size={15} /></ToolbarButton>
