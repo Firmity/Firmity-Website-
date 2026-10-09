@@ -2,6 +2,7 @@
 // key via getSupabaseAdmin — the blog_posts table has no anon access.
 import "server-only";
 import sanitizeHtml from "sanitize-html";
+import { SANITIZE_OPTIONS } from "@/src/lib/blog-sanitize-config";
 import { getSupabaseAdmin } from "./supabase-admin";
 
 export interface BlogPost {
@@ -122,22 +123,7 @@ export function slugify(input: string): string {
 // Allow exactly what the Tiptap toolbar can produce — nothing else survives.
 // This is the XSS boundary: never render content_html without passing through here.
 export function sanitizeContent(html: string): string {
-  return sanitizeHtml(html, {
-    allowedTags: [
-      "p", "br", "hr", "h1", "h2", "h3", "h4",
-      "strong", "b", "em", "i", "u", "s", "strike",
-      "ul", "ol", "li", "blockquote", "a", "img", "code", "pre", "figure", "figcaption",
-    ],
-    allowedAttributes: {
-      a: ["href", "target", "rel"],
-      img: ["src", "alt", "title"],
-    },
-    allowedSchemes: ["http", "https", "mailto"],
-    transformTags: {
-      // Force safe link attrs on every anchor.
-      a: sanitizeHtml.simpleTransform("a", { rel: "noopener noreferrer nofollow" }),
-    },
-  });
+  return sanitizeHtml(html, SANITIZE_OPTIONS);
 }
 
 /** Roughly estimate reading time from HTML text (~200 wpm). */

@@ -7,7 +7,7 @@ import { BlogPostShell } from "@/src/components/blog-post-shell";
 import { BlogFaqSection } from "@/src/components/blog/blog-faq-section";
 import { BlogCtaForm } from "@/src/components/blog/blog-cta-form";
 import { RelatedPostsSection } from "@/src/components/blog/related-posts-section";
-import { getBySlug, extractToc, listRelatedByCategory, categorySlug } from "@/src/lib/blog";
+import { getBySlug, extractToc, sanitizeContent, listRelatedByCategory, categorySlug } from "@/src/lib/blog";
 import { getAuthorById } from "@/src/lib/blog-authors";
 import { BLOG_SEO_TITLES } from "@/src/lib/blog-seo-titles";
 import { BLOG_PROSE } from "@/src/lib/blog-prose";
@@ -84,7 +84,15 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   const post = await getBySlug(slug);
   if (!post || post.status !== "published") notFound();
 
-  const meta = [longDate(post.published_at), post.read_time].filter(Boolean).join(" · ");
+  const showUpdated = isDifferentDay(post.content_updated_at, post.published_at);
+  // Freshness leads: an edited post shows "Updated <date>" up top (the date
+  // Google reads as most recent) and moves "Published <date>" to the bottom.
+  // A never-edited post just shows its publish date up top.
+  const topIso = (showUpdated ? post.content_updated_at : post.published_at)?.slice(0, 10) ?? "";
+  const topDate = showUpdated
+    ? `Updated ${longDate(post.content_updated_at)}`
+    : longDate(post.published_at);
+  const wordCount = post.content_html.replace(/<[^>]+>/g, " ").split(/\s+/).filter(Boolean).length;
   const [socials, author, relatedPosts] = await Promise.all([
     getSiteSeo().then((s) => s.social_links ?? []),
     post.author_id ? getAuthorById(post.author_id) : Promise.resolve(null),
@@ -94,8 +102,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   // matching sidebar TOC list (2026-09-23) — see blog.ts::extractToc. Pure
   // string processing, not a DB call, so it runs outside the Promise.all
   // above rather than alongside it.
-  const { html: contentHtml, toc } = extractToc(post.content_html);
-  const showUpdated = isDifferentDay(post.content_updated_at, post.published_at);
+  const { html: contentHtml, toc } = extractToc(sanitizeContent(post.content_html));
   // "Home > Blog > <Category> > <Post>" (2026-09-23) — the URL stays flat
   // (/blog/[slug]), so this can't come from the auto path-segment
   // breadcrumb; see breadcrumbs.tsx's `override` prop. Posts with no
@@ -159,6 +166,9 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
             logo: { "@type": "ImageObject", url: `${SITE.url}/firmity.png` },
           },
           mainEntityOfPage: canonical(`/blog/${slug}`),
+          inLanguage: "en",
+          wordCount,
+          articleSection: post.category || undefined,
         }}
       />
       <DownloadPdf />
@@ -169,7 +179,13 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         {post.title}
       </h1>
       {post.subtitle && <p className="text-[16px] text-[#718096] font-light leading-relaxed mb-5">{post.subtitle}</p>}
-      {meta && <p className="text-[12px] text-[#a0aec0] font-light mb-4">{meta}</p>}
+      {(topDate || post.read_time) && (
+        <p className="text-[12px] text-[#a0aec0] font-light mb-4">
+          {topDate && <time dateTime={topIso}>{topDate}</time>}
+          {topDate && post.read_time && " · "}
+          {post.read_time}
+        </p>
+      )}
       <div className="mb-8 space-y-2.5 border-b border-[#eef3f9] pb-6">
         {post.author && (
           <p className="text-[13px] text-[#4a5568]">
@@ -221,6 +237,9 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       {(author || showUpdated) && (
         <div className="mt-10 pt-8 border-t border-[#eef3f9]">
           {author && (
+            <h2 className="text-[11px] font-semibold tracking-[0.2em] uppercase text-black mb-4">Author Bio</h2>
+          )}
+          {author && (
             <div className="flex items-start gap-4">
               {author.avatar_url && (
                 <Image
@@ -250,7 +269,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           )}
           {showUpdated && (
             <p className={`text-[12px] text-[#a0aec0] font-light ${author ? "mt-6" : ""}`}>
-              Last updated {longDate(post.content_updated_at)}
+              Published <time dateTime={post.published_at?.slice(0, 10)}>{longDate(post.published_at)}</time>
             </p>
           )}
         </div>

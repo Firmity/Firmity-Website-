@@ -84,6 +84,10 @@ function EditorInner() {
   const [err, setErr] = useState("");
   const [categories, setCategories] = useState<string[]>([]);
   const [showPreview, setShowPreview] = useState(false);
+  // Snapshot of the post as loaded: tells us whether this is an already-live
+  // post (button says "Update") and whether "Last updated" was left untouched.
+  const [loaded, setLoaded] = useState<{ status: string; content_updated_at: string } | null>(null);
+  const isLive = loaded?.status === "published";
   const coverRef = useRef<HTMLInputElement | null>(null);
 
   // Reusable author profiles (name/avatar/bio/LinkedIn) — the "Author
@@ -208,6 +212,10 @@ function EditorInner() {
       if (res.status === 401) return router.push("/blog-admin/login");
       if (res.ok) {
         const { post } = await res.json();
+        setLoaded({
+          status: post.status ?? "draft",
+          content_updated_at: (post.content_updated_at ?? "").slice(0, 10) || todayStr(),
+        });
         setForm({
           title: post.title ?? "", subtitle: post.subtitle ?? "", slug: post.slug ?? "",
           category: post.category ?? "Guide", read_time: post.read_time ?? "",
@@ -247,12 +255,27 @@ function EditorInner() {
 
   async function save(status: "draft" | "published") {
     if (!form.title.trim()) return setErr("A title is required.");
+    if (status === "published") {
+      // Alt text is read by Google Images and screen readers — nudge, don't block.
+      const missingAlt = (form.content_html.match(/<img\b(?![^>]*\balt="[^"]+")[^>]*>/gi) ?? []).length;
+      if (missingAlt > 0 && !confirm(`${missingAlt} image${missingAlt > 1 ? "s have" : " has"} no alt text (shown with an amber outline in the editor). Publish anyway?`)) return;
+    }
     setSaving(status);
     setErr("");
     const res = await fetch("/api/blog-admin/posts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, id: id || undefined, status }),
+      body: JSON.stringify({
+        ...form,
+        // Updating a live post stamps "Last updated" with today unless it was
+        // edited by hand — otherwise the freshness date silently goes stale.
+        content_updated_at:
+          isLive && status === "published" && form.content_updated_at === loaded?.content_updated_at
+            ? todayStr()
+            : form.content_updated_at,
+        id: id || undefined,
+        status,
+      }),
     });
     const d = await res.json().catch(() => ({}));
     setSaving(null);
@@ -293,7 +316,7 @@ function EditorInner() {
             disabled={saving !== null}
             className="inline-flex items-center gap-2 rounded-lg bg-[#2b6cb0] px-4 py-2 text-[13px] font-medium text-white hover:bg-[#1a56a0] disabled:opacity-60"
           >
-            {saving === "published" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send size={15} />} Publish
+            {saving === "published" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send size={15} />} {isLive ? "Update" : "Publish"}
           </button>
         </div>
       </div>
