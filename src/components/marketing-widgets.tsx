@@ -36,6 +36,9 @@ const EXCLUDED_PREFIXES = [
   "/survey",
   "/blog-admin",
   "/r",
+  // TEMPORARY (Diwali RSVP, QR-only page): the floating widgets would sit on top
+  // of the form on a phone. Remove with src/app/diwali-reception/.
+  "/diwali-reception",
 ]
 
 export function MarketingWidgets() {
