@@ -66,7 +66,20 @@ export interface BlogCardData {
   description: string;
   category: string;
   readTime: string;
+  /** "Updated Oct 2026" — the public freshness label; never the publish date. */
+  date: string;
   cover: string | null;
+}
+
+/** "Updated Jan 2026" from the editorial updated date (publish date stays internal). */
+export function updatedLabel(p: Pick<BlogPost, "content_updated_at" | "updated_at">): string {
+  const iso = p.content_updated_at || p.updated_at;
+  if (!iso) return "";
+  try {
+    return `Updated ${new Date(iso).toLocaleDateString("en-US", { month: "short", year: "numeric" })}`;
+  } catch {
+    return "";
+  }
 }
 
 function toCardData(p: BlogPost): BlogCardData {
@@ -76,6 +89,7 @@ function toCardData(p: BlogPost): BlogCardData {
     description: p.subtitle || p.meta_description || "",
     category: p.category || "Article",
     readTime: p.read_time || "",
+    date: updatedLabel(p),
     cover: p.cover_image_url,
   };
 }

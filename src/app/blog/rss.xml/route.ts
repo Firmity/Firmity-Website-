@@ -6,6 +6,13 @@ export const revalidate = 300;
 
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
+// RSS 2.0 has no "modified" element, so the updated date goes in as Atom's
+// <atom:updated> (namespace already declared below). pubDate stays omitted.
+const modified = (p: { content_updated_at: string | null; updated_at: string }) => {
+  const iso = p.content_updated_at || p.updated_at;
+  return iso ? new Date(iso).toISOString() : "";
+};
+
 export async function GET() {
   const posts = await listPublished();
   const items = posts
@@ -14,6 +21,7 @@ export async function GET() {
       <title>${esc(p.title)}</title>
       <link>${SITE.url}/blog/${p.slug}</link>
       <guid>${SITE.url}/blog/${p.slug}</guid>
+      ${modified(p) ? `<atom:updated>${modified(p)}</atom:updated>` : ""}
       ${p.author ? `<dc:creator>${esc(p.author)}</dc:creator>` : ""}
       <description>${esc(p.subtitle || p.meta_description || "")}</description>
     </item>`,

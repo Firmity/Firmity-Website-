@@ -412,9 +412,9 @@ function EditorInner() {
         <label className="block">
           <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-[#718096]">Last updated</span>
           <input type="date" value={form.content_updated_at} onChange={(e) => set("content_updated_at", e.target.value)} className="w-full rounded-lg border border-[#cbd5e0] px-3 py-2 text-[13px] focus:border-[#2b6cb0] focus:outline-none" />
-          {/* Only shown on the live article when it differs from the publish
-              date (see isDifferentDay in blog/[slug]/page.tsx) — bump this
-              whenever you edit a published post's content. */}
+          {/* Shown on the live article as "Updated <date>" and emitted as
+              dateModified / sitemap lastmod. The publish date is never
+              public — bump this whenever you edit a published post. */}
         </label>
         <label className="block">
           <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-[#718096]">URL slug (optional)</span>

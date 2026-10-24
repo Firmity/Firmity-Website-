@@ -9,7 +9,7 @@
 // genuinely unpublished, never because something newer pushed it out.
 // server-only blog lib is safe here — this is a Route Handler (Node runtime).
 import { NextResponse } from "next/server"
-import { listPublished } from "@/src/lib/blog"
+import { listPublished, updatedLabel } from "@/src/lib/blog"
 
 export const revalidate = 60 // revalidate every 60 s (ISR)
 
@@ -22,6 +22,7 @@ export interface LatestPost {
   description: string
   category: string
   readTime: string
+  date: string
   cover: string | null
 }
 
@@ -36,6 +37,7 @@ export async function GET() {
         description: p.subtitle || p.meta_description || "",
         category: p.category || "Case Study",
         readTime: p.read_time || "",
+        date: updatedLabel(p),
         cover: p.cover_image_url ?? null,
       }))
     return NextResponse.json(caseStudies)
