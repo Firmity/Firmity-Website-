@@ -76,7 +76,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const posts = await listPublished()
     const postEntries: MetadataRoute.Sitemap = posts.map((post) => ({
       url: canonical(`/blog/${post.slug}`),
-      lastModified: new Date(post.updated_at || post.published_at || Date.now()),
     }))
     return [...staticEntries, ...postEntries]
   } catch (err) {

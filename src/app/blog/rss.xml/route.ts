@@ -14,7 +14,6 @@ export async function GET() {
       <title>${esc(p.title)}</title>
       <link>${SITE.url}/blog/${p.slug}</link>
       <guid>${SITE.url}/blog/${p.slug}</guid>
-      ${p.published_at ? `<pubDate>${new Date(p.published_at).toUTCString()}</pubDate>` : ""}
       ${p.author ? `<dc:creator>${esc(p.author)}</dc:creator>` : ""}
       <description>${esc(p.subtitle || p.meta_description || "")}</description>
     </item>`,
