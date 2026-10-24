@@ -22,7 +22,6 @@ export interface LatestPost {
   description: string
   category: string
   readTime: string
-  date: string
   cover: string | null
 }
 
@@ -37,9 +36,6 @@ export async function GET() {
         description: p.subtitle || p.meta_description || "",
         category: p.category || "Case Study",
         readTime: p.read_time || "",
-        date: p.published_at
-          ? new Date(p.published_at).toLocaleDateString("en-US", { month: "short", year: "numeric" })
-          : "",
         cover: p.cover_image_url ?? null,
       }))
     return NextResponse.json(caseStudies)

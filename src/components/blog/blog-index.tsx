@@ -30,7 +30,6 @@ export interface Card {
   description: string;
   category: string;
   readTime: string;
-  date: string;
   cover?: string | null;
 }
 
@@ -160,7 +159,6 @@ export function BlogIndex({
                             <Clock size={11} /> {heroPost.readTime}
                           </span>
                         )}
-                        <span className="text-[10.5px] font-light text-[#1a2744]/70 transition-colors group-hover:text-white/85">{heroPost.date}</span>
                       </div>
                       <h2 className="font-serif text-[clamp(1.4rem,2.8vw,2.1rem)] font-light text-[#114dac] leading-snug tracking-tight mb-3 transition-colors group-hover:text-white">
                         {heroPost.title}
@@ -298,10 +296,8 @@ export function BlogIndex({
                             <span className="inline-flex items-center gap-1.5 text-[#2b6cb0] text-[12px] font-semibold group-hover:gap-2.5 transition-all flex-shrink-0">
                               Read more <ArrowRight size={12} />
                             </span>
-                            {(post.date || post.readTime) && (
+                            {post.readTime && (
                               <span className="text-[10.5px] text-[#000000] font-light text-right">
-                                {post.date}
-                                {post.date && post.readTime ? " · " : ""}
                                 {post.readTime}
                               </span>
                             )}

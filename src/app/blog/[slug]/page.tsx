@@ -39,9 +39,8 @@ function longDate(iso: string | null): string {
 }
 
 // "Last updated" only earns a line when it's actually a different DAY from
-// the publish date — a freshly published, never-edited post would
-// otherwise show the same date twice (once as "Published", once as
-// "Updated"), which reads as a bug, not a feature.
+// the publish date — a freshly published, never-edited post has no public
+// date to show.
 function isDifferentDay(a: string | null, b: string | null): boolean {
   return !!a && !!b && a.slice(0, 10) !== b.slice(0, 10);
 }
@@ -85,13 +84,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   if (!post || post.status !== "published") notFound();
 
   const showUpdated = isDifferentDay(post.content_updated_at, post.published_at);
-  // Freshness leads: an edited post shows "Updated <date>" up top (the date
-  // Google reads as most recent) and moves "Published <date>" to the bottom.
-  // A never-edited post just shows its publish date up top.
-  const topIso = (showUpdated ? post.content_updated_at : post.published_at)?.slice(0, 10) ?? "";
-  const topDate = showUpdated
-    ? `Updated ${longDate(post.content_updated_at)}`
-    : longDate(post.published_at);
+  const topDate = showUpdated ? `Updated ${longDate(post.content_updated_at)}` : "";
   const wordCount = post.content_html.replace(/<[^>]+>/g, " ").split(/\s+/).filter(Boolean).length;
   const [socials, author, relatedPosts] = await Promise.all([
     getSiteSeo().then((s) => s.social_links ?? []),
@@ -145,12 +138,9 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           headline: post.title,
           description: post.meta_description || post.subtitle || undefined,
           image: post.cover_image_url || undefined,
-          datePublished: post.published_at || undefined,
-          // Prefer the marketer-editable content_updated_at (see lib/blog.ts)
-          // over the internal updated_at, which also bumps on housekeeping
-          // saves (e.g. re-saving with no text changes) and would otherwise
-          // overstate freshness to Google.
-          dateModified: post.content_updated_at || post.updated_at || undefined,
+          // Do not emit the default content_updated_at stamp when it is the
+          // publication date; only expose a genuinely later editorial update.
+          dateModified: showUpdated ? post.content_updated_at || undefined : undefined,
           author: {
             "@type": post.author ? "Person" : "Organization",
             name: post.author || "Firmity",
@@ -181,7 +171,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       {post.subtitle && <p className="text-[16px] text-[#718096] font-light leading-relaxed mb-5">{post.subtitle}</p>}
       {(topDate || post.read_time) && (
         <p className="text-[12px] text-[#a0aec0] font-light mb-4">
-          {topDate && <time dateTime={topIso}>{topDate}</time>}
+          {topDate && <time dateTime={post.content_updated_at?.slice(0, 10)}>{topDate}</time>}
           {topDate && post.read_time && " · "}
           {post.read_time}
         </p>
@@ -228,13 +218,12 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       {/* Renders nothing when post.faqs is empty (see component). */}
       <BlogFaqSection faqs={post.faqs} title={post.faq_title ?? undefined} />
 
-      {/* End-of-post author bio card + "Last updated" stamp (2026-09-23).
-          Both go here, after the article body — distinct from the plain
+      {/* End-of-post author bio card (2026-09-23). It goes here, after the article body — distinct from the plain
           "Article written by X" byline up top, which is untouched. The
           bio card only renders when the post is attributed to a reusable
           author profile (post.author_id); posts with just a free-text
-          author name (no profile picked in the studio) show neither. */}
-      {(author || showUpdated) && (
+          author name show neither. */}
+      {author && (
         <div className="mt-10 pt-8 border-t border-[#eef3f9]">
           {author && (
             <h2 className="text-[11px] font-semibold tracking-[0.2em] uppercase text-black mb-4">Author Bio</h2>
@@ -266,11 +255,6 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                 )}
               </div>
             </div>
-          )}
-          {showUpdated && (
-            <p className={`text-[12px] text-[#a0aec0] font-light ${author ? "mt-6" : ""}`}>
-              Published <time dateTime={post.published_at?.slice(0, 10)}>{longDate(post.published_at)}</time>
-            </p>
           )}
         </div>
       )}

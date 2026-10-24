@@ -59,27 +59,14 @@ export interface BlogPostInput {
 }
 
 /** Card shape shared by the /blog index, /blog/category/[slug], and the
- * end-of-post "More on <category>" section (2026-09-23) — the same fields
- * blog/page.tsx was already hand-mapping before this existed, now
- * centralised so every read site formats dates/fallbacks identically. */
+ * end-of-post "More on <category>" section (2026-09-23). */
 export interface BlogCardData {
   slug: string;
   title: string;
   description: string;
   category: string;
   readTime: string;
-  date: string;
   cover: string | null;
-}
-
-/** "Jan 2026" — the card `date` field above. */
-export function monthYear(iso: string | null): string {
-  if (!iso) return "";
-  try {
-    return new Date(iso).toLocaleDateString("en-US", { month: "short", year: "numeric" });
-  } catch {
-    return "";
-  }
 }
 
 function toCardData(p: BlogPost): BlogCardData {
@@ -89,7 +76,6 @@ function toCardData(p: BlogPost): BlogCardData {
     description: p.subtitle || p.meta_description || "",
     category: p.category || "Article",
     readTime: p.read_time || "",
-    date: monthYear(p.published_at),
     cover: p.cover_image_url,
   };
 }
