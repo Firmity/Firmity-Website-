@@ -38,13 +38,6 @@ function longDate(iso: string | null): string {
   }
 }
 
-// "Last updated" only earns a line when it's actually a different DAY from
-// the publish date — a freshly published, never-edited post has no public
-// date to show.
-function isDifferentDay(a: string | null, b: string | null): boolean {
-  return !!a && !!b && a.slice(0, 10) !== b.slice(0, 10);
-}
-
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const post = await getBySlug(slug);
@@ -64,6 +57,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       description,
       url,
       type: "article",
+      modifiedTime: post.content_updated_at || post.updated_at || undefined,
       images,
     },
     // Set explicitly: Next.js only shallow-merges metadata, so without this the
@@ -83,8 +77,11 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   const post = await getBySlug(slug);
   if (!post || post.status !== "published") notFound();
 
-  const showUpdated = isDifferentDay(post.content_updated_at, post.published_at);
-  const topDate = showUpdated ? `Updated ${longDate(post.content_updated_at)}` : "";
+  // Only the "updated" date is public; published_at stays internal to the studio.
+  // Prefer the marketer-editable content_updated_at over the internal updated_at,
+  // which also bumps on housekeeping saves.
+  const modifiedIso = post.content_updated_at || post.updated_at || null;
+  const topDate = modifiedIso ? `Updated ${longDate(modifiedIso)}` : "";
   const wordCount = post.content_html.replace(/<[^>]+>/g, " ").split(/\s+/).filter(Boolean).length;
   const [socials, author, relatedPosts] = await Promise.all([
     getSiteSeo().then((s) => s.social_links ?? []),
@@ -138,9 +135,8 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           headline: post.title,
           description: post.meta_description || post.subtitle || undefined,
           image: post.cover_image_url || undefined,
-          // Do not emit the default content_updated_at stamp when it is the
-          // publication date; only expose a genuinely later editorial update.
-          dateModified: showUpdated ? post.content_updated_at || undefined : undefined,
+          // datePublished is intentionally omitted; dateModified is the public freshness signal.
+          dateModified: modifiedIso || undefined,
           author: {
             "@type": post.author ? "Person" : "Organization",
             name: post.author || "Firmity",
@@ -171,7 +167,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       {post.subtitle && <p className="text-[16px] text-[#718096] font-light leading-relaxed mb-5">{post.subtitle}</p>}
       {(topDate || post.read_time) && (
         <p className="text-[12px] text-[#a0aec0] font-light mb-4">
-          {topDate && <time dateTime={post.content_updated_at?.slice(0, 10)}>{topDate}</time>}
+          {topDate && <time dateTime={modifiedIso?.slice(0, 10)}>{topDate}</time>}
           {topDate && post.read_time && " · "}
           {post.read_time}
         </p>

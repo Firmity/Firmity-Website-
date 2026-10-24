@@ -1,7 +1,7 @@
 // Server component: reads PUBLISHED posts from Supabase and hands them to the
 // client index view. ISR keeps the list fresh without a redeploy when the
 // marketing team publishes from /blog-admin.
-import { listPublished } from "@/src/lib/blog";
+import { listPublished, updatedLabel } from "@/src/lib/blog";
 import { BlogIndex, type Card } from "@/src/components/blog/blog-index";
 
 export const revalidate = 60;
@@ -14,6 +14,7 @@ export default async function BlogPage() {
     description: p.subtitle || p.meta_description || "",
     category: p.category || "Article",
     readTime: p.read_time || "",
+    date: updatedLabel(p),
     cover: p.cover_image_url,
   }));
   return <BlogIndex posts={cards} />;

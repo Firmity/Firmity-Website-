@@ -65,8 +65,10 @@ export function RelatedPostsSection({ category, posts }: { category: string; pos
                 <span className="inline-flex items-center gap-1.5 text-[#2b6cb0] text-[12px] font-semibold group-hover:gap-2.5 transition-all flex-shrink-0">
                   Read more <ArrowRight size={12} />
                 </span>
-                {post.readTime && (
+                {(post.date || post.readTime) && (
                   <span className="text-[10.5px] text-[#000000] font-light text-right">
+                    {post.date}
+                    {post.date && post.readTime ? " · " : ""}
                     {post.readTime}
                   </span>
                 )}

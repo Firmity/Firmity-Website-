@@ -5,7 +5,7 @@
 import { JsonLd } from "@/src/components/json-ld"
 import { getPageSeo } from "@/src/lib/seo-store"
 import { SITE } from "@/src/lib/seo"
-import { listPublished } from "@/src/lib/blog"
+import { listPublished, updatedLabel } from "@/src/lib/blog"
 import FirmityHome, { type LatestPost } from "./home-client"
 
 export const revalidate = 60
@@ -64,6 +64,7 @@ async function homeBlogData(): Promise<{ initialPosts: LatestPost[]; caseStudyPo
       description: p.subtitle || p.meta_description || "",
       category: p.category || "Article",
       readTime: p.read_time || "",
+      date: updatedLabel(p),
       cover: p.cover_image_url ?? null,
     })
     return {
