@@ -378,8 +378,8 @@ function AboutPanel() {
       <p>
         You may withdraw consent at any time through Cookie settings, as easily as you gave it. For a grievance, write to
         Sanjeev Kumar, Grievance Officer and DPO, at{" "}
-        <a href="mailto:dpo@firmity.in" className="text-[#2b6cb0] hover:underline">
-          dpo@firmity.in
+        <a href="mailto:dpo@ufirm.in" className="text-[#2b6cb0] hover:underline">
+          dpo@ufirm.in
         </a>
         . If it is not resolved, you may complain to the Data Protection Board of India.
       </p>

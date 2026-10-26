@@ -199,7 +199,7 @@ export default function TermsPage() {
                       <p className="font-semibold text-[#1a202c] mb-1">Ufirm Technologies Private Limited</p>
                       <p className="text-[#4a5568]">Brand Name: Firmity</p>
                       <p className="text-[#4a5568]">Website: <a href="https://www.firmity.in" className="text-[#2b6cb0] hover:underline">www.firmity.in</a></p>
-                      <p className="text-[#4a5568]">Support: <a href="mailto:support@firmity.in" className="text-[#2b6cb0] hover:underline">support@firmity.in</a></p>
+                      <p className="text-[#4a5568]">Support: <a href="mailto:support@ufirm.in" className="text-[#2b6cb0] hover:underline">support@ufirm.in</a></p>
                       <p className="text-[#4a5568]">Sales: <a href="mailto:sales@firmity.in" className="text-[#2b6cb0] hover:underline">sales@firmity.in</a>
                       </p>
                       <p className="text-[#4a5568]">M: +91 92173 40884, +91 97970 39690</p>
@@ -209,7 +209,7 @@ export default function TermsPage() {
                       <p className="text-[#4a5568]">Grievance Officer and DPO</p>
                       <p className="text-[#4a5568]">Ufirm Technologies Private Limited</p>
                       <p className="text-[#4a5568]">Sector-63 H-64 Noida</p>
-                      <p className="text-[#4a5568]">Email: <a href="mailto:dpo@firmity.in" className="text-[#2b6cb0] hover:underline">dpo@firmity.in</a></p>
+                      <p className="text-[#4a5568]">Email: <a href="mailto:dpo@ufirm.in" className="text-[#2b6cb0] hover:underline">dpo@ufirm.in</a></p>
                       <p className="text-[#4a5568]">M: +91 98689 99648</p>
                       <p className="text-[#4a5568]">Hours: Monday to Friday, 10:00 to 18:00 IST</p>
                     </div>
