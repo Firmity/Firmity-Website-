@@ -191,10 +191,8 @@ export function DiwaliCard() {
           <div
             className={`${done ? "max-lg:hidden" : ""} px-6 pb-1 pt-6 text-center sm:px-10 lg:border-r lg:border-[#eadfc4] lg:px-14 lg:py-14`}
           >
-            <p className={`${styles.rise} text-[11px] font-medium uppercase tracking-[0.32em] text-[#8a6420]`}>Firmity</p>
-
             <div
-              className={`${styles.rise} relative mx-auto mt-2 w-[clamp(96px,17dvh,170px)] lg:w-[210px]`}
+              className={`${styles.rise} relative mx-auto w-[clamp(96px,17dvh,170px)] lg:w-[210px]`}
               style={{ animationDelay: "60ms" }}
             >
               <div
