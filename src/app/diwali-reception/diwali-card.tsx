@@ -24,6 +24,19 @@ const DotLottieReact = dynamic(
 const LAMP_SRC = encodeURI("/animations/Diya Loader (Lamp).lottie")
 const FIREWORKS_SRC = "/animations/fireworks.lottie"
 
+// Event details — copied from the invitation poster. Edit here only.
+const EVENT_DATE = "7th Nov 2026"
+const SCHEDULE = [
+  { label: "Pooja", time: "10:00 to 10:30" },
+  { label: "Gifting", time: "10:30 to 12:00" },
+  { label: "Lunch", time: "12:00 to 02:00" },
+] as const
+const VENUE_NAME = "Ufirm Business Park | Head Office"
+const VENUE_ADDRESS = "H-64 Sector 63, Noida, Uttar Pradesh - 201301"
+const DRESS_CODE = "Traditional"
+// Search-by-address link (no coordinates guessed); opens Google Maps / the phone's map app.
+const VENUE_MAP_URL = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`Ufirm Business Park, ${VENUE_ADDRESS}`)}`
+
 type Rsvp = "attending" | "not_attending"
 
 const PHONE_RE = /^\+?\d{7,15}$/
@@ -182,9 +195,12 @@ export function DiwaliCard() {
         </div>
       )}
 
-      <section className="relative z-10 w-full max-w-[420px] rounded-[28px] bg-[#fffbf2] shadow-[0_30px_80px_-24px_rgba(0,0,0,0.6)] lg:max-w-[920px]">
-        {/* Gold hairline frame, like the inner border of a printed card. */}
-        <div className="pointer-events-none absolute inset-2.5 z-10 rounded-[20px] border border-[#d9c38a]/80" aria-hidden="true" />
+      {/* Postage-stamp card: the outer <section> carries the drop shadow (a mask
+          would clip a box-shadow); the inner .stamp carries the perforated edge. */}
+      <section className={`${styles.stampShadow} relative z-10 w-full max-w-[420px] lg:max-w-[920px]`}>
+       <div className={`${styles.stamp} relative`}>
+        {/* Gold hairline frame, like the inner border of a printed stamp. */}
+        <div className="pointer-events-none absolute inset-3.5 z-10 rounded-[4px] border border-[#d9c38a]/80" aria-hidden="true" />
 
         <div className="relative grid lg:grid-cols-2 lg:items-center">
           {/* Invitation — stays put on desktop; hidden on phones once the guest has replied. */}
@@ -217,6 +233,36 @@ export function DiwaliCard() {
               </Title>
               <p className={`${HIDE_WHEN_SHORT} mx-auto mt-2 max-w-[320px] text-[15px] leading-relaxed text-[#5d4d3f] lg:mt-4 lg:text-[16px]`}>
                 You&apos;re warmly invited to celebrate the festival of lights with us. Please let us know if you can join.
+              </p>
+
+              {/* Event details — always visible (unlike the paragraph above). */}
+              <p className="mt-3 font-serif text-[20px] font-normal text-[#3b0f18] lg:mt-5 lg:text-[22px]">{EVENT_DATE}</p>
+
+              <ul className="mx-auto mt-2.5 grid max-w-[340px] grid-cols-3 divide-x divide-[#e3d5b5] lg:mt-4">
+                {SCHEDULE.map(({ label, time }) => (
+                  <li key={label} className="px-1">
+                    <span className="block font-serif text-[15px] text-[#3b0f18] lg:text-[16px]">{label}</span>
+                    <span className="block text-[11.5px] leading-snug text-[#5d4d3f] lg:text-[12.5px]">{time}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <a
+                href={VENUE_MAP_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`Venue: ${VENUE_NAME}, ${VENUE_ADDRESS}. Opens in maps.`}
+                className="mx-auto mt-3.5 block max-w-[320px] text-[13px] leading-snug text-[#5d4d3f] underline-offset-4 hover:underline lg:mt-5 lg:text-[14px]"
+              >
+                <span className="block text-[11px] font-medium uppercase tracking-[0.28em] text-[#8a6420]">Venue</span>
+                <span className="mt-0.5 block font-medium text-[#3b0f18]">{VENUE_NAME}</span>
+                <span className="block">{VENUE_ADDRESS}</span>
+              </a>
+
+              <p className="mt-3 text-[13px] text-[#5d4d3f] lg:mt-4 lg:text-[14px]">
+                <span className="text-[11px] font-medium uppercase tracking-[0.28em] text-[#8a6420]">Dress code</span>
+                <span className="mx-2 text-[#cdb98a]" aria-hidden="true">·</span>
+                <span className="font-medium text-[#3b0f18]">{DRESS_CODE}</span>
               </p>
             </div>
           </div>
@@ -317,6 +363,7 @@ export function DiwaliCard() {
             )}
           </div>
         </div>
+       </div>
       </section>
     </main>
   )

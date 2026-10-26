@@ -29,6 +29,50 @@
   }
 }
 
+/* Postage-stamp edge. Half-circles are cut out of every side with a mask:
+   one solid layer inset by the hole radius, plus four edge strips whose tiles
+   each contain one half-circle hole (transparent) on the outer edge. The
+   shadow lives on a separate wrapper because a mask would clip a box-shadow. */
+.stampShadow {
+  filter: drop-shadow(0 26px 34px rgba(0, 0, 0, 0.45));
+}
+
+.stamp {
+  --r: 6px; /* perforation hole radius */
+  --s: 17px; /* distance between holes */
+  background: #fffbf2;
+
+  -webkit-mask-image:
+    linear-gradient(#000, #000),
+    radial-gradient(circle var(--r) at 50% 0, #0000 97%, #000),
+    radial-gradient(circle var(--r) at 50% 100%, #0000 97%, #000),
+    radial-gradient(circle var(--r) at 0 50%, #0000 97%, #000),
+    radial-gradient(circle var(--r) at 100% 50%, #0000 97%, #000);
+  -webkit-mask-size:
+    calc(100% - 2 * var(--r)) calc(100% - 2 * var(--r)),
+    var(--s) var(--r),
+    var(--s) var(--r),
+    var(--r) var(--s),
+    var(--r) var(--s);
+  -webkit-mask-position: center, top center, bottom center, left center, right center;
+  -webkit-mask-repeat: no-repeat, repeat-x, repeat-x, repeat-y, repeat-y;
+
+  mask-image:
+    linear-gradient(#000, #000),
+    radial-gradient(circle var(--r) at 50% 0, #0000 97%, #000),
+    radial-gradient(circle var(--r) at 50% 100%, #0000 97%, #000),
+    radial-gradient(circle var(--r) at 0 50%, #0000 97%, #000),
+    radial-gradient(circle var(--r) at 100% 50%, #0000 97%, #000);
+  mask-size:
+    calc(100% - 2 * var(--r)) calc(100% - 2 * var(--r)),
+    var(--s) var(--r),
+    var(--s) var(--r),
+    var(--r) var(--s),
+    var(--r) var(--s);
+  mask-position: center, top center, bottom center, left center, right center;
+  mask-repeat: no-repeat, repeat-x, repeat-x, repeat-y, repeat-y;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .rise,
   .fade {
