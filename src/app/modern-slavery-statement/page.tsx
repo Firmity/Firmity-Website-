@@ -206,7 +206,7 @@ export default function ModernSlaveryStatementPage() {
                     </div>
                     <div>
                       <p className="font-semibold text-[#1a202c] mb-1">General Contact</p>
-                      <p className="text-[#4a5568]">Support: <a href="mailto:support@firmity.in" className="text-[#2b6cb0] hover:underline">sales@firmity.in</a></p>
+                      <p className="text-[#4a5568]">Support: <a href="mailto:support@ufirm.in" className="text-[#2b6cb0] hover:underline">sales@firmity.in</a></p>
                       <p className="text-[#4a5568]">M: +91 92173 40884, +91 97970 39690</p>
                     </div>
                     <div>
@@ -265,7 +265,7 @@ export default function ModernSlaveryStatementPage() {
               </Link>
             </div>
             <a
-              href="mailto:support@firmity.in"
+              href="mailto:support@ufirm.in"
               className="inline-flex items-center gap-2 text-white/60 hover:text-white text-[12.5px] font-light border border-white/[0.18] hover:border-white/[0.45] px-5 py-2.5 rounded-xl transition-all"
             >
               <Mail size={13} /> Contact Us

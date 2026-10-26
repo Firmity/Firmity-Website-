@@ -303,7 +303,7 @@ export default function CookiePolicyPage() {
                     <p className="text-[#4a5568]">Grievance Officer and DPO</p>
                     <p className="text-[#4a5568]">Ufirm Technologies Private Limited</p>
                     <p className="text-[#4a5568]">Sector-63 H-64 Noida</p>
-                    <p className="text-[#4a5568]">Email: <a href="mailto:dpo@firmity.in" className="text-[#2b6cb0] hover:underline">dpo@firmity.in</a></p>
+                    <p className="text-[#4a5568]">Email: <a href="mailto:dpo@ufirm.in" className="text-[#2b6cb0] hover:underline">dpo@ufirm.in</a></p>
                     <p className="text-[#4a5568]">M: +91 98689 99648</p>
                     <p className="text-[#4a5568]">Hours: Monday to Friday, 10:00 to 18:00 IST</p>
                   </div>
@@ -338,7 +338,7 @@ export default function CookiePolicyPage() {
               </Link>
             </div>
             <a
-              href="mailto:dpo@firmity.in"
+              href="mailto:dpo@ufirm.in"
               className="inline-flex items-center gap-2 text-white/60 hover:text-white text-[12.5px] font-light border border-white/[0.18] hover:border-white/[0.45] px-5 py-2.5 rounded-xl transition-all"
             >
               <Mail size={13} /> Contact DPO
