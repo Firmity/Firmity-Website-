@@ -47,7 +47,7 @@ export async function POST(req: Request) {
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
       replyTo: email,
-      to: process.env.RECEIVER_EMAIL,
+      to: process.env.CONTACT_NOTIFICATION_RECIPIENTS || process.env.RECEIVER_EMAIL,
       subject: `New ${requestType} Request from ${fullName}`,
       text: `
 New contact request received:
