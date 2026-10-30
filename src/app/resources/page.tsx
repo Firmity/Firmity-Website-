@@ -31,7 +31,7 @@ import {
 
 const RESOURCES: { Icon: FC<LucideProps>; title: string; desc: string; link: string }[] = [
   { Icon: BookOpen,      title: "Getting Started Guide", desc: "Step-by-step guide to set up and configure Firmity for your organization.", link: "/contact" },
-  { Icon: PlayCircle,    title: "Video Tutorials",       desc: "Watch short video guides for key features and common tasks.",               link: "/contact" },
+  { Icon: PlayCircle,    title: "Video Tutorials",       desc: "Watch short video guides for key features and common tasks.",               link: "/resources/video-tutorials" },
   { Icon: Code2,         title: "API Documentation",     desc: "Technical documentation for developers building integrations.",             link: "/contact" },
   { Icon: HelpCircle,    title: "FAQ & Troubleshooting", desc: "Find quick answers to common questions and resolve issues.",                link: "#faq" },
   { Icon: GraduationCap, title: "Training Programs",     desc: "Comprehensive training materials for your team and staff.",                 link: "/contact" },
