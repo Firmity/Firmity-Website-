@@ -1690,7 +1690,7 @@ export function KeepInTouchSection({
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Your e-mail address"
-                  className="flex-1 min-w-0 text-[13px] px-4 py-3 rounded-[4px] border border-[#cbd5e0] bg-white text-[#114dac] placeholder:text-[#000000] focus:outline-none focus:border-[#114dac] focus:ring-1 focus:ring-[#114dac] transition-colors"
+                  className="flex-1 min-w-0 text-base sm:text-[13px] px-4 py-3 rounded-[4px] border border-[#cbd5e0] bg-white text-[#114dac] placeholder:text-[#000000] focus:outline-none focus:border-[#114dac] focus:ring-1 focus:ring-[#114dac] transition-colors"
                 />
                 <button
                   type="submit"

@@ -46,7 +46,7 @@ const INITIAL_FORM: FormState = {
 
 const labelClass = "block text-[11px] font-semibold tracking-[0.04em] text-[#114dac] mb-1"
 const inputClass =
-  "w-full px-3.5 py-2 rounded-[4px] text-[13px] border border-[#cbd5e0] bg-white text-[#114dac] font-light placeholder:text-[#000000] focus:outline-none focus:border-[#2b6cb0] focus:ring-1 focus:ring-[#2b6cb0] transition-colors"
+  "w-full px-3.5 py-2 rounded-[4px] text-base sm:text-[13px] border border-[#cbd5e0] bg-white text-[#114dac] font-light placeholder:text-[#000000] focus:outline-none focus:border-[#2b6cb0] focus:ring-1 focus:ring-[#2b6cb0] transition-colors"
 
 export function BlogCtaForm({ postTitle }: { postTitle?: string }) {
   const uid = useId()

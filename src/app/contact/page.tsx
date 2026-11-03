@@ -1,432 +1,93 @@
-"use client"
-
-// ─── Contact Page — C1: Split canvas ─────────────────────────────────────────
-// Layout: dark navy left panel (statement + channels) / clean white right form.
-// Interactive grainy gradient: mouse-tracked radial glow + SVG turbulence noise.
+// Contact page — a server component; only the form (components/contact/
+// contact-form.tsx) ships as client JS. Metadata + JSON-LD live in layout.tsx.
 //
-// BACKEND CONTRACT (unchanged): POST /api/contact with keys
-// { fullName, email, phone, companyName, manpower, message, requestType }.
-// requestType ∈ demo|trial|question|custom, manpower ∈ 1-10|11-50|51-100|100+.
-// Do not rename keys or values without updating the API route.
-
-import type React from "react"
+// Layout: title + one-line promise, then a #f7f7f7 band holding the form card and
+// an aside. DOM order is form first, so on a phone the form is right under the
+// title instead of below a long info panel. From lg up they sit side by side.
 import { Navigation } from "@/src/components/navigation"
 import { Footer } from "@/src/components/footer"
-import { HowDidYouHearForm } from "@/src/components/how-did-you-hear-form"
-import { useState, useRef, useCallback, type FC } from "react"
-import {
-  Mail,
-  Phone,
-  MapPin,
-  Send,
-  Loader2,
-  CheckCircle2,
-  AlertCircle,
-  ArrowRight,
-  MonitorPlay,
-  Rocket,
-  HelpCircle,
-  Settings2,
-  CalendarCheck,
-  Users,
-  Headset,
-  type LucideProps,
-} from "lucide-react"
+import { ContactForm } from "@/src/components/contact/contact-form"
 
-// ─── Static config ────────────────────────────────────────────────────────────
-
-interface FormState {
-  fullName: string
-  email: string
-  phone: string
-  companyName: string
-  manpower: string
-  message: string
-  requestType: string
-  website: string // honeypot — must stay empty, see handleSubmit
-}
-
-const INITIAL_FORM: FormState = {
-  fullName: "",
-  email: "",
-  phone: "",
-  companyName: "",
-  manpower: "",
-  message: "",
-  requestType: "demo",
-  website: "",
-}
-
-// Bot resistance (2026-09-01 — added alongside the same fix on the brochure
-// form, src/components/brochure-download-form.tsx, after it was found being
-// spammed): the server (src/app/api/contact/route.ts) rejects requests
-// without a matching Origin/Referer. MIN_SUBMIT_MS is a client-side second
-// layer — rejects instantly-submitted forms before hitting the network,
-// since a real person can't fill this many fields in under ~1.5s.
-const MIN_SUBMIT_MS = 1500
-
-const REQUEST_TYPES: { value: string; label: string; Icon: FC<LucideProps> }[] = [
-  { value: "demo",     label: "Schedule a Demo",  Icon: MonitorPlay },
-  { value: "trial",    label: "Request a Callback", Icon: Rocket },
-  { value: "question", label: "Ask a Question",   Icon: HelpCircle },
-  { value: "custom",   label: "Custom Inquiry",   Icon: Settings2 },
+// A real sequence, so numbering is meaningful here.
+const NEXT_STEPS = [
+  "We confirm within 24 hours",
+  "30-minute personalised demo",
+  "Q&A with facility experts",
+  "Guided setup and data onboarding",
+  "Dedicated onboarding support",
 ]
-
-const TEAM_SIZES = ["1-10", "11-50", "51-100", "100+"] as const
-
-const CHANNELS: { Icon: FC<LucideProps>; title: string; detail: string; sub: string }[] = [
-  { Icon: Mail,   title: "Email",    detail: "sales@firmity.in",          sub: "Reply within 24 hours" },
-  { Icon: Phone,  title: "Phone",    detail: "Available on request",     sub: "Mon–Sat, 9am–6pm IST" },
-  { Icon: MapPin, title: "Office",   detail: "UFIRM Technologies (P) Ltd", sub: "Proudly Made in India" },
-]
-
-const NEXT_STEPS: { Icon: FC<LucideProps>; label: string }[] = [
-  { Icon: CalendarCheck, label: "We confirm within 24 hours" },
-  { Icon: MonitorPlay,   label: "30-min personalised demo" },
-  { Icon: Users,         label: "Q&A with facility experts" },
-  { Icon: Rocket,        label: "Guided setup and data onboarding" },
-  { Icon: Headset,       label: "Dedicated onboarding support" },
-]
-
-// ─── Shared input style ───────────────────────────────────────────────────────
-
-const inputClass =
-  "w-full px-3.5 py-2.5 rounded-xl border border-[#cbd5e0] bg-white text-[13px] text-[#1a202c] font-light placeholder:text-[#a0aec0] focus:outline-none focus:border-[#2b6cb0] focus:ring-1 focus:ring-[#2b6cb0] transition-colors"
-
-function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
-  return (
-    <div>
-      <label className="flex items-center gap-1.5 text-[10.5px] font-semibold tracking-[0.08em] uppercase text-[#4a5568] mb-1.5">
-        {label}
-        {required && <span className="text-[#2b6cb0]">*</span>}
-      </label>
-      {children}
-    </div>
-  )
-}
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ContactPage() {
-  const [formData, setFormData]   = useState<FormState>(INITIAL_FORM)
-  const [submitted, setSubmitted] = useState(false)
-  const [loading, setLoading]     = useState(false)
-  const [error, setError]         = useState("")
-
-  // Mouse-tracking glow for left panel
-  const leftRef = useRef<HTMLDivElement>(null)
-  const [glow, setGlow] = useState({ x: 50, y: 30 })
-
-  // Bot resistance — see MIN_SUBMIT_MS above. Initial value is set once, at
-  // first render, which is effectively "when the form appeared".
-  const mountedAt = useRef(Date.now())
-
-  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = leftRef.current?.getBoundingClientRect()
-    if (!rect) return
-    setGlow({
-      x: ((e.clientX - rect.left) / rect.width) * 100,
-      y: ((e.clientY - rect.top) / rect.height) * 100,
-    })
-  }, [])
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
-
-  const setField = (name: keyof FormState, value: string) =>
-    setFormData((prev) => ({ ...prev, [name]: value }))
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    // Fail closed, quietly — no error shown, so a bot gets no signal about
-    // why it didn't "work". A real visitor never trips either check.
-    if (formData.website.trim().length > 0 || Date.now() - mountedAt.current < MIN_SUBMIT_MS) {
-      return
-    }
-    if (!formData.manpower) { setError("Please select your team size."); return }
-    setLoading(true)
-    setError("")
-    try {
-      const res = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      })
-      if (!res.ok) throw new Error("Failed to submit form")
-      setSubmitted(true)
-      setFormData(INITIAL_FORM)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong")
-    } finally {
-      setLoading(false)
-    }
-  }
-
   return (
     <>
       <Navigation />
-      <main>
-        {/* ── SPLIT CANVAS ─────────────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-[5fr_7fr] min-h-[calc(100vh-64px)]">
+      <main className="bg-white">
+        <section className="mx-auto max-w-7xl px-6 pb-8 pt-10 sm:px-10 lg:px-16 lg:pb-10 lg:pt-14">
+          <h1 className="mb-4 font-serif text-[clamp(1.9rem,4vw,2.8rem)] font-light leading-tight tracking-tight text-[#114dac]">
+            Book a demo or talk to our team
+          </h1>
+          <p className="max-w-2xl text-[15px] font-light leading-relaxed text-[#4a5568] sm:text-base">
+            Tell us about your facility and we&apos;ll set up a personalised demo of Firmity, the cloud-based CMMS,
+            CAFM and ERP platform for facility management in India. We reply within 24 hours.
+          </p>
+        </section>
 
-          {/* ── LEFT — dark panel with interactive grainy gradient ── */}
-          <div
-            ref={leftRef}
-            onMouseMove={handleMouseMove}
-            className="relative bg-[#114dac] overflow-hidden flex flex-col px-8 sm:px-12 lg:px-14 py-14 lg:py-16"
-          >
-            {/* Grain texture — SVG turbulence overlay */}
-            <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-[0.032]" aria-hidden="true">
-              <filter id="grain-c1">
-                <feTurbulence type="fractalNoise" baseFrequency="0.72" numOctaves="4" stitchTiles="stitch" />
-                <feColorMatrix type="saturate" values="0" />
-              </filter>
-              <rect width="100%" height="100%" filter="url(#grain-c1)" />
-            </svg>
+        <section className="bg-[#f7f7f7] py-8 sm:py-10 lg:py-14">
+          <div className="mx-auto grid max-w-7xl gap-8 px-6 sm:px-10 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-14 lg:px-16">
+            <ContactForm />
 
-            {/* Mouse-following radial glow */}
-            <div
-              className="absolute inset-0 pointer-events-none transition-opacity duration-300"
-              style={{
-                background: `radial-gradient(ellipse 55% 45% at ${glow.x}% ${glow.y}%, rgba(43,108,176,0.22) 0%, transparent 70%)`,
-              }}
-              aria-hidden="true"
-            />
-
-            {/* Static ambient glows */}
-            <div className="absolute top-0 right-0 w-[320px] h-[320px] rounded-full bg-[#1a3a60]/30 blur-[80px] pointer-events-none" aria-hidden="true" />
-            <div className="absolute bottom-0 left-0 w-[240px] h-[240px] rounded-full bg-[#0d2040]/40 blur-[60px] pointer-events-none" aria-hidden="true" />
-
-            {/* Content */}
-            <div className="relative flex flex-col gap-10 flex-1">
-
-              {/* Kicker + headline */}
+            <aside className="flex flex-col gap-10 lg:pt-2">
               <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-6 h-px bg-[#2b6cb0]" />
-                  <span className="text-[#63b3ed] text-[10px] font-semibold tracking-[0.22em] uppercase">Get in Touch</span>
-                </div>
-                <h1 className="font-serif text-[clamp(1.7rem,3.5vw,2.4rem)] font-light text-[#f0f4f8] leading-tight tracking-tight">
-                  Let&apos;s get your facility{" "}
-                  <em className="not-italic text-[#63b3ed]">running on Firmity.</em>
-                </h1>
-                <p className="text-[13.5px] font-light text-white/75 leading-[1.85] mt-4 max-w-sm">
-                  Contact Firmity, the cloud-based CMMS and ERP platform for facility management in India, to schedule a personalised demo or reach out directly. Our team responds
-                  within 24 hours and stays with you through onboarding.
-                </p>
-              </div>
-
-              {/* Contact channels */}
-              <div className="flex flex-col gap-4">
-                {CHANNELS.map(({ Icon, title, detail, sub }) => (
-                  <div key={title} className="flex items-start gap-4 group">
-                    <div className="flex-shrink-0 w-9 h-9 rounded-xl border border-white/25 bg-white/[0.08] flex items-center justify-center text-[#63b3ed] group-hover:border-[#2b6cb0]/60 group-hover:bg-[#2b6cb0]/10 transition-all duration-300">
-                      <Icon size={15} strokeWidth={1.5} />
-                    </div>
-                    <div>
-                      <div className="text-[10px] font-semibold tracking-[0.12em] uppercase text-white/60 mb-0.5">{title}</div>
-                      <div className="text-[13px] font-light text-white/90">{detail}</div>
-                      <div className="text-[11px] font-light text-white/60">{sub}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* What happens next */}
-              <div className="mt-auto">
-                <div className="text-[10px] font-semibold tracking-[0.16em] uppercase text-white/60 mb-4">What happens next</div>
-                <div className="flex flex-col gap-2.5">
-                  {NEXT_STEPS.map(({ Icon, label }, i) => (
-                    <div key={label} className="flex items-center gap-3">
-                      <span className="text-[9px] font-semibold text-[#63b3ed] w-4 text-right flex-shrink-0">0{i + 1}</span>
-                      <div className="w-[26px] h-[26px] flex-shrink-0 rounded-lg border border-white/25 bg-white/[0.08] flex items-center justify-center">
-                        <Icon size={12} className="text-[#63b3ed]" strokeWidth={1.5} />
-                      </div>
-                      <span className="text-[12px] font-light text-white/80">{label}</span>
-                    </div>
+                <h2 className="mb-5 font-serif text-[1.35rem] font-light text-[#114dac]">What happens next</h2>
+                <ol className="relative">
+                  <span aria-hidden="true" className="absolute bottom-3 left-[13px] top-3 w-px bg-[#cbd5e0]" />
+                  {NEXT_STEPS.map((step, i) => (
+                    <li key={step} className="relative flex items-center gap-4 py-2.5">
+                      <span
+                        aria-hidden="true"
+                        className="relative z-10 flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-full border border-[#cbd5e0] bg-white text-[12px] font-semibold text-[#114dac]"
+                      >
+                        {i + 1}
+                      </span>
+                      <span className="text-[15px] font-light text-[#2d3748]">{step}</span>
+                    </li>
                   ))}
-                </div>
+                </ol>
               </div>
 
-            </div>
+              <div>
+                <h2 className="mb-4 font-serif text-[1.35rem] font-light text-[#114dac]">Reach us directly</h2>
+                <dl className="space-y-4 text-[15px]">
+                  <div>
+                    <dt className="text-[13px] font-medium text-[#718096]">Email</dt>
+                    <dd>
+                      <a href="mailto:sales@firmity.in" className="font-medium text-[#2b6cb0] hover:underline">
+                        sales@firmity.in
+                      </a>
+                      <span className="block text-[13px] font-light text-[#718096]">We reply within 24 hours</span>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-[13px] font-medium text-[#718096]">Phone</dt>
+                    <dd className="font-light text-[#2d3748]">
+                      Available on request
+                      <span className="block text-[13px] text-[#718096]">Mon–Sat, 9am–6pm IST</span>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-[13px] font-medium text-[#718096]">Office</dt>
+                    <dd className="font-light text-[#2d3748]">
+                      Noida, Sector 63
+                      <span className="block text-[13px] text-[#718096]">UFIRM Technologies (P) Ltd, India</span>
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+            </aside>
           </div>
-
-          {/* ── RIGHT — white form ── */}
-          <div className="bg-white flex flex-col justify-center px-8 sm:px-12 lg:px-14 py-14 lg:py-16 overflow-y-auto">
-            <div className="max-w-[520px] w-full mx-auto lg:mx-0">
-
-              {submitted ? (
-                /* Success state */
-                <div className="border border-[#cbd5e0] rounded-[20px] bg-[#f8fafc] p-10 text-center">
-                  <div className="w-14 h-14 mx-auto mb-4 rounded-xl border border-[#2b6cb0]/30 bg-[#2b6cb0]/5 flex items-center justify-center">
-                    <CheckCircle2 size={26} className="text-[#2b6cb0]" strokeWidth={1.5} />
-                  </div>
-                  <h3 className="font-serif text-[20px] font-light text-[#1a202c] mb-2">Request received</h3>
-                  <p className="text-[13px] font-light text-[#4a5568] leading-[1.8] max-w-sm mx-auto mb-6">
-                    Thank you — our team will be in touch within 24 hours to confirm your slot.
-                  </p>
-
-                  {/* Re-ask attribution — same widget/backend as the homepage
-                      section (src/components/how-did-you-hear-form.tsx), tagged
-                      source="contact-form" so replies are traceable to this flow. */}
-                  <div className="border-t border-[#e2e8f0] mt-2 mb-6 pt-6 text-left">
-                    <p className="text-[13px] font-semibold text-[#1a202c] mb-4 text-center">
-                      Could you also please share with us how you got to know Firmity?
-                    </p>
-                    <HowDidYouHearForm source="contact-form" />
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setSubmitted(false)}
-                    className="cursor-pointer inline-flex items-center gap-2 text-[12px] font-semibold text-[#2b6cb0] hover:gap-3.5 transition-all"
-                  >
-                    Send another request <ArrowRight size={13} />
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <div className="mb-7">
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="w-5 h-px bg-[#2b6cb0]" />
-                      <span className="text-[#2b6cb0] text-[10px] font-semibold tracking-[0.2em] uppercase">Request a Demo</span>
-                    </div>
-                    <h2 className="font-serif text-[clamp(1.3rem,2.3vw,1.6rem)] font-light text-[#1a202c] tracking-tight">
-                      Tell us about your facility
-                    </h2>
-                  </div>
-
-                  <form onSubmit={handleSubmit} className="space-y-5">
-                    {/* Honeypot — hidden off-screen from real users (aria-hidden,
-                        tabIndex -1, autocomplete off); a bot filling every
-                        input blindly fills this too. Same pattern as
-                        brochure-download-form.tsx. */}
-                    <div className="absolute -left-[9999px] w-px h-px overflow-hidden" aria-hidden="true">
-                      <label htmlFor="contact-website">Website</label>
-                      <input
-                        id="contact-website"
-                        type="text"
-                        name="website"
-                        value={formData.website}
-                        onChange={handleChange}
-                        tabIndex={-1}
-                        autoComplete="off"
-                      />
-                    </div>
-
-                    {/* Request type */}
-                    <Field label="I want to" required>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                        {REQUEST_TYPES.map(({ value, label, Icon }) => {
-                          const active = formData.requestType === value
-                          return (
-                            <button
-                              key={value}
-                              type="button"
-                              aria-pressed={active}
-                              onClick={() => setField("requestType", value)}
-                              className={`cursor-pointer flex flex-col items-center gap-1.5 px-2 py-3 rounded-[4px] border text-[10.5px] font-medium transition-all duration-200 ${
-                                active
-                                  ? "bg-[#2b6cb0] border-[#2b6cb0] text-white shadow-[0_4px_14px_rgba(43,108,176,0.3)]"
-                                  : "bg-white border-[#cbd5e0] text-[#4a5568] hover:border-[#2b6cb0] hover:text-[#2b6cb0]"
-                              }`}
-                            >
-                              <Icon size={15} strokeWidth={1.5} />
-                              {label}
-                            </button>
-                          )
-                        })}
-                      </div>
-                    </Field>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <Field label="Full Name" required>
-                        <input type="text" name="fullName" value={formData.fullName} onChange={handleChange} required className={inputClass} placeholder="John Doe" />
-                      </Field>
-                      <Field label="Email" required>
-                        <input type="email" name="email" value={formData.email} onChange={handleChange} required className={inputClass} placeholder="john@company.com" />
-                      </Field>
-                      <Field label="Phone">
-                        <input type="tel" name="phone" value={formData.phone} onChange={handleChange} className={inputClass} placeholder="+91 XXXXX XXXXX" />
-                      </Field>
-                      <Field label="Company Name" required>
-                        <input type="text" name="companyName" value={formData.companyName} onChange={handleChange} required className={inputClass} placeholder="Your Company" />
-                      </Field>
-                    </div>
-
-                    {/* Team size — grid-cols-2 (was flex flex-wrap, 2026-09-05)
-                        to match the Full Name/Email/Phone/Company Name grid
-                        immediately above (sm:grid-cols-2), same fix applied
-                        to overview-contact-form.tsx (the homepage's copy of
-                        this same form) for parity. "people" dropped from the
-                        label per request — just the range. */}
-                    <Field label="Team Size" required>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        {TEAM_SIZES.map((size) => {
-                          const active = formData.manpower === size
-                          return (
-                            <button
-                              key={size}
-                              type="button"
-                              aria-pressed={active}
-                              onClick={() => setField("manpower", size)}
-                              className={`cursor-pointer px-4 py-2 rounded-[4px] text-[11.5px] font-medium border transition-all duration-200 ${
-                                active
-                                  ? "bg-[#2b6cb0] border-[#2b6cb0] text-white shadow-[0_4px_14px_rgba(43,108,176,0.3)]"
-                                  : "bg-white border-[#cbd5e0] text-[#4a5568] hover:border-[#2b6cb0] hover:text-[#2b6cb0]"
-                              }`}
-                            >
-                              {size}
-                            </button>
-                          )
-                        })}
-                      </div>
-                    </Field>
-
-                    <Field label="Message">
-                      <textarea
-                        name="message"
-                        value={formData.message}
-                        onChange={handleChange}
-                        rows={3}
-                        className={`${inputClass} resize-none`}
-                        placeholder="Tell us about your facility requirements..."
-                      />
-                    </Field>
-
-                    {error && (
-                      <div className="bg-[#fff5f5] border border-[#feb2b2] rounded-xl p-3 flex items-center gap-2">
-                        <AlertCircle size={16} className="text-[#c53030] flex-shrink-0" />
-                        <p className="text-[12px] text-[#c53030]">{error}</p>
-                      </div>
-                    )}
-
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="cursor-pointer w-full bg-[#114dac] hover:bg-[#1a2744] text-white px-6 py-3.5 rounded-[4px] text-[12.5px] font-semibold flex items-center justify-center gap-2 transition-all hover:shadow-[0_8px_24px_rgba(17,29,53,0.25)] disabled:opacity-60 disabled:cursor-not-allowed"
-                    >
-                      {loading ? (
-                        <><Loader2 size={16} className="animate-spin" /> Sending...</>
-                      ) : (
-                        <><Send size={15} /> Send Message</>
-                      )}
-                    </button>
-
-                    <p className="text-center text-[10.5px] text-[#a0aec0] font-light">
-                      No spam, ever. Your details are used only to respond to this request.
-                    </p>
-                  </form>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
+        </section>
       </main>
       <Footer />
     </>
   )
 }
-// EOF

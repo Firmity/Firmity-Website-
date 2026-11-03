@@ -106,7 +106,7 @@ const HERO_SECTION_ID = "hero-slideshow"
 //   clear SESSION_KEY_CLOSED — that flag only ever means "don't
 //   auto-open", not "never open again"; the user can still open it by hand
 //   any time.
-export function AppQrWidget() {
+export function AppQrWidget({ className = "" }: { className?: string }) {
   const [expanded, setExpanded] = useState(false)
 
   useEffect(() => {
@@ -144,7 +144,7 @@ export function AppQrWidget() {
   // layer in marketing-widgets.tsx. Only this widget's own `relative`
   // anchor (for the absolutely-stacked thumbnail + card) remains.
   return (
-        <div className="relative">
+        <div className={`relative ${className}`}>
           {/* Thumbnail — same 48px circle + opacity-60/hover-100 treatment
               as WhatsAppButton, so it reads as "one of the site's floating
               widgets" rather than a broken/leftover element. */}
@@ -200,7 +200,11 @@ export function AppQrWidget() {
             </button>
             <a
               href="/get-app"
-              aria-label="Scan the QR code to get the Firmity app"
+              // No aria-label (2026-11-03): its text ("Scan the QR code to get the
+              // Firmity app") didn't contain the visible text ("Scan to get the app"),
+              // failing WCAG 2.5.3 Label in Name — voice-control users saying what
+              // they see couldn't activate it. With the image's alt="" the visible
+              // span is now the accessible name.
               tabIndex={expanded ? 0 : -1}
               // No opacity classes here — the wrapper above now owns the
               // opacity-60-at-rest/opacity-100-on-hover-or-focus treatment
