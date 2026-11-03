@@ -138,9 +138,12 @@ export function AppQrWidget() {
     sessionStorage.setItem(SESSION_KEY_CLOSED, "1")
   }
 
+  // 2026-11-03: the `fixed inset-x-0` rail + `max-w-7xl` wrapper that used to
+  // sit around this are gone — fixed positioning, the right-edge gutter and
+  // the 12px gap above the WhatsApp button now come from the single floating
+  // layer in marketing-widgets.tsx. Only this widget's own `relative`
+  // anchor (for the absolutely-stacked thumbnail + card) remains.
   return (
-    <div className="fixed inset-x-0 bottom-20 z-40 pointer-events-none">
-      <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 flex justify-end">
         <div className="relative">
           {/* Thumbnail — same 48px circle + opacity-60/hover-100 treatment
               as WhatsAppButton, so it reads as "one of the site's floating
@@ -218,7 +221,5 @@ export function AppQrWidget() {
             </a>
           </div>
         </div>
-      </div>
-    </div>
   )
 }

@@ -128,7 +128,11 @@ export function Navigation({ breadcrumbOverride }: { breadcrumbOverride?: Breadc
         recomputes every scroll frame, so animating `top` slides the bar
         fully out of the flow on scroll-down and back on scroll-up, instead
         of the continuously-pinned bar this used to be. */}
-    <nav
+    {/* <header> (2026-11-03): the site-branding landmark crawlers and LLMs look
+        for. The primary <nav> now lives INSIDE it (the logo/links row below),
+        and the mobile overlay is its own labelled <nav> — all tag swaps on
+        existing elements, so DOM depth is unchanged. */}
+    <header
       className="sticky z-50 bg-white border-b border-[#e8edf4] shadow-[0_1px_4px_rgba(17,29,53,0.06)] relative transition-[top] duration-200 ease-in-out"
       style={{ top: navHidden ? `-${NAV_HEIGHT}px` : "0px" }}
     >
@@ -150,7 +154,7 @@ export function Navigation({ breadcrumbOverride }: { breadcrumbOverride?: Breadc
           offset) and the sticky offset in breadcrumbs.tsx must stay in sync
           with this h-16 — see NAV_HEIGHT above. */}
       <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16">
-        <div className="flex justify-between items-center h-16">
+        <nav aria-label="Primary" className="flex justify-between items-center h-16">
 
           {/* Logo */}
           <Link href="/" className="flex items-center">
@@ -244,13 +248,13 @@ export function Navigation({ breadcrumbOverride }: { breadcrumbOverride?: Breadc
           >
             {isOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
-        </div>
+        </nav>
 
       </div>
 
       {/* Mobile menu — full-screen overlay, sits outside the max-w container */}
       {isOpen && (
-        <div className="md:hidden fixed inset-x-0 top-16 bottom-0 bg-white z-[60] overflow-y-auto px-6 py-5 space-y-1 border-t border-[#e8edf4]">
+        <nav aria-label="Mobile" className="md:hidden fixed inset-x-0 top-16 bottom-0 bg-white z-[60] overflow-y-auto px-6 py-5 space-y-1 border-t border-[#e8edf4]">
           {/* Search */}
           <form onSubmit={submitSearch} className="flex items-center gap-2 pb-4 mb-3 border-b border-[#e8edf4]">
             <Search size={16} className="text-[#a0aec0] flex-shrink-0" />
@@ -325,7 +329,7 @@ export function Navigation({ breadcrumbOverride }: { breadcrumbOverride?: Breadc
               Contact
             </Link>
           </div>
-        </div>
+        </nav>
       )}
 
       {/* ── Full-width Industries Dropdown ─────────────────────────────────────
@@ -396,7 +400,7 @@ export function Navigation({ breadcrumbOverride }: { breadcrumbOverride?: Breadc
           </div>
         </div>
       </div>
-    </nav>
+    </header>
     {/* Sticky itself now (2026-09-04, was non-sticky — reversed per request
         "breadcrumbs bar should also be sticky like the navbar"), stacked
         directly under this <nav>'s bottom border via `sticky top-16` inside

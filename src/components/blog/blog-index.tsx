@@ -124,14 +124,29 @@ export function BlogIndex({
     });
   };
 
+  // The index had no <h1> at all (the hero card's title is an <h2>), so the
+  // page had no top-level heading for crawlers/LLMs/screen readers. The design
+  // has no visible page title, so this is a screen-reader/crawler-only heading
+  // (standard sr-only pattern) naming what the page actually is.
+  const pageHeading = lockCategory
+    ? `${lockCategory} articles — Firmity Blog`
+    : pagination && pagination.page > 1
+      ? `Firmity Blog — Page ${pagination.page}`
+      : "Firmity Blog: CMMS, CAFM & Facility Management Guides";
+
   return (
     <>
       <Navigation breadcrumbOverride={breadcrumbOverride} />
       <main className="bg-white">
+        <h1 className="sr-only">{pageHeading}</h1>
         {/* HERO — latest published post (posts[0]; already sorted published_at
-            DESC by listPublished()/listPublishedByCategory()). */}
+            DESC by listPublished()/listPublishedByCategory()).
+            NOT wrapped in <Reveal> (2026-11-03): Reveal renders opacity:0 until
+            JS hydrates and an observer fires, and this card holds the page's LCP
+            image — wrapping it delayed LCP until after hydration. It is
+            above the fold, so it has nothing to reveal. */}
         {heroPost && (
-          <Reveal>
+          <>
             <section className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 pt-10 pb-10 lg:pt-14 lg:pb-14">
               <Link href={`/blog/${heroPost.slug}`} className="group block">
                 {/* rounded-[4px] (2026-09-24) — matches the grid cards'
@@ -203,7 +218,7 @@ export function BlogIndex({
                 </article>
               </Link>
             </section>
-          </Reveal>
+          </>
         )}
 
         {/* SIDEBAR + GRID — bg-[#f7f7f7] matches the homepage's own gray

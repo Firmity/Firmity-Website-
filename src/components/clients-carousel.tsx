@@ -60,19 +60,21 @@ export function ClientsCarousel() {
               <div
                 key={`${copy}-${client.name}`}
                 aria-hidden={isClone || undefined}
-                className="flex-shrink-0 w-48 h-28 bg-white rounded-[4px] border border-border hover:border-primary/50 hover:shadow-lg transition-all duration-300 flex items-center justify-center group cursor-pointer"
+                // p-4 lives on the card itself (2026-11-03): a single-child inner
+                // wrapper (relative w-full h-full flex centered p-4) was merged
+                // into it. Identical content box, one fewer node per card — this
+                // list renders every logo several times for the marquee loop.
+                className="flex-shrink-0 w-48 h-28 p-4 bg-white rounded-[4px] border border-border hover:border-primary/50 hover:shadow-lg transition-all duration-300 flex items-center justify-center group cursor-pointer"
               >
-                <div className="relative w-full h-full flex items-center justify-center p-4">
-                  <img
-                    src={client.logo || "/placeholder.svg"}
-                    alt={isClone ? "" : client.name}
-                    width={client.width}
-                    height={client.height}
-                    loading="lazy"
-                    decoding="async"
-                    className="w-auto h-auto max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-300"
-                  />
-                </div>
+                <img
+                  src={client.logo || "/placeholder.svg"}
+                  alt={isClone ? "" : client.name}
+                  width={client.width}
+                  height={client.height}
+                  loading="lazy"
+                  decoding="async"
+                  className="w-auto h-auto max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-300"
+                />
               </div>
             )
           })

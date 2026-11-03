@@ -407,7 +407,10 @@ export default function FeaturesPage() {
     let raf = 0
     let last = -1
     const sync = () => {
-      const nav = document.querySelector("nav")
+      // The sticky bar is the site <header> (navigation.tsx, 2026-11-03); the
+      // primary <nav> inside it is only the 64px row, which would ignore the
+      // bar's own border. `header.sticky` can't match content headers.
+      const nav = document.querySelector("header.sticky")
       const navBottom = nav ? nav.getBoundingClientRect().bottom : 64
       // The site breadcrumb (breadcrumbs.tsx) renders directly under this
       // nav and is sticky in its own right, occupying its own space below
