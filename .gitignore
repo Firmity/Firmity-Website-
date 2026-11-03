@@ -51,3 +51,5 @@ post-page_updates.md
 temp_commit_msg.md
 
 supabase/
+# Originals saved by scripts/optimize-images.mjs --blog --apply
+.image-backups/

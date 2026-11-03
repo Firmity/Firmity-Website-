@@ -3,7 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "prebuild": "node scripts/optimize-images.mjs --public --quiet",
     "build": "next build --webpack",
+    "optimize:images": "node scripts/optimize-images.mjs --public",
+    "optimize:blog": "node scripts/optimize-images.mjs --blog",
     "dev": "next dev",
     "lint": "eslint .",
     "start": "next start",

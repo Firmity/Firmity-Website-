@@ -494,7 +494,7 @@ export default function FeaturesPage() {
             from the navy panel this replaced. */}
         <section className="relative h-[560px] sm:h-[600px] lg:h-[640px] overflow-hidden">
           <img
-            src="/images/features_hero.png"
+            src="/images/features_hero.webp"
             alt="Firmity facility management platform"
             className="absolute inset-0 w-full h-full object-cover"
           />
@@ -1125,7 +1125,7 @@ export default function FeaturesPage() {
               </Reveal>
               <Reveal delay={100}>
                 <img
-                  src={deploymentTab === "cloud" ? "/images/cloud.png" : "/images/on_prem_view.png"}
+                  src={deploymentTab === "cloud" ? "/images/cloud.webp" : "/images/on_prem_view.webp"}
                   alt={
                     deploymentTab === "cloud"
                       ? "Firmity cloud platform, accessible anywhere and connected to accounting, HR, and IoT systems"
@@ -1165,7 +1165,7 @@ export default function FeaturesPage() {
         {/* ── KEEP IN TOUCH — same component/instance the homepage uses ──
             (moved 2026-09-10, per request, to right after "Built cloud-first"
             instead of just before the FAQ). ── */}
-        <KeepInTouchSection bannerImage="/images/features_banner.png" bannerPosition="center top" />
+        <KeepInTouchSection bannerImage="/images/features_banner.webp" bannerPosition="center top" />
 
         {/* ── ERP & CMMS GUIDES ─────────────────────────────────────────
             (2026-09-16 — restyled to match the homepage's "Browse our

@@ -158,7 +158,9 @@ export function Navigation({ breadcrumbOverride }: { breadcrumbOverride?: Breadc
 
           {/* Logo */}
           <Link href="/" className="flex items-center">
-            <Image src="/firmity.png" alt="Firmity Logo" width={100} height={80} className="object-contain" />
+            {/* firmity-logo.webp: 360px wide (16 KB) vs the 594px / 89 KB PNG, which is
+                still used for JSON-LD and icons where a raster PNG is required. */}
+            <Image src="/firmity-logo.webp" alt="Firmity Logo" width={100} height={80} className="object-contain" />
           </Link>
 
           {/* Desktop nav links */}
