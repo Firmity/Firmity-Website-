@@ -21,6 +21,7 @@ import { Navigation } from "@/src/components/navigation";
 import { Footer } from "@/src/components/footer";
 import { Reveal } from "@/src/components/reveal";
 import { ContactWalkthroughSection } from "@/src/components/contact-walkthrough-section";
+import { BlogPagination } from "@/src/components/blog/blog-pagination";
 import type { BreadcrumbCrumb } from "@/src/components/breadcrumbs";
 import { ArrowRight, Clock, Search, ChevronDown } from "lucide-react";
 
@@ -40,10 +41,20 @@ const TOPICS_SHOW_LIMIT = 6;
 
 export function BlogIndex({
   posts,
+  searchIndex,
+  pagination,
   breadcrumbOverride,
   lockCategory,
 }: {
+  /** The posts to show on THIS page (already sliced server-side when paginated). */
   posts: Card[];
+  /** Every published post. When paginated, search and topic filters run over
+   * this full set so they still find posts that aren't on the current page.
+   * Omitted on pages that already receive everything (category pages). */
+  searchIndex?: Card[];
+  /** Present only on the paginated /blog and /blog/page/[page] routes. The
+   * featured hero shows on page 1 only; filters hide the pager while active. */
+  pagination?: { page: number; totalPages: number };
   /** Forwarded to Navigation/Breadcrumbs — see breadcrumbs.tsx's `override`
    * prop. Used by /blog/category/[slug]/page.tsx so that page reads "Home >
    * Blog > <Category>" instead of the generic auto "Home > Blog > Category > <slug>". */
@@ -58,9 +69,12 @@ export function BlogIndex({
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set());
   const [showAllTopics, setShowAllTopics] = useState(false);
 
+  // Everything searchable/filterable. Equals `posts` when not paginated.
+  const allPosts = searchIndex ?? posts;
+
   const categories = useMemo(
-    () => Array.from(new Set(posts.map((p) => p.category).filter(Boolean))),
-    [posts],
+    () => Array.from(new Set(allPosts.map((p) => p.category).filter(Boolean))),
+    [allPosts],
   );
   const visibleTopics = showAllTopics ? categories : categories.slice(0, TOPICS_SHOW_LIMIT);
 
@@ -76,8 +90,11 @@ export function BlogIndex({
     if (requested) setSelectedCategories(new Set([requested]));
   }, []);
 
-  const heroPost = posts[0];
-  const rest = posts.slice(1);
+  // The featured hero is the latest post, so it only belongs on page 1 (or on
+  // un-paginated lists, e.g. category pages). Later pages are plain grids.
+  const showHero = !pagination || pagination.page === 1;
+  const heroPost = showHero ? posts[0] : undefined;
+  const rest = showHero ? posts.slice(1) : posts;
   const isFiltering = search.trim().length > 0 || selectedCategories.size > 0;
 
   const filtered = useMemo(() => {
@@ -88,14 +105,15 @@ export function BlogIndex({
     // matches the hero post (the bug: checking "CAFM" showed "No posts
     // match your search" when the sole CAFM post was posts[0]) would come
     // up empty even though a real match exists.
-    const pool = isFiltering ? posts : rest;
+    // When paginated, "all posts" means the full searchIndex, not just this page.
+    const pool = isFiltering ? allPosts : rest;
     return pool.filter((p) => {
       const matchesCategory = selectedCategories.size === 0 || selectedCategories.has(p.category);
       const matchesSearch =
         !q || p.title.toLowerCase().includes(q) || p.description.toLowerCase().includes(q);
       return matchesCategory && matchesSearch;
     });
-  }, [posts, rest, isFiltering, search, selectedCategories]);
+  }, [allPosts, rest, isFiltering, search, selectedCategories]);
 
   const toggleCategory = (c: string) => {
     setSelectedCategories((prev) => {
@@ -127,9 +145,16 @@ export function BlogIndex({
                   <div className="grid grid-cols-1 lg:grid-cols-2">
                     <div className="relative h-64 lg:h-auto overflow-hidden">
                       {heroPost.cover ? (
-                        <div
-                          className="absolute inset-0 bg-cover bg-center transition-transform duration-[900ms] ease-out group-hover:scale-105"
-                          style={{ backgroundImage: `url(${heroPost.cover})` }}
+                        // A real <img> (not a CSS background) so the browser can
+                        // discover and prioritise it as the LCP element. Decorative:
+                        // the card's heading already names the post.
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={heroPost.cover}
+                          alt=""
+                          fetchPriority="high"
+                          decoding="async"
+                          className="absolute inset-0 h-full w-full object-cover object-center transition-transform duration-[900ms] ease-out group-hover:scale-105"
                         />
                       ) : (
                         <div
@@ -275,9 +300,15 @@ export function BlogIndex({
 
                         <div className="relative h-[230px] bg-[#eef3f9] overflow-hidden flex-shrink-0">
                           {post.cover ? (
-                            <div
-                              className="absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-[1.04]"
-                              style={{ backgroundImage: `url(${post.cover})` }}
+                            // Lazy: off-screen card covers must not download up front
+                            // (they were the bulk of the page weight as CSS backgrounds).
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={post.cover}
+                              alt=""
+                              loading="lazy"
+                              decoding="async"
+                              className="absolute inset-0 h-full w-full object-cover object-center transition-transform duration-300 group-hover:scale-[1.04]"
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
@@ -316,8 +347,14 @@ export function BlogIndex({
 
                 {filtered.length === 0 && (
                   <p className="text-center text-[13px] font-light text-[#718096] py-12">
-                    {posts.length === 0 ? "No posts published yet." : "No posts match your search."}
+                    {allPosts.length === 0 ? "No posts published yet." : "No posts match your search."}
                   </p>
+                )}
+
+                {/* Hidden while a search/topic filter is active: results then come
+                    from the full index and aren't paginated. */}
+                {pagination && !isFiltering && (
+                  <BlogPagination page={pagination.page} totalPages={pagination.totalPages} />
                 )}
               </div>
             </div>

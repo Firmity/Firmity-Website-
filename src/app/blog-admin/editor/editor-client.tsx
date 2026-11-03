@@ -39,6 +39,8 @@ interface Form {
   read_time: string;
   meta_description: string;
   cover_image_url: string;
+  /** Alt text for the header image. Blank = the live post falls back to the title. */
+  cover_image_alt: string;
   content_html: string;
   author: string;
   /** Selected reusable author profile ("" = none) — drives the end-of-post
@@ -67,7 +69,7 @@ const todayStr = () => {
 
 const EMPTY: Form = {
   title: "", subtitle: "", slug: "", category: "Guide", author: "", author_id: "",
-  read_time: "", meta_description: "", cover_image_url: "", content_html: "",
+  read_time: "", meta_description: "", cover_image_url: "", cover_image_alt: "", content_html: "",
   published_at: todayStr(), content_updated_at: todayStr(), faqs: [], faq_title: "",
 };
 
@@ -220,6 +222,7 @@ function EditorInner() {
           title: post.title ?? "", subtitle: post.subtitle ?? "", slug: post.slug ?? "",
           category: post.category ?? "Guide", read_time: post.read_time ?? "",
           meta_description: post.meta_description ?? "", cover_image_url: post.cover_image_url ?? "",
+          cover_image_alt: post.cover_image_alt ?? "",
           content_html: post.content_html ?? "", author: post.author ?? "",
           author_id: post.author_id ?? "",
           published_at: (post.published_at ?? post.created_at ?? "").slice(0, 10) || todayStr(),
@@ -334,7 +337,7 @@ function EditorInner() {
           {form.subtitle && <p className="mb-6 text-[16px] font-light leading-relaxed text-[#718096]">{form.subtitle}</p>}
           {form.cover_image_url && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={form.cover_image_url} alt="" className="mb-8 w-full rounded-2xl" />
+            <img src={form.cover_image_url} alt={form.cover_image_alt.trim() || form.title} className="mb-8 w-full rounded-xl" />
           )}
           <div className={BLOG_PROSE} dangerouslySetInnerHTML={{ __html: form.content_html || "<p>Nothing written yet.</p>" }} />
         </article>
@@ -345,14 +348,31 @@ function EditorInner() {
         {form.cover_image_url ? (
           <div className="relative">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={form.cover_image_url} alt="Cover" className="h-52 w-full rounded-xl object-cover" />
+            <img src={form.cover_image_url} alt={form.cover_image_alt.trim() || "Cover"} className="h-52 w-full rounded-xl object-cover" />
             <button
-              onClick={() => set("cover_image_url", "")}
+              onClick={() => { set("cover_image_url", ""); set("cover_image_alt", ""); }}
               className="absolute right-3 top-3 rounded-full bg-black/60 p-1.5 text-white hover:bg-black/80"
               title="Remove cover"
             >
               <X size={14} />
             </button>
+            {/* Alt text for the header image: read by screen readers and Google
+                Images. Leave blank to fall back to the post title. */}
+            <label className="mt-3 block">
+              <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-[#718096]">
+                Header image alt text
+              </span>
+              <input
+                value={form.cover_image_alt}
+                onChange={(e) => set("cover_image_alt", e.target.value)}
+                maxLength={200}
+                placeholder="Describe what the image shows (blank = uses the post title)"
+                className="w-full rounded-lg border border-[#cbd5e0] px-3 py-2 text-[13px] focus:border-[#2b6cb0] focus:outline-none"
+              />
+              <span className="mt-1 block text-[11px] font-light text-[#a0aec0]">
+                {form.cover_image_alt.length}/125 recommended — describe the image itself, don&apos;t repeat the title.
+              </span>
+            </label>
           </div>
         ) : (
           <button

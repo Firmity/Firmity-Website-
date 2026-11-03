@@ -2,7 +2,7 @@
 import { listPublished } from "@/src/lib/blog";
 import { SITE } from "@/src/lib/seo";
 
-export const revalidate = 300;
+export const revalidate = 86400;
 
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { isBlogAuthed } from "@/src/lib/blog-guard";
-import { listAll, upsertPost, type BlogPostInput } from "@/src/lib/blog";
+import { getById, listAll, upsertPost, type BlogPostInput } from "@/src/lib/blog";
+import { revalidateBlog } from "@/src/lib/revalidate";
 
 export async function GET() {
   if (!(await isBlogAuthed())) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
@@ -19,7 +20,11 @@ export async function POST(req: Request) {
     if (!body?.title?.trim()) return NextResponse.json({ error: "title is required" }, { status: 400 });
     if (body.status !== "draft" && body.status !== "published")
       return NextResponse.json({ error: "invalid status" }, { status: 400 });
+
+    // Capture the pre-save slug so a rename also purges the old URL's cache.
+    const previous = body.id ? await getById(body.id) : null;
     const post = await upsertPost(body);
+    revalidateBlog({ slugs: [previous?.slug, post.slug] });
     return NextResponse.json({ post });
   } catch (e) {
     console.error("[BLOG_SAVE_ERR]", e);

@@ -3,7 +3,7 @@
 import { NextResponse } from "next/server"
 import { listPublished, updatedLabel } from "@/src/lib/blog"
 
-export const revalidate = 60 // revalidate every 60 s (ISR)
+export const revalidate = 86400 // revalidate every 60 s (ISR)
 
 export interface LatestPost {
   slug: string

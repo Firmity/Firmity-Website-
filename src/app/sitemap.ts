@@ -63,6 +63,11 @@ const STATIC_ROUTES = [
   "/modern-slavery-statement",
 ]
 
+// Without this the sitemap was frozen at build time, so a newly published post
+// never appeared until the next deploy. 24h TTL; blog/SEO saves purge it
+// on demand (src/lib/revalidate.ts).
+export const revalidate = 86400
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticEntries: MetadataRoute.Sitemap = STATIC_ROUTES.map((route) => ({
     url: canonical(route),

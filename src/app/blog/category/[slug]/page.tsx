@@ -12,7 +12,12 @@ import { listCategories, listPublishedByCategory, categorySlug } from "@/src/lib
 import { BlogIndex } from "@/src/components/blog/blog-index";
 import { canonical } from "@/src/lib/seo";
 
-export const revalidate = 60;
+export const revalidate = 86400;
+
+// Makes this route ISR instead of per-request rendering — see blog/[slug]/page.tsx.
+export async function generateStaticParams() {
+  return (await listCategories()).map((c) => ({ slug: categorySlug(c) }));
+}
 
 async function resolveCategory(slug: string): Promise<string | null> {
   const categories = await listCategories();

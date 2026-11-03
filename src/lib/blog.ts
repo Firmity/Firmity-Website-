@@ -11,6 +11,8 @@ export interface BlogPost {
   title: string;
   subtitle: string | null;
   cover_image_url: string | null;
+  /** Marketer-written alt text for the hero image (2026-11-03). Null/blank falls back to the post title at render time. Added by supabase/migrations/20261103_blog_cover_image_alt.sql. */
+  cover_image_alt: string | null;
   content_html: string;
   category: string | null;
   author: string | null;
@@ -41,6 +43,8 @@ export interface BlogPostInput {
   title: string;
   subtitle?: string;
   cover_image_url?: string | null;
+  /** Optional hero-image alt text. Blank/omitted stores null (render falls back to the title). */
+  cover_image_alt?: string | null;
   content_html: string;
   category?: string;
   author?: string;
@@ -82,7 +86,19 @@ export function updatedLabel(p: Pick<BlogPost, "content_updated_at" | "updated_a
   }
 }
 
-function toCardData(p: BlogPost): BlogCardData {
+/** A post minus its (large) body. List/card/search/sitemap consumers never read
+ * content_html, so they must not pay to transfer it from Postgres. */
+export type BlogPostSummary = Omit<BlogPost, "content_html">;
+
+/** Explicit column list for every list query. `select("*")` pulled the full
+ * article HTML (often with inline images) for every post on every ISR
+ * regeneration — the main avoidable source of DB memory/IO pressure.
+ * Keep in sync with BlogPost (minus content_html). */
+const SUMMARY_COLUMNS =
+  "id,slug,title,subtitle,cover_image_url,category,author,author_id,read_time," +
+  "meta_description,status,published_at,content_updated_at,faqs,faq_title,created_at,updated_at";
+
+export function toCardData(p: BlogPostSummary): BlogCardData {
   return {
     slug: p.slug,
     title: p.title,
@@ -184,17 +200,17 @@ export function extractToc(html: string): { html: string; toc: BlogTocItem[] } {
   return { html: out, toc };
 }
 
-export async function listPublished(): Promise<BlogPost[]> {
+export async function listPublished(): Promise<BlogPostSummary[]> {
   const { data, error } = await getSupabaseAdmin()
     .from(TABLE)
-    .select("*")
+    .select(SUMMARY_COLUMNS)
     .eq("status", "published")
     .order("published_at", { ascending: false });
   if (error) {
     console.error("[BLOG_DB_ERR] listPublished", error);
     return [];
   }
-  return (data ?? []) as BlogPost[];
+  return (data ?? []) as unknown as BlogPostSummary[];
 }
 
 export async function listAll(): Promise<BlogPost[]> {
@@ -227,6 +243,7 @@ export async function upsertPost(input: BlogPostInput): Promise<BlogPost> {
     title: input.title.trim(),
     subtitle: input.subtitle?.trim() || null,
     cover_image_url: input.cover_image_url || null,
+    cover_image_alt: input.cover_image_alt?.trim() || null,
     content_html,
     category: input.category?.trim() || null,
     author: input.author?.trim() || null,
@@ -261,24 +278,41 @@ export async function upsertPost(input: BlogPostInput): Promise<BlogPost> {
     const published_at =
       chosen ??
       (input.status === "published" ? existing?.published_at ?? new Date().toISOString() : existing?.published_at ?? null);
-    const { data, error } = await db
-      .from(TABLE)
-      .update({ ...base, published_at, content_updated_at })
-      .eq("id", input.id)
-      .select("*")
-      .single();
+    const { data, error } = await writeTolerantOfMissingAlt(
+      { ...base, published_at, content_updated_at },
+      (row) => db.from(TABLE).update(row).eq("id", input.id!).select("*").single(),
+    );
     if (error) throw new Error(`[BLOG_DB_ERR] update: ${error.message}`);
     return data as BlogPost;
   }
 
   const published_at = chosen ?? (input.status === "published" ? new Date().toISOString() : null);
-  const { data, error } = await db
-    .from(TABLE)
-    .insert({ ...base, published_at, content_updated_at })
-    .select("*")
-    .single();
+  const { data, error } = await writeTolerantOfMissingAlt(
+    { ...base, published_at, content_updated_at },
+    (row) => db.from(TABLE).insert(row).select("*").single(),
+  );
   if (error) throw new Error(`[BLOG_DB_ERR] insert: ${error.message}`);
   return data as BlogPost;
+}
+
+type WriteResult = { data: unknown; error: { message: string } | null };
+
+/** Rollout safety: if the `cover_image_alt` column hasn't been migrated yet,
+ * PostgREST rejects the whole write. Retry once without that field so
+ * publishing never breaks during the deploy→migrate window, and log loudly
+ * so the missing migration is noticed. After the migration this never fires. */
+async function writeTolerantOfMissingAlt(
+  row: Record<string, unknown>,
+  run: (row: Record<string, unknown>) => PromiseLike<WriteResult>,
+): Promise<WriteResult> {
+  const first = await run(row);
+  if (!first.error || !first.error.message.includes("cover_image_alt")) return first;
+  console.error(
+    "[BLOG_DB_ERR] cover_image_alt column missing — run supabase/migrations/20261103_blog_cover_image_alt.sql. Saving without it.",
+  );
+  const withoutAlt = { ...row };
+  delete withoutAlt.cover_image_alt;
+  return run(withoutAlt);
 }
 
 /** All published posts in one category, newest first — backs
@@ -288,7 +322,7 @@ export async function upsertPost(input: BlogPostInput): Promise<BlogPost> {
 export async function listPublishedByCategory(category: string): Promise<BlogCardData[]> {
   const { data, error } = await getSupabaseAdmin()
     .from(TABLE)
-    .select("*")
+    .select(SUMMARY_COLUMNS)
     .eq("status", "published")
     .eq("category", category)
     .order("published_at", { ascending: false });
@@ -296,7 +330,7 @@ export async function listPublishedByCategory(category: string): Promise<BlogCar
     console.error("[BLOG_DB_ERR] listPublishedByCategory", error);
     return [];
   }
-  return ((data ?? []) as BlogPost[]).map(toCardData);
+  return ((data ?? []) as unknown as BlogPostSummary[]).map(toCardData);
 }
 
 /** Up to `limit` OTHER published posts sharing a category — feeds the
@@ -312,7 +346,7 @@ export async function listRelatedByCategory(
   if (!category) return [];
   const { data, error } = await getSupabaseAdmin()
     .from(TABLE)
-    .select("*")
+    .select(SUMMARY_COLUMNS)
     .eq("status", "published")
     .eq("category", category)
     .neq("slug", excludeSlug)
@@ -322,7 +356,7 @@ export async function listRelatedByCategory(
     console.error("[BLOG_DB_ERR] listRelatedByCategory", error);
     return [];
   }
-  return ((data ?? []) as BlogPost[]).map(toCardData);
+  return ((data ?? []) as unknown as BlogPostSummary[]).map(toCardData);
 }
 
 export async function deletePost(id: string): Promise<void> {

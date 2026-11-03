@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { isBlogAuthed } from "@/src/lib/blog-guard";
 import { listPageSeo, upsertPageSeo, deletePageSeo, getSiteSeo, type PageSeoRow } from "@/src/lib/seo-store";
 import { SEO_ROUTES } from "@/src/lib/seo";
+import { revalidateSeo } from "@/src/lib/revalidate";
 
 export async function GET() {
   if (!(await isBlogAuthed())) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
@@ -17,6 +18,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "unknown or non-editable path" }, { status: 400 });
     }
     await upsertPageSeo({ ...body, path: body.path });
+    revalidateSeo();
     return NextResponse.json({ ok: true });
   } catch (e) {
     console.error("[SEO_SAVE_ERR]", e);
@@ -28,6 +30,12 @@ export async function DELETE(req: Request) {
   if (!(await isBlogAuthed())) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const path = new URL(req.url).searchParams.get("path");
   if (!path) return NextResponse.json({ error: "path required" }, { status: 400 });
-  await deletePageSeo(path);
-  return NextResponse.json({ ok: true });
+  try {
+    await deletePageSeo(path);
+    revalidateSeo();
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    console.error("[SEO_DELETE_ERR]", e);
+    return NextResponse.json({ error: "delete failed" }, { status: 502 });
+  }
 }
