@@ -56,3 +56,6 @@ temp_commit_msg.md
 supabase/
 # Originals saved by scripts/optimize-images.mjs --blog --apply
 .image-backups/
+
+# design-taste-frontend inspector output
+.taste-skill/

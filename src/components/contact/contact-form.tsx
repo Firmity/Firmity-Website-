@@ -9,8 +9,14 @@
 //
 // Mobile notes: every control is >=48px tall and uses a 16px font — iOS Safari
 // zooms the whole page on focus of anything smaller. Choice groups are native
-// radios (keyboard arrows, screen-reader grouping) styled as tiles, not
+// radios (keyboard arrows, screen-reader grouping) styled as filled tiles, not
 // aria-pressed buttons. Each input has autocomplete so phones can autofill.
+//
+// Look (design-taste-frontend house rules): the card is a tone step (white on the
+// page's #f7f7f7 band), not an outlined box; unselected tiles are a filled tone,
+// selected is the brand blue. Text inputs keep their 1px border — form fields are
+// the one place lines are correct. Type is five sizes: 16 (body/inputs), 14
+// (labels, tiles, notes), 22+ for headings.
 
 import type React from "react"
 import { useEffect, useId, useRef, useState, type FC } from "react"
@@ -63,11 +69,14 @@ const REQUEST_TYPES: { value: string; label: string; Icon: FC<LucideProps> }[] =
 
 const TEAM_SIZES = ["1-10", "11-50", "51-100", "100+"] as const
 
+// Entrance (see rise keyframes in globals.css); off for reduced-motion users.
+const RISE = "motion-safe:animate-[rise_.55s_cubic-bezier(.22,1,.36,1)_both]"
+
 // text-base (16px) on purpose — see the mobile note above.
 const controlClass =
-  "block w-full min-h-12 rounded-[4px] border border-[#cbd5e0] bg-white px-3.5 py-3 text-base font-light text-[#1a202c] placeholder:text-[#a0aec0] transition-colors focus:border-[#2b6cb0] focus:outline-none focus:ring-1 focus:ring-[#2b6cb0]"
+  "block w-full min-h-12 rounded-[4px] border border-[#a0aec0] bg-white px-3.5 py-3 text-base text-[#1a202c] placeholder:text-[#718096] transition-colors focus:border-[#114dac] focus:outline-none focus:ring-1 focus:ring-[#114dac]"
 
-const labelClass = "mb-1.5 block text-[13px] font-medium text-[#2d3748]"
+const labelClass = "mb-1.5 block text-sm font-medium text-[#1a202c]"
 
 function TextField({
   label,
@@ -80,7 +89,11 @@ function TextField({
     <div className={className}>
       <label htmlFor={id} className={labelClass}>
         {label}
-        {input.required ? <span aria-hidden="true" className="text-[#2b6cb0]"> *</span> : hint && <span className="font-light text-[#718096]"> ({hint})</span>}
+        {input.required ? (
+          <span aria-hidden="true" className="text-[#114dac]"> *</span>
+        ) : (
+          hint && <span className="font-normal text-[#4a5568]"> ({hint})</span>
+        )}
       </label>
       <input id={id} {...input} className={controlClass} />
     </div>
@@ -112,7 +125,7 @@ function ChoiceGroup({
     <fieldset>
       <legend className={labelClass}>
         {legend}
-        <span aria-hidden="true" className="text-[#2b6cb0]"> *</span>
+        <span aria-hidden="true" className="text-[#114dac]"> *</span>
       </legend>
       <div className={`grid gap-2 ${columns}`}>
         {options.map(({ value: optionValue, label, Icon }) => (
@@ -126,7 +139,7 @@ function ChoiceGroup({
               required
               className="peer sr-only"
             />
-            <span className="flex min-h-12 items-center justify-center gap-2 rounded-[4px] border border-[#cbd5e0] bg-white px-3 py-2.5 text-center text-[14px] font-medium leading-tight text-[#4a5568] transition-colors hover:border-[#2b6cb0] peer-checked:border-[#114dac] peer-checked:bg-[#114dac] peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-[#2b6cb0] peer-focus-visible:ring-offset-2">
+            <span className="flex min-h-12 items-center justify-center gap-2 rounded-[4px] bg-[#f1f4f8] px-3 py-2.5 text-center text-sm font-medium leading-tight text-[#1a202c] transition-[background-color,color,transform] duration-150 hover:bg-[#e2e9f3] active:scale-[0.98] peer-checked:bg-[#114dac] peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-[#114dac] peer-focus-visible:ring-offset-2">
               {Icon && <Icon size={16} strokeWidth={1.6} aria-hidden="true" className="shrink-0" />}
               {label}
             </span>
@@ -194,29 +207,28 @@ export function ContactForm() {
   if (submitted) {
     return (
       <div
+        id="request"
         ref={successRef}
         tabIndex={-1}
-        className="scroll-mt-24 rounded-[4px] border border-[#e2e8f0] bg-white p-6 text-center outline-none sm:p-10"
+        className="scroll-mt-24 rounded-[4px] bg-white p-6 text-center outline-none sm:p-10"
       >
-        <CheckCircle2 size={36} strokeWidth={1.5} aria-hidden="true" className="mx-auto mb-4 text-[#2b6cb0]" />
-        <h2 className="mb-2 font-serif text-[22px] font-light text-[#114dac]">Request received</h2>
-        <p className="mx-auto mb-6 max-w-sm text-[15px] font-light leading-relaxed text-[#4a5568]">
+        <CheckCircle2 size={40} strokeWidth={1.5} aria-hidden="true" className="mx-auto mb-4 text-[#114dac]" />
+        <h2 className="mb-2 font-serif text-[1.75rem] font-light leading-tight text-[#114dac]">Request received</h2>
+        <p className="mx-auto mb-6 max-w-sm text-base leading-relaxed text-[#1a202c]">
           Thank you. Our team will contact you within 24 hours to confirm your slot.
         </p>
 
         {/* Same widget/backend as the homepage section; source="contact-form"
             keeps replies traceable to this flow. */}
-        <div className="mb-6 border-t border-[#e2e8f0] pt-6 text-left">
-          <p className="mb-4 text-center text-[14px] font-semibold text-[#1a202c]">
-            How did you hear about Firmity?
-          </p>
+        <div className="mb-6 rounded-[4px] bg-[#f7f7f7] p-5 text-left">
+          <p className="mb-4 text-center text-base font-semibold text-[#1a202c]">How did you hear about Firmity?</p>
           <HowDidYouHearForm source="contact-form" />
         </div>
 
         <button
           type="button"
           onClick={() => setSubmitted(false)}
-          className="inline-flex min-h-11 cursor-pointer items-center gap-2 text-[14px] font-semibold text-[#2b6cb0] transition-all hover:gap-3"
+          className="inline-flex min-h-11 cursor-pointer items-center gap-2 text-sm font-semibold text-[#114dac] transition-all hover:gap-3"
         >
           Send another request <ArrowRight size={14} aria-hidden="true" />
         </button>
@@ -225,8 +237,8 @@ export function ContactForm() {
   }
 
   return (
-    <div className="rounded-[4px] border border-[#e2e8f0] bg-white p-5 sm:p-8">
-      <h2 className="mb-6 font-serif text-[clamp(1.35rem,2.4vw,1.7rem)] font-light tracking-tight text-[#114dac]">
+    <div id="request" className={`scroll-mt-24 rounded-[4px] bg-white p-5 sm:p-8 ${RISE}`} style={{ animationDelay: "60ms" }}>
+      <h2 className="mb-6 font-serif text-[1.75rem] font-light leading-tight tracking-tight text-[#114dac]">
         Tell us about your facility
       </h2>
 
@@ -273,7 +285,7 @@ export function ContactForm() {
 
         <div>
           <label htmlFor="contact-message" className={labelClass}>
-            Message <span className="font-light text-[#718096]">(optional)</span>
+            Message <span className="font-normal text-[#4a5568]">(optional)</span>
           </label>
           <textarea
             id="contact-message"
@@ -287,16 +299,16 @@ export function ContactForm() {
         </div>
 
         {error && (
-          <div role="alert" className="flex items-start gap-2 rounded-[4px] border border-[#feb2b2] bg-[#fff5f5] p-3">
-            <AlertCircle size={16} aria-hidden="true" className="mt-0.5 shrink-0 text-[#c53030]" />
-            <p className="text-[14px] leading-snug text-[#c53030]">{error}</p>
+          <div role="alert" className="flex items-start gap-2 rounded-[4px] bg-[#fff5f5] p-3">
+            <AlertCircle size={18} aria-hidden="true" className="mt-0.5 shrink-0 text-[#c53030]" />
+            <p className="text-base leading-snug text-[#9b1c1c]">{error}</p>
           </div>
         )}
 
         <button
           type="submit"
           disabled={loading}
-          className="flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[4px] bg-[#114dac] px-6 py-3 text-[15px] font-semibold text-white transition-colors hover:bg-[#0e3e8a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2b6cb0] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+          className="flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[4px] bg-[#114dac] px-6 py-3 text-base font-semibold text-white transition-[background-color,transform] hover:bg-[#0e3e8a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#114dac] focus-visible:ring-offset-2 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading ? (
             <>
@@ -309,9 +321,7 @@ export function ContactForm() {
           )}
         </button>
 
-        <p className="text-center text-[12.5px] font-light text-[#718096]">
-          We use your details only to respond to this request.
-        </p>
+        <p className="text-center text-sm text-[#4a5568]">We use your details only to respond to this request.</p>
       </form>
     </div>
   )
