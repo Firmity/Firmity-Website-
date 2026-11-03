@@ -27,7 +27,7 @@ import { Navigation } from "@/src/components/navigation"
 import { Footer } from "@/src/components/footer"
 import { Reveal } from "@/src/components/reveal"
 import { ERP_GUIDES } from "@/src/lib/erp-guides"
-import { canonical } from "@/src/lib/seo"
+import { canonical, DEFAULT_OG_IMAGE } from "@/src/lib/seo"
 import {
   BookOpen,
   Layers,
@@ -53,7 +53,10 @@ export const metadata: Metadata = {
       "Plain-English guides to ERP and CMMS — what the terms mean, how they differ, and how to evaluate, implement, or replace either one.",
     url: canonical("/resources/guide"),
     type: "website",
+    // Explicit: a page-level openGraph replaces the site-wide one, image included.
+    images: [DEFAULT_OG_IMAGE],
   },
+  twitter: { card: "summary_large_image", images: [DEFAULT_OG_IMAGE.url] },
 }
 
 // Icon shown on each guide card — cosmetic, keyed by erp-guides.ts slug.

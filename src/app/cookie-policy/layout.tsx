@@ -5,7 +5,7 @@ import type { Metadata } from "next"
 export const metadata: Metadata = {
   title: "Cookie Policy",
   description:
-    "How Firmity (Ufirm Technologies Private Limited) uses cookies and similar technologies, how consent works under the DPDP Act, 2023, and how to change or withdraw your choice.",
+    "How Firmity (Ufirm Technologies Private Limited) uses cookies, how consent works under the DPDP Act, 2023, and how to change or withdraw your choice.",
   alternates: { canonical: "/cookie-policy" },
 }
 

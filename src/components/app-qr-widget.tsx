@@ -138,9 +138,12 @@ export function AppQrWidget() {
     sessionStorage.setItem(SESSION_KEY_CLOSED, "1")
   }
 
+  // 2026-11-03: the `fixed inset-x-0` rail + `max-w-7xl` wrapper that used to
+  // sit around this are gone — fixed positioning, the right-edge gutter and
+  // the 12px gap above the WhatsApp button now come from the single floating
+  // layer in marketing-widgets.tsx. Only this widget's own `relative`
+  // anchor (for the absolutely-stacked thumbnail + card) remains.
   return (
-    <div className="fixed inset-x-0 bottom-20 z-40 pointer-events-none">
-      <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 flex justify-end">
         <div className="relative">
           {/* Thumbnail — same 48px circle + opacity-60/hover-100 treatment
               as WhatsAppButton, so it reads as "one of the site's floating
@@ -197,7 +200,11 @@ export function AppQrWidget() {
             </button>
             <a
               href="/get-app"
-              aria-label="Scan the QR code to get the Firmity app"
+              // No aria-label (2026-11-03): its text ("Scan the QR code to get the
+              // Firmity app") didn't contain the visible text ("Scan to get the app"),
+              // failing WCAG 2.5.3 Label in Name — voice-control users saying what
+              // they see couldn't activate it. With the image's alt="" the visible
+              // span is now the accessible name.
               tabIndex={expanded ? 0 : -1}
               // No opacity classes here — the wrapper above now owns the
               // opacity-60-at-rest/opacity-100-on-hover-or-focus treatment
@@ -218,7 +225,5 @@ export function AppQrWidget() {
             </a>
           </div>
         </div>
-      </div>
-    </div>
   )
 }

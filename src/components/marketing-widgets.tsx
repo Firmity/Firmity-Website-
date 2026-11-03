@@ -47,10 +47,18 @@ export function MarketingWidgets() {
 
   if (isExcluded) return null
 
+  // ONE fixed layer for every floating action (2026-11-03). Previously each
+  // widget owned a full-width `fixed inset-x-0` rail plus a `max-w-7xl`
+  // wrapper (3 nested nodes each, two body-level fixed elements). Now: a
+  // single shrink-to-fit column pinned bottom-right, so there is one
+  // body-level node and no click-blocking empty rail (hence no
+  // pointer-events juggling). Right gutter keeps the old 24/40/64px scale
+  // (px-6 sm:px-10 lg:px-16). gap-3 = the 12px QR→WhatsApp spacing that was
+  // tuned before. Order: QR on top, WhatsApp at the bottom (unchanged).
   return (
-    <>
-      <WhatsAppButton />
+    <div className="fixed bottom-5 right-6 z-40 flex flex-col items-end gap-3 sm:right-10 lg:right-16">
       <AppQrWidget />
-    </>
+      <WhatsAppButton />
+    </div>
   )
 }

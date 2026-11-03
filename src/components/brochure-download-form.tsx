@@ -140,7 +140,7 @@ export function BrochureDownloadForm() {
             value={formData.name}
             onChange={handleChange}
             required
-            className="w-full px-3.5 py-2.5 rounded-[4px] text-[13px] border border-[#cbd5e0] bg-white text-[#114dac] font-light placeholder:text-[#000000] focus:outline-none focus:border-[#2b6cb0] focus:ring-1 focus:ring-[#2b6cb0] transition-colors"
+            className="w-full px-3.5 py-2.5 rounded-[4px] text-base sm:text-[13px] border border-[#cbd5e0] bg-white text-[#114dac] font-light placeholder:text-[#000000] focus:outline-none focus:border-[#2b6cb0] focus:ring-1 focus:ring-[#2b6cb0] transition-colors"
           />
         </div>
         <div className="flex flex-col gap-1.5">
@@ -152,7 +152,7 @@ export function BrochureDownloadForm() {
             value={formData.email}
             onChange={handleChange}
             required
-            className="w-full px-3.5 py-2.5 rounded-[4px] text-[13px] border border-[#cbd5e0] bg-white text-[#114dac] font-light placeholder:text-[#000000] focus:outline-none focus:border-[#2b6cb0] focus:ring-1 focus:ring-[#2b6cb0] transition-colors"
+            className="w-full px-3.5 py-2.5 rounded-[4px] text-base sm:text-[13px] border border-[#cbd5e0] bg-white text-[#114dac] font-light placeholder:text-[#000000] focus:outline-none focus:border-[#2b6cb0] focus:ring-1 focus:ring-[#2b6cb0] transition-colors"
           />
         </div>
         <div className="flex flex-col gap-1.5">
@@ -164,7 +164,7 @@ export function BrochureDownloadForm() {
             value={formData.phone}
             onChange={handleChange}
             required
-            className="w-full px-3.5 py-2.5 rounded-[4px] text-[13px] border border-[#cbd5e0] bg-white text-[#114dac] font-light placeholder:text-[#000000] focus:outline-none focus:border-[#2b6cb0] focus:ring-1 focus:ring-[#2b6cb0] transition-colors"
+            className="w-full px-3.5 py-2.5 rounded-[4px] text-base sm:text-[13px] border border-[#cbd5e0] bg-white text-[#114dac] font-light placeholder:text-[#000000] focus:outline-none focus:border-[#2b6cb0] focus:ring-1 focus:ring-[#2b6cb0] transition-colors"
           />
         </div>
         <div className="flex flex-col gap-1.5">
@@ -176,7 +176,7 @@ export function BrochureDownloadForm() {
             value={formData.city}
             onChange={handleChange}
             required
-            className="w-full px-3.5 py-2.5 rounded-[4px] text-[13px] border border-[#cbd5e0] bg-white text-[#114dac] font-light placeholder:text-[#000000] focus:outline-none focus:border-[#2b6cb0] focus:ring-1 focus:ring-[#2b6cb0] transition-colors"
+            className="w-full px-3.5 py-2.5 rounded-[4px] text-base sm:text-[13px] border border-[#cbd5e0] bg-white text-[#114dac] font-light placeholder:text-[#000000] focus:outline-none focus:border-[#2b6cb0] focus:ring-1 focus:ring-[#2b6cb0] transition-colors"
           />
         </div>
       </div>

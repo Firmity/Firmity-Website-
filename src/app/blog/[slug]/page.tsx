@@ -7,11 +7,11 @@ import { BlogPostShell } from "@/src/components/blog-post-shell";
 import { BlogFaqSection } from "@/src/components/blog/blog-faq-section";
 import { BlogCtaForm } from "@/src/components/blog/blog-cta-form";
 import { RelatedPostsSection } from "@/src/components/blog/related-posts-section";
-import { getBySlug, extractToc, sanitizeContent, listRelatedByCategory, categorySlug } from "@/src/lib/blog";
+import { getBySlug, extractToc, sanitizeContent, listRelatedByCategory, listPublished, categorySlug } from "@/src/lib/blog";
 import { getAuthorById } from "@/src/lib/blog-authors";
 import { BLOG_SEO_TITLES } from "@/src/lib/blog-seo-titles";
 import { BLOG_PROSE } from "@/src/lib/blog-prose";
-import { canonical, SITE } from "@/src/lib/seo";
+import { canonical, clampDescription, SITE } from "@/src/lib/seo";
 import { JsonLd } from "@/src/components/json-ld";
 import { DownloadPdf } from "@/src/components/blog/download-pdf";
 import { getSiteSeo } from "@/src/lib/seo-store";
@@ -27,7 +27,17 @@ function socialIcon(url: string): LucideIcon {
   return Globe;
 }
 
-export const revalidate = 60;
+export const revalidate = 86400;
+
+// Without generateStaticParams this route was fully dynamic (build table: ƒ, no
+// revalidate): every view re-queried Supabase and `revalidate` never applied.
+// Returning the real slugs makes it ISR (●): rendered once, cached, refreshed
+// at most daily, or instantly via revalidateBlog(). Slugs published after a
+// deploy still work (dynamicParams defaults to true) and are cached on first hit.
+// listPublished() already fails open to [] on a DB error.
+export async function generateStaticParams() {
+  return (await listPublished()).map((p) => ({ slug: p.slug }));
+}
 
 function longDate(iso: string | null): string {
   if (!iso) return "";
@@ -43,7 +53,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const post = await getBySlug(slug);
   if (!post || post.status !== "published") return { title: "Article", robots: { index: false, follow: true } };
   const url = canonical(`/blog/${slug}`);
-  const description = post.meta_description || post.subtitle || undefined;
+  // Editors can write any length; clamp so snippets are never cut mid-sentence by Google.
+  const description = clampDescription(post.meta_description || post.subtitle);
   const images = post.cover_image_url ? [{ url: post.cover_image_url }] : undefined;
   // Shorter title for search/social when the headline is too long to display
   // (see BLOG_SEO_TITLES); the H1 and BlogPosting headline keep the full title.
@@ -196,14 +207,19 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         )}
       </div>
       {post.cover_image_url && (
+        // Alt is marketer-written (cover_image_alt); falls back to the title so
+        // older posts and unfilled fields keep a meaningful, non-empty alt.
+        // fetchPriority="high" + priority: this is the page's LCP element.
+        // rounded-xl matches the in-article images (BLOG_PROSE [&_img]:rounded-xl).
         <Image
           src={post.cover_image_url}
-          alt={post.title}
+          alt={post.cover_image_alt?.trim() || post.title}
           width={1200}
           height={750}
           sizes="(min-width: 768px) 720px, 100vw"
           priority
-          className="w-full h-auto rounded-2xl mb-9"
+          fetchPriority="high"
+          className="w-full h-auto rounded-xl mb-9"
         />
       )}
       {/* content_html is sanitized on save (lib/blog.ts::sanitizeContent);

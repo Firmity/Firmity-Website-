@@ -1,31 +1,31 @@
 import type { MetadataRoute } from "next"
 import { canonical } from "@/src/lib/seo"
-import { listPublished } from "@/src/lib/blog"
+import { listPublished, listCategories, categorySlug } from "@/src/lib/blog"
 import { ERP_GUIDES } from "@/src/lib/erp-guides"
+import { VIDEO_TUTORIALS, latestVideoDate, videoEmbedUrl, videoThumbnail } from "@/src/lib/video-tutorials"
 
-// ─── Sitemap — added 2026-09-04, expanded 2026-09-05 ───────────────────────
-// Backs the footer's "Sitemap" link (src/components/footer.tsx bottom bar,
-// per request to match Planon's own footer layout) — without this file, that
-// link would 404. Next.js's App Router convention: a `sitemap.ts` at src/app
-// root auto-generates a working /sitemap.xml route, no manual XML or extra
-// dependency needed.
+// ─── Sitemap ─────────────────────────────────────────────────────────────────
+// Backs /sitemap.xml and the footer's "Sitemap" link. Next.js auto-generates a
+// working /sitemap.xml from this file.
 //
-// 2026-09-05: switched from a hardcoded non-www BASE_URL to canonical() from
-// src/lib/seo.ts — that's the single source of truth for the canonical host
-// (www) already used in every <link rel="canonical">, OG tag and JSON-LD
-// entry sitewide. The old constant duplicated that as a separate, drifted
-// non-www string, which would have advertised every sitemap URL under a
-// different origin than the one every other tag calls canonical.
-// request-guard.ts's PRODUCTION_ORIGINS still accepts both hosts at the
-// request-validation layer — that's a separate concern from which host we
-// advertise as canonical here.
+// Hosts: URLs come from canonical() (src/lib/seo.ts) — the single source of
+// truth for the www host used in every <link rel="canonical">, OG tag and
+// JSON-LD entry. request-guard.ts still accepts both hosts at the request layer;
+// that is separate from which host we advertise here.
 //
-// STATIC_ROUTES also grew from 10 to the full public route list: the 7
-// feature-module pages, /about, /pricing, /facility-survey(+/book), /search
-// and /event-booking were simply missing before (an oversight, not a
-// deliberate noindex — every one of them already has a PAGE_SEO entry in
-// seo.ts and, as of 2026-09-05, full metadata + JSON-LD wiring). Keep this
-// list in sync with PAGE_SEO in src/lib/seo.ts when a new public page ships.
+// Rules for this list:
+//  - Only pages that are indexable and return 200. Redirects (/pricing →
+//    /, /privacy-policy → /privacy, /preventive-maintenance → its new URL) and
+//    private/app routes (see robots.ts) do not belong here.
+//  - Keep STATIC_ROUTES in sync with PAGE_SEO in src/lib/seo.ts when a public
+//    page ships. Blog posts, blog categories and the video page are DB/data
+//    driven below, so they never need a manual entry.
+//
+// 2026-11-03: added /resources/guide, /cookie-policy, the video tutorials page
+// (with its video entries) and one entry per blog category page, none of which
+// were listed; the sitemap also now revalidates (it was frozen at build time).
+export const revalidate = 86400
+
 const STATIC_ROUTES = [
   "",
   "/about",
@@ -49,6 +49,7 @@ const STATIC_ROUTES = [
   "/payroll-management-software",
   "/inventory-management-software",
   "/resources",
+  "/resources/guide",
   ...ERP_GUIDES.map((g) => `/resources/guide/${g.slug}`),
   "/blog",
   "/contact",
@@ -60,6 +61,7 @@ const STATIC_ROUTES = [
   "/industries/residential",
   "/privacy",
   "/terms",
+  "/cookie-policy",
   "/modern-slavery-statement",
 ]
 
@@ -68,19 +70,42 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     url: canonical(route),
   }))
 
-  // Individual blog posts are DB-driven and weren't in the sitemap at all
-  // before — append one entry per published post. Fails open to the static
-  // list only (never 500s the whole sitemap) if the DB read throws, same
-  // fail-open convention used by /api/search/route.ts.
+  // Video tutorials page, with one <video:video> entry per tutorial so Google can
+  // associate the videos with this URL. lastModified = newest upload (a real date).
+  const videoEntry: MetadataRoute.Sitemap[number] = {
+    url: canonical("/resources/video-tutorials"),
+    lastModified: latestVideoDate(),
+    videos: VIDEO_TUTORIALS.map((v) => ({
+      title: v.title,
+      description: v.description,
+      thumbnail_loc: videoThumbnail(v.id),
+      player_loc: videoEmbedUrl(v.id),
+      duration: v.durationSeconds,
+      publication_date: v.uploadDate,
+      family_friendly: "yes" as const,
+    })),
+  }
+
+  // DB-driven entries fail open independently: a failed read drops only its own
+  // section, never the whole sitemap (same convention as /api/search).
+  let categoryEntries: MetadataRoute.Sitemap = []
+  try {
+    const categories = await listCategories()
+    categoryEntries = categories.map((c) => ({ url: canonical(`/blog/category/${categorySlug(c)}`) }))
+  } catch (err) {
+    console.error("[SITEMAP_ERR] listCategories failed, omitting category pages", err)
+  }
+
+  let postEntries: MetadataRoute.Sitemap = []
   try {
     const posts = await listPublished()
-    const postEntries: MetadataRoute.Sitemap = posts.map((post) => ({
+    postEntries = posts.map((post) => ({
       url: canonical(`/blog/${post.slug}`),
       lastModified: new Date(post.content_updated_at || post.updated_at || Date.now()),
     }))
-    return [...staticEntries, ...postEntries]
   } catch (err) {
-    console.error("[SITEMAP_ERR] listPublished failed, falling back to static routes only", err)
-    return staticEntries
+    console.error("[SITEMAP_ERR] listPublished failed, omitting blog posts", err)
   }
+
+  return [...staticEntries, videoEntry, ...categoryEntries, ...postEntries]
 }

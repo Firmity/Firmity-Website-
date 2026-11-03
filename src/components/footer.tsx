@@ -210,7 +210,7 @@ export function Footer() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-7">
           <Link href="/" className="inline-flex items-start">
             <Image
-              src="/firmity.png"
+              src="/firmity-logo.webp"
               alt="Firmity Logo"
               width={110}
               height={36}
@@ -304,7 +304,12 @@ export function Footer() {
             </a>
             <div className="flex items-start gap-2">
               <MapPin size={14} className="text-[#114dac] flex-shrink-0 mt-0.5" />
-              <span className="text-[13px] text-[#1a4a8a] font-light">UFIRM Technologies (P) Ltd, India</span>
+              <span className="text-[13px] text-[#1a4a8a] font-light">
+                Noida, Sector 63 |{" "}
+                <a href="https://ufirm.in/" target="_blank" rel="noopener" className="hover:underline">
+                  UFIRM Technologies (P) Ltd, India
+                </a>
+              </span>
             </div>
             <Link href="/contact" className={`${colLink} mt-1`}>&gt; Get in touch</Link>
 
@@ -338,7 +343,7 @@ export function Footer() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Your e-mail"
-                  className="flex-1 min-w-0 text-[12.5px] px-3 py-2 rounded-[4px] border border-[#cbd5e0] bg-white text-[#114dac] placeholder:text-[#000000] focus:outline-none focus:border-[#114dac] focus:ring-1 focus:ring-[#114dac] transition-colors"
+                  className="flex-1 min-w-0 text-base sm:text-[12.5px] px-3 py-2 rounded-[4px] border border-[#cbd5e0] bg-white text-[#114dac] placeholder:text-[#000000] focus:outline-none focus:border-[#114dac] focus:ring-1 focus:ring-[#114dac] transition-colors"
                 />
                 <button
                   type="submit"

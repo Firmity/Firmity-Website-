@@ -70,6 +70,7 @@ const DEFAULT_PAGE_TYPES: Record<string, string> = {
   "/about": "AboutPage",
   "/contact": "ContactPage",
   "/resources": "CollectionPage",
+  "/resources/video-tutorials": "CollectionPage",
   "/blog": "Blog",
   "/sg": "WebPage",
   "/features": "ItemPage",
@@ -234,7 +235,6 @@ const ORGANIZATION_SCHEMA = {
   contactPoint: [
     {
       "@type": "ContactPoint",
-      telephone: "+91-9797039690",
       email: "sales@firmity.in", // PLACEHOLDER: Update if official contact email differs
       contactType: "sales",
       areaServed: ["IN", "SG", "AE", "US", "CA", "GB", "EU"],
@@ -249,8 +249,7 @@ const ORGANIZATION_SCHEMA = {
     },
     {
       "@type": "ContactPoint",
-      telephone: "+91-9797039690",
-      email: "demo@firmity.in", // PLACEHOLDER: Update if official support email differs
+      email: "sales@firmity.in", // was demo@firmity.in (placeholder); sales@ is the address shown on /contact and the footer. Set a dedicated support address here if one exists.
       contactType: "technical support",
       areaServed: ["IN", "SG", "AE", "US", "CA", "GB", "EU"],
       availableLanguage: ["English", "Hindi"],

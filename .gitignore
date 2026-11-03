@@ -42,7 +42,10 @@ next-env.d.ts
 Claude*
 Claude outputs*
 
-scripts/
+# Local one-off scripts stay untracked, EXCEPT the image optimizer: the
+# npm "prebuild" step runs it on every build, so it must be in the repo.
+scripts/*
+!scripts/optimize-images.mjs
 
 llms copy.txt
 
@@ -51,3 +54,8 @@ post-page_updates.md
 temp_commit_msg.md
 
 supabase/
+# Originals saved by scripts/optimize-images.mjs --blog --apply
+.image-backups/
+
+# design-taste-frontend inspector output
+.taste-skill/

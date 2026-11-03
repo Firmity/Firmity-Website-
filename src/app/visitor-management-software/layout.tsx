@@ -4,7 +4,7 @@ import { PageJsonLd } from "@/src/components/seo-json-ld"
 import { JsonLd } from "@/src/components/json-ld"
 import { serviceJsonLd } from "@/src/lib/seo"
 
-export const revalidate = 60
+export const revalidate = 86400
 
 export async function generateMetadata() {
   return buildPageMetadata("/visitor-management-software")

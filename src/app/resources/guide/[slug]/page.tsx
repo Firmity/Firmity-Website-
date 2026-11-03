@@ -20,7 +20,7 @@ import { Reveal } from "@/src/components/reveal"
 import { JsonLd } from "@/src/components/json-ld"
 import { ERP_GUIDES, getGuideBySlug } from "@/src/lib/erp-guides"
 import { BLOG_PROSE } from "@/src/lib/blog-prose"
-import { canonical, SITE } from "@/src/lib/seo"
+import { canonical, DEFAULT_OG_IMAGE, SITE } from "@/src/lib/seo"
 import { ModuleSolutionsSidebar } from "@/src/components/module-solutions-sidebar"
 
 export const revalidate = 3600
@@ -59,11 +59,13 @@ export async function generateMetadata({
       publishedTime: guide.datePublished,
       modifiedTime: guide.dateModified,
       authors: [guide.author],
+      images: [DEFAULT_OG_IMAGE],
     },
     twitter: {
       card: "summary_large_image",
       title: guide.title,
       description: guide.description,
+      images: [DEFAULT_OG_IMAGE.url],
     },
   }
 }

@@ -11,7 +11,7 @@
 import { NextResponse } from "next/server"
 import { listPublished, updatedLabel } from "@/src/lib/blog"
 
-export const revalidate = 60 // revalidate every 60 s (ISR)
+export const revalidate = 86400 // revalidate every 60 s (ISR)
 
 // Keep this in sync with page.tsx's own copy — see that file's comment.
 const CASE_STUDY_FALLBACK_SLUG = "spreadsheets-to-cmms"

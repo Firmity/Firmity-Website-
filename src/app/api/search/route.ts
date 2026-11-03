@@ -21,7 +21,10 @@
 import { NextResponse } from "next/server";
 import { listPublished } from "@/src/lib/blog";
 
-export const revalidate = 60; // ISR, matches /api/blog/latest's cadence
+// Reads the query string per request, so it can never be ISR — a `revalidate`
+// export here only made the build try (and fail) to prerender it, logging a
+// DYNAMIC_SERVER_USAGE error. Declare it dynamic explicitly instead.
+export const dynamic = "force-dynamic";
 
 export interface SearchResult {
   title: string;

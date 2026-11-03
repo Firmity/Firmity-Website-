@@ -900,8 +900,18 @@ function SlideshowLeft({
           <div style={{ animation: "hsModUp2 0.65s cubic-bezier(0.22,1,0.36,1) both" }}>
             {isHero ? (
               <h1 className="font-serif font-light text-[#114dac] leading-[1.1] tracking-tight mb-4" style={{ fontSize: "clamp(1.75rem,3.5vw,2.75rem)" }}>
-                The Complete<br />
-                <em className="not-italic" style={{ color: "#2b6cb0" }}>Facility Automation</em><br />
+                {/* Brand + product keywords inside the H1 itself (2026-11-03): the
+                    old H1 had neither "Firmity" nor CMMS/CAFM/ERP, the terms the
+                    page is titled and described around. Visible eyebrow styling
+                    (not hidden text) so users and crawlers see the same thing. */}
+                <span className="mb-3 block font-sans text-[10px] font-semibold uppercase tracking-[0.22em] text-[#2b6cb0]">
+                  Firmity CMMS · CAFM · ERP
+                </span>
+                {/* {" "} after each <br />: line breaks add no whitespace to the text, so
+                    crawlers/LLMs/screen readers read "CompleteFacility AutomationSoftware".
+                    A space at the start of a line collapses visually — no layout change. */}
+                {" "}The Complete<br />{" "}
+                <em className="not-italic" style={{ color: "#2b6cb0" }}>Facility Automation</em><br />{" "}
                 Software Suite
               </h1>
             ) : (
@@ -1680,7 +1690,7 @@ export function KeepInTouchSection({
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Your e-mail address"
-                  className="flex-1 min-w-0 text-[13px] px-4 py-3 rounded-[4px] border border-[#cbd5e0] bg-white text-[#114dac] placeholder:text-[#000000] focus:outline-none focus:border-[#114dac] focus:ring-1 focus:ring-[#114dac] transition-colors"
+                  className="flex-1 min-w-0 text-base sm:text-[13px] px-4 py-3 rounded-[4px] border border-[#cbd5e0] bg-white text-[#114dac] placeholder:text-[#000000] focus:outline-none focus:border-[#114dac] focus:ring-1 focus:ring-[#114dac] transition-colors"
                 />
                 <button
                   type="submit"

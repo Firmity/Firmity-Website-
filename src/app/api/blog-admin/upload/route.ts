@@ -26,13 +26,21 @@ export async function POST(req: Request) {
     let ext = (file.name.split(".").pop() || "png").toLowerCase().replace(/[^a-z0-9]/g, "");
     let contentType = file.type;
     if (file.type !== "image/gif") {
-      buffer = await sharp(original)
+      // limitInputPixels guards against decompression bombs (a tiny file that
+      // decodes to a gigapixel bitmap); 40 MP covers any real photo/screenshot.
+      // quality 78 matches scripts/optimize-images.mjs so uploads and the
+      // backfill produce the same output.
+      const encoded = await sharp(original, { limitInputPixels: 40_000_000 })
         .rotate()
         .resize({ width: MAX_WIDTH, withoutEnlargement: true })
-        .webp({ quality: 80 })
+        .webp({ quality: 78, effort: 5 })
         .toBuffer();
+      // Never make an already-small file bigger (e.g. a tiny optimized logo).
+      const keepOriginalBytes = encoded.length >= original.length && file.type === "image/webp";
+      buffer = keepOriginalBytes ? original : encoded;
       ext = "webp";
       contentType = "image/webp";
+      console.info(`[BLOG_UPLOAD] ${file.name}: ${original.length} -> ${buffer.length} bytes`);
     }
     const path = `posts/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
 

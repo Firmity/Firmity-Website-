@@ -8,7 +8,7 @@ import { SITE } from "@/src/lib/seo"
 import { listPublished, updatedLabel } from "@/src/lib/blog"
 import FirmityHome, { type LatestPost } from "./home-client"
 
-export const revalidate = 60
+export const revalidate = 86400
 
 // Module names as shown on the site. (Not imported from home-sections.tsx: that
 // is a client module, and a server component can't read its non-component exports.)

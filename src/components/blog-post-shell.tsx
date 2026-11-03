@@ -170,9 +170,11 @@ export function BlogPostShell({
               </aside>
             )}
 
-            <div className="min-w-0">
-              <div className="max-w-3xl mx-auto">{children}</div>
-            </div>
+            {/* <article> is the semantic landmark for the post (header, body,
+                FAQ, author bio) — it also replaces two nested wrapper divs
+                (min-w-0 + max-w-3xl mx-auto) with one element, so the DOM is
+                one level shallower and the layout is unchanged. */}
+            <article className="mx-auto w-full min-w-0 max-w-3xl">{children}</article>
           </div>
 
           {afterContent && <div className="mt-12 lg:mt-16">{afterContent}</div>}

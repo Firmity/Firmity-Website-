@@ -1,7 +1,7 @@
 import { MetadataRoute } from "next";
 import { getSiteSeo, listPageSeo } from "@/src/lib/seo-store";
 
-export const revalidate = 300;
+export const revalidate = 86400;
 
 export default async function robots(): Promise<MetadataRoute.Robots> {
   const base = ["/login", "/staff-login", "/surveys", "/my-surveys", "/survey/", "/awards", "/settings", "/profile", "/admin/", "/blog-admin", "/api/", "/dashboard/", "/r/", "/home"];
