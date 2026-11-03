@@ -271,6 +271,14 @@ export const PAGE_SEO: Record<string, PageSeo> = {
       "Manage inventory efficiently with Firmity. Track stock, spare parts, purchases, usage, and inventory records while improving visibility across facility operations.",
     keywords: [...BASE_KEYWORDS, "inventory management software", "stock management software"],
   },
+  // Added 2026-11-03: the page existed with no metadata of its own (it showed the
+  // site-wide default title). Videos live in src/lib/video-tutorials.ts.
+  "/resources/video-tutorials": {
+    title: "Video Tutorials: Firmity CMMS, CAFM & ERP Walkthroughs",
+    description:
+      "Watch short Firmity video tutorials, starting with the Facility Manager dashboard login. Step-by-step walkthroughs of the CMMS, CAFM and ERP platform.",
+    keywords: [...BASE_KEYWORDS, "CMMS tutorial", "facility management software demo video", "Firmity tutorial"],
+  },
 };
 
 /** Absolute canonical URL for a path. */
@@ -286,6 +294,7 @@ export const SEO_ROUTES: { path: string; label: string }[] = [
   { path: "/pricing", label: "Pricing" },
   { path: "/about", label: "About" },
   { path: "/resources", label: "Resources" },
+  { path: "/resources/video-tutorials", label: "Resources — Video Tutorials" },
   { path: "/blog", label: "Blog (index)" },
   { path: "/contact", label: "Contact" },
   { path: "/facility-survey", label: "Facility Survey" },
@@ -362,21 +371,33 @@ export function noindexMetadata(title: string): Metadata {
 // client components.
 
 export function organizationJsonLd() {
+  // Same @id as the richer Organization in components/seo-json-ld.tsx so the two
+  // blocks describe ONE entity (they used to be two unrelated Organizations with
+  // different names and addresses). Address and email match the visible contact
+  // details on /contact and in the footer (Noida, Sector 63; sales@firmity.in).
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
+    "@id": `${SITE.url}/#organization`,
     name: SITE.name,
     legalName: SITE.legalName,
     url: SITE.url,
     logo: `${SITE.url}/firmity.png`,
     description:
       "AI-powered facility management, CMMS and ERP platform for maintenance, assets, inventory, payroll, expenses, workforce and compliance.",
-    address: { "@type": "PostalAddress", addressCountry: "IN" },
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "H-64, Sector 63",
+      addressLocality: "Noida",
+      addressRegion: "Uttar Pradesh",
+      postalCode: "201301",
+      addressCountry: "IN",
+    },
     sameAs: [...SOCIAL_PROFILES] as string[],
     contactPoint: {
       "@type": "ContactPoint",
       contactType: "sales",
-      email: "demo@firmity.in",
+      email: "sales@firmity.in",
       areaServed: "IN",
       availableLanguage: ["English"],
     },

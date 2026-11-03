@@ -304,7 +304,12 @@ export function Footer() {
             </a>
             <div className="flex items-start gap-2">
               <MapPin size={14} className="text-[#114dac] flex-shrink-0 mt-0.5" />
-              <span className="text-[13px] text-[#1a4a8a] font-light">UFIRM Technologies (P) Ltd, India</span>
+              <span className="text-[13px] text-[#1a4a8a] font-light">
+                Noida, Sector 63 |{" "}
+                <a href="https://ufirm.in/" target="_blank" rel="noopener" className="hover:underline">
+                  UFIRM Technologies (P) Ltd, India
+                </a>
+              </span>
             </div>
             <Link href="/contact" className={`${colLink} mt-1`}>&gt; Get in touch</Link>
 
