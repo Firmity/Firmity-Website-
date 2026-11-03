@@ -106,7 +106,7 @@ const HERO_SECTION_ID = "hero-slideshow"
 //   clear SESSION_KEY_CLOSED — that flag only ever means "don't
 //   auto-open", not "never open again"; the user can still open it by hand
 //   any time.
-export function AppQrWidget({ className = "" }: { className?: string }) {
+export function AppQrWidget() {
   const [expanded, setExpanded] = useState(false)
 
   useEffect(() => {
@@ -144,7 +144,7 @@ export function AppQrWidget({ className = "" }: { className?: string }) {
   // layer in marketing-widgets.tsx. Only this widget's own `relative`
   // anchor (for the absolutely-stacked thumbnail + card) remains.
   return (
-        <div className={`relative ${className}`}>
+        <div className="relative">
           {/* Thumbnail — same 48px circle + opacity-60/hover-100 treatment
               as WhatsAppButton, so it reads as "one of the site's floating
               widgets" rather than a broken/leftover element. */}

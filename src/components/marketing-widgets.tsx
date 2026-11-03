@@ -57,10 +57,7 @@ export function MarketingWidgets() {
   // tuned before. Order: QR on top, WhatsApp at the bottom (unchanged).
   return (
     <div className="fixed bottom-5 right-6 z-40 flex flex-col items-end gap-3 sm:right-10 lg:right-16">
-      {/* /contact on phones: this is a "scan with your phone" prompt (useless when
-          you're already on the phone) and the expanded card sat on top of the form
-          fields. Hidden below md there only; every other page is unchanged. */}
-      <AppQrWidget className={pathname === "/contact" ? "hidden md:block" : ""} />
+      <AppQrWidget />
       <WhatsAppButton />
     </div>
   )
