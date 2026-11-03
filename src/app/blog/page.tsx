@@ -6,6 +6,7 @@
 import { listPublished, toCardData } from "@/src/lib/blog";
 import { sliceForPage } from "@/src/lib/blog-pagination";
 import { BlogIndex } from "@/src/components/blog/blog-index";
+import { PageJsonLd } from "@/src/components/seo-json-ld";
 
 export const revalidate = 86400;
 
@@ -14,5 +15,10 @@ export default async function BlogPage() {
   const { items, page, totalPages } = sliceForPage(cards, 1);
   // `searchIndex` carries every card so the sidebar search/topic filters keep
   // working across the whole blog even though only one page is rendered.
-  return <BlogIndex posts={items} searchIndex={cards} pagination={{ page, totalPages }} />;
+  return (
+    <>
+      <PageJsonLd path="/blog" />
+      <BlogIndex posts={items} searchIndex={cards} pagination={{ page, totalPages }} />
+    </>
+  );
 }

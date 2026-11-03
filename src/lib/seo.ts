@@ -195,7 +195,7 @@ export const PAGE_SEO: Record<string, PageSeo> = {
   "/modern-slavery-statement": {
     title: "Modern Slavery Statement",
     description:
-      "Firmity's Modern Slavery Statement: how Ufirm Technologies prevents forced labour, child labour and human trafficking across our hiring, operations and supply chains.",
+      "Firmity's Modern Slavery Statement: how Ufirm Technologies prevents forced labour, child labour and human trafficking in hiring, operations and supply chains.",
     keywords: [
       "modern slavery statement",
       "anti slavery policy",
@@ -224,49 +224,49 @@ export const PAGE_SEO: Record<string, PageSeo> = {
   // ─── 8 pillar pages added 2026-09-30, from the SEO tracker spreadsheet.
   // Meta title/description below are the client-supplied copy, used verbatim.
   "/cmms-software": {
-    title: "CMMS Software for Maintenance Management | Firmity",
+    title: "CMMS Software for Maintenance Management",
     description:
       "Manage work orders, preventive maintenance, assets, inventory, and maintenance teams with Firmity CMMS software. Streamline maintenance operations today.",
     keywords: [...BASE_KEYWORDS, "CMMS software", "computerized maintenance management system", "maintenance management software"],
   },
   "/erp-software": {
-    title: "ERP Software for Business Management | Firmity",
+    title: "ERP Software for Business Management",
     description:
       "Streamline business operations with Firmity ERP software. Manage assets, maintenance, inventory, employees, expenses, compliance, and workflows in one platform.",
     keywords: [...BASE_KEYWORDS, "ERP software", "enterprise resource planning software", "business management software"],
   },
   "/asset-management-software": {
-    title: "Asset Management Software for Smarter Asset Tracking | Firmity",
+    title: "Asset Management Software for Smarter Asset Tracking",
     description:
       "Manage and track assets with Firmity asset management software. Monitor asset records, locations, maintenance, lifecycle details, and performance from one platform.",
     keywords: [...BASE_KEYWORDS, "asset management software", "asset tracking software"],
   },
   "/complaint-management-software": {
-    title: "Complaint Management Software for Faster Resolution | Firmity",
+    title: "Complaint Management Software for Faster Resolution",
     description:
       "Manage complaints efficiently with Firmity complaint management software. Track requests, assign tasks, monitor resolution status, and improve service operations.",
     keywords: [...BASE_KEYWORDS, "complaint management software", "complaint tracking software"],
   },
   "/visitor-management-software": {
-    title: "Visitor Management Software for Offices | Firmity",
+    title: "Visitor Management Software for Offices",
     description:
       "Simplify visitor registration and tracking with Firmity visitor management software. Manage check-ins, approvals, visitor records, and access efficiently.",
     keywords: [...BASE_KEYWORDS, "visitor management software", "visitor management system"],
   },
   "/employee-management-software": {
-    title: "Employee Management Software for Workforce Operations | Firmity",
+    title: "Employee Management Software for Workforce Operations",
     description:
       "Simplify employee management with Firmity. Manage employee records, attendance, tasks, payroll, and workforce operations from one centralized platform.",
     keywords: [...BASE_KEYWORDS, "employee management software", "workforce management software"],
   },
   "/payroll-management-software": {
-    title: "Payroll Management Software for Easy Payroll Processing | Firmity",
+    title: "Payroll Management Software for Easy Payroll Processing",
     description:
       "Simplify payroll operations with Firmity payroll management software. Manage employee payroll, attendance, salary records, and payroll workflows from one platform.",
     keywords: [...BASE_KEYWORDS, "payroll management software", "payroll processing software"],
   },
   "/inventory-management-software": {
-    title: "Inventory Management Software for Tracking & Managing Stock | Firmity",
+    title: "Inventory Management Software for Tracking & Managing Stock",
     description:
       "Manage inventory efficiently with Firmity. Track stock, spare parts, purchases, usage, and inventory records while improving visibility across facility operations.",
     keywords: [...BASE_KEYWORDS, "inventory management software", "stock management software"],
@@ -280,6 +280,24 @@ export const PAGE_SEO: Record<string, PageSeo> = {
     keywords: [...BASE_KEYWORDS, "CMMS tutorial", "facility management software demo video", "Firmity tutorial"],
   },
 };
+
+/** Default social-preview image. Pages that set their own `openGraph` must pass
+ * this explicitly: Next.js only shallow-merges metadata, so a child openGraph
+ * without `images` drops the site-wide one and the page gets a blank preview. */
+export const DEFAULT_OG_IMAGE = { url: "/opengraph-image", width: 1200, height: 630, alt: SITE.name };
+
+/** Meta descriptions over ~160 characters are cut off mid-sentence in results.
+ * Trims at the last sentence end (or word) that fits and never returns more than
+ * `max` characters. Use for descriptions that come from editors/the database. */
+export function clampDescription(text: string | null | undefined, max = 160): string | undefined {
+  const s = (text ?? "").replace(/\s+/g, " ").trim();
+  if (!s) return undefined;
+  if (s.length <= max) return s;
+  const cut = s.slice(0, max - 1);
+  const sentenceEnd = Math.max(cut.lastIndexOf(". "), cut.lastIndexOf("? "), cut.lastIndexOf("! "));
+  if (sentenceEnd > max * 0.6) return cut.slice(0, sentenceEnd + 1);
+  return cut.replace(/\s+\S*$/, "").replace(/[,;:\-–—\s]+$/, "") + "…";
+}
 
 /** Absolute canonical URL for a path. */
 export function canonical(path: string): string {

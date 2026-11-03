@@ -235,7 +235,6 @@ const ORGANIZATION_SCHEMA = {
   contactPoint: [
     {
       "@type": "ContactPoint",
-      telephone: "+91-9797039690",
       email: "sales@firmity.in", // PLACEHOLDER: Update if official contact email differs
       contactType: "sales",
       areaServed: ["IN", "SG", "AE", "US", "CA", "GB", "EU"],
@@ -250,7 +249,6 @@ const ORGANIZATION_SCHEMA = {
     },
     {
       "@type": "ContactPoint",
-      telephone: "+91-9797039690",
       email: "sales@firmity.in", // was demo@firmity.in (placeholder); sales@ is the address shown on /contact and the footer. Set a dedicated support address here if one exists.
       contactType: "technical support",
       areaServed: ["IN", "SG", "AE", "US", "CA", "GB", "EU"],

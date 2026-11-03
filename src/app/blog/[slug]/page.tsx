@@ -11,7 +11,7 @@ import { getBySlug, extractToc, sanitizeContent, listRelatedByCategory, listPubl
 import { getAuthorById } from "@/src/lib/blog-authors";
 import { BLOG_SEO_TITLES } from "@/src/lib/blog-seo-titles";
 import { BLOG_PROSE } from "@/src/lib/blog-prose";
-import { canonical, SITE } from "@/src/lib/seo";
+import { canonical, clampDescription, SITE } from "@/src/lib/seo";
 import { JsonLd } from "@/src/components/json-ld";
 import { DownloadPdf } from "@/src/components/blog/download-pdf";
 import { getSiteSeo } from "@/src/lib/seo-store";
@@ -53,7 +53,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const post = await getBySlug(slug);
   if (!post || post.status !== "published") return { title: "Article", robots: { index: false, follow: true } };
   const url = canonical(`/blog/${slug}`);
-  const description = post.meta_description || post.subtitle || undefined;
+  // Editors can write any length; clamp so snippets are never cut mid-sentence by Google.
+  const description = clampDescription(post.meta_description || post.subtitle);
   const images = post.cover_image_url ? [{ url: post.cover_image_url }] : undefined;
   // Shorter title for search/social when the headline is too long to display
   // (see BLOG_SEO_TITLES); the H1 and BlogPosting headline keep the full title.

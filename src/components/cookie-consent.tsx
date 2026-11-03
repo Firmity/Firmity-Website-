@@ -168,7 +168,11 @@ export function CookieConsent() {
         type="button"
         onClick={() => setExpanded((v) => !v)}
         aria-expanded={expanded}
-        className="inline-flex items-center justify-center gap-1.5 text-[12px] font-light text-[#114dac] hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[#63b3ed] rounded-[4px] py-1"
+        // Collapsed on a phone, this toggle moves up beside the title (see below) so the
+        // banner is one row shorter; expanded, it stays here with the other actions.
+        className={`inline-flex items-center justify-center gap-1.5 text-[12px] font-light text-[#114dac] hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[#63b3ed] rounded-[4px] py-1 ${
+          expanded ? "" : "max-sm:hidden"
+        }`}
       >
         {expanded ? "Hide details" : "More details"}
         {expanded ? <ChevronDown size={14} aria-hidden="true" /> : <ChevronUp size={14} aria-hidden="true" />}
@@ -196,7 +200,7 @@ export function CookieConsent() {
         aria-label="Cookie consent"
         className="pointer-events-auto w-full bg-white border-t border-[#dbe5f0] shadow-[0_-4px_16px_rgba(0,0,0,0.06)] pb-[env(safe-area-inset-bottom)]"
       >
-        <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 py-4">
+        <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 py-3 sm:py-4">
           {expanded ? (
             <>
               <div role="tablist" aria-label="Cookie information" className="flex border-b border-[#dbe5f0]">
@@ -239,10 +243,23 @@ export function CookieConsent() {
               </div>
             </>
           ) : (
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-10">
+            <div className="flex flex-col gap-2 sm:gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-10">
               <div className="min-w-0">
-                <p className="text-[13px] font-semibold text-[#1a202c]">This website uses cookies</p>
-                <p className="mt-0.5 text-[12px] font-light text-[#4a5568] leading-[1.7]">
+                <div className="flex items-start justify-between gap-3">
+                  <p className="text-[13px] font-semibold text-[#1a202c]">This website uses cookies</p>
+                  {/* Phone-only copy of the "More details" toggle: sits on the title row
+                      instead of on its own line under the buttons (saves ~30px of height,
+                      so the banner covers less of the page). */}
+                  <button
+                    type="button"
+                    onClick={() => setExpanded(true)}
+                    aria-expanded={false}
+                    className="inline-flex shrink-0 items-center gap-1 text-[12px] font-light text-[#114dac] hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[#63b3ed] rounded-[4px] sm:hidden"
+                  >
+                    More details <ChevronUp size={14} aria-hidden="true" />
+                  </button>
+                </div>
+                <p className="mt-0.5 text-[12px] font-light text-[#4a5568] leading-[1.55] sm:leading-[1.7]">
                   Essential cookies keep the website working. We use analytics and marketing cookies only if you accept.
                   If you reject, the website works as normal with essential cookies only.
                 </p>

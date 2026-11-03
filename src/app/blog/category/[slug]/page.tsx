@@ -10,7 +10,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { listCategories, listPublishedByCategory, categorySlug } from "@/src/lib/blog";
 import { BlogIndex } from "@/src/components/blog/blog-index";
-import { canonical } from "@/src/lib/seo";
+import { canonical, DEFAULT_OG_IMAGE } from "@/src/lib/seo";
 
 export const revalidate = 86400;
 
@@ -34,8 +34,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     title: `${category} Articles — Firmity Blog`,
     description,
     alternates: { canonical: url },
-    openGraph: { title: `${category} Articles — Firmity Blog`, description, url, type: "website" },
-    twitter: { card: "summary", title: `${category} Articles — Firmity Blog`, description },
+    openGraph: { title: `${category} Articles — Firmity Blog`, description, url, type: "website", images: [DEFAULT_OG_IMAGE] },
+    twitter: { card: "summary_large_image", title: `${category} Articles — Firmity Blog`, description, images: [DEFAULT_OG_IMAGE.url] },
   };
 }
 

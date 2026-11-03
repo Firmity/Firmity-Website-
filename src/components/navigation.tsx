@@ -339,7 +339,7 @@ export function Navigation({ breadcrumbOverride }: { breadcrumbOverride?: Breadc
           onMouseEnter/Leave mirrors the trigger so moving cursor into the
           panel clears the close timer — no disappearing on hover. */}
       <div
-        className={`absolute left-0 right-0 top-full z-40 transition-all duration-200 origin-top
+        className={`hidden md:block absolute left-0 right-0 top-full z-40 transition-all duration-200 origin-top
           ${industriesOpen
             ? "opacity-100 translate-y-0 pointer-events-auto"
             : "opacity-0 -translate-y-1 pointer-events-none"
