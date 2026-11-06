@@ -95,6 +95,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import { useState, useRef, type FormEvent } from "react"
+import { NewsletterNotice } from "@/src/components/consent-notice"
 import { Linkedin, Instagram, Youtube, Mail, MapPin, Loader2, CheckCircle2, AlertCircle } from "lucide-react"
 
 // ─── Footer — rebuilt 2026-09-04 to match Planon's own site footer layout ─────
@@ -354,6 +355,7 @@ export function Footer() {
                 </button>
               </form>
             )}
+            {!submitted && <NewsletterNotice />}
             {error && (
               <div className="flex items-center gap-1.5 text-[11.5px] text-red-600">
                 <AlertCircle size={12} className="flex-shrink-0" />
@@ -413,6 +415,8 @@ export function Footer() {
             <Link href="/privacy" className="text-[12px] text-[#114dac] hover:underline font-light">Privacy Policy</Link>
             <Link href="/terms" className="text-[12px] text-[#114dac] hover:underline font-light">Terms &amp; Conditions</Link>
             <Link href="/cookie-policy" className="text-[12px] text-[#114dac] hover:underline font-light">Cookie Policy</Link>
+            <Link href="/data-rights" className="text-[12px] text-[#114dac] hover:underline font-light">Your Data Rights</Link>
+            <Link href="/unsubscribe" className="text-[12px] text-[#114dac] hover:underline font-light">Withdraw Consent</Link>
             <Link href="/modern-slavery-statement" className="text-[12px] text-[#114dac] hover:underline font-light">Modern Slavery Statement</Link>
             <Link href="/sitemap.xml" className="text-[12px] text-[#114dac] hover:underline font-light">Sitemap</Link>
             <Link href="/contact" className="text-[12px] text-[#114dac] hover:underline font-light">Contact</Link>

@@ -4,6 +4,7 @@ import type React from "react"
 import { useState, useRef } from "react"
 import { Download, Loader2, CheckCircle, AlertCircle } from "lucide-react"
 import { HowDidYouHearForm } from "@/src/components/how-did-you-hear-form"
+import { ConsentNotice } from "@/src/components/consent-notice"
 
 // Bot resistance (2026-09-01 — this form was being hit repeatedly by bots
 // submitting fake leads): the server (src/app/api/brochure/route.ts) already
@@ -21,6 +22,8 @@ export function BrochureDownloadForm() {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState("")
+  // Optional marketing consent — always starts unticked (DPDP s.6), never blocks the download.
+  const [marketingConsent, setMarketingConsent] = useState(false)
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -51,12 +54,13 @@ export function BrochureDownloadForm() {
       const response = await fetch("/api/brochure", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, marketingConsent }),
       })
 
       if (response.ok) {
         setSuccess(true)
         setFormData({ name: "", email: "", phone: "", city: "", website: "" })
+        setMarketingConsent(false)
 
         const link = document.createElement("a")
         link.href = "/Pricing_FIRMITY FACILITY SOFTWARE UFIRM TECHNOLOGIES.pdf"
@@ -188,6 +192,8 @@ export function BrochureDownloadForm() {
         </div>
       )}
 
+      <ConsentNotice checked={marketingConsent} onChange={setMarketingConsent} />
+
       <button
         type="submit"
         disabled={loading}
@@ -206,9 +212,6 @@ export function BrochureDownloadForm() {
         )}
       </button>
 
-      <p className="text-[10.5px] text-[#000000] text-center font-light">
-        No spam. Instant PDF download.
-      </p>
     </form>
   )
 }

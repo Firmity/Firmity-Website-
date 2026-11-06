@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import nodemailer from "nodemailer"
 import { isTrustedOrigin, FORBIDDEN_BODY } from "@/src/lib/request-guard"
+import { logLeadConsent } from "@/src/lib/dpdp-log"
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -13,7 +14,9 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { name, email, phone, city, website } = await req.json()
+    const { name, email, phone, city, website, marketingConsent } = await req.json()
+    // Only a literal `true` from the separate, unticked box counts as marketing consent.
+    const marketingOptIn = marketingConsent === true
 
     // Honeypot: a real visitor never fills this (it's hidden off-screen in
     // brochure-download-form.tsx); a bot filling every field blindly does.
@@ -31,6 +34,8 @@ export async function POST(req: Request) {
     ) {
       return NextResponse.json({ success: false, error: "Missing or invalid fields" }, { status: 400 })
     }
+
+    await logLeadConsent(req, { email, fullName: name, form: "brochure", marketingOptIn })
 
     // Create transporter (example using Gmail)
     const transporter = nodemailer.createTransport({
@@ -53,6 +58,7 @@ Name: ${name}
 Email: ${email}
 Phone: ${phone}
 City: ${city}
+Marketing consent: ${marketingOptIn ? "YES (ticked the optional box)" : "No"}
       `,
     })
 
@@ -61,7 +67,7 @@ City: ${city}
       await fetch(process.env.GOOGLE_SHEET_WEBHOOK_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, phone, city, timestamp: new Date().toISOString() }),
+        body: JSON.stringify({ name, email, phone, city, marketingConsent: marketingOptIn, timestamp: new Date().toISOString() }),
       })
     }
 

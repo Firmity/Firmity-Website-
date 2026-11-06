@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server"
 import nodemailer from "nodemailer"
 import { isTrustedOrigin, FORBIDDEN_BODY } from "@/src/lib/request-guard"
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+import { EMAIL_RE, isLeadForm } from "@/src/lib/dpdp-constants"
+import { logLeadConsent } from "@/src/lib/dpdp-log"
 
 export async function POST(req: Request) {
   // Bot guard — see src/lib/request-guard.ts. Applied 2026-09-01 across all
@@ -13,7 +13,11 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { fullName, email, phone, companyName, manpower, message, requestType, website } = await req.json()
+    const { fullName, email, phone, companyName, manpower, message, requestType, website, marketingConsent, form } =
+      await req.json()
+    // DPDP: marketing consent is ONLY ever true when the visitor ticked the
+    // separate, unticked-by-default box. Anything other than literal `true` is "no".
+    const marketingOptIn = marketingConsent === true
 
     // Honeypot — see how-did-you-hear-form.tsx / brochure-download-form.tsx
     // comment for the same field. Silently "succeed" so a bot can't tell.
@@ -35,6 +39,14 @@ export async function POST(req: Request) {
     // existing caller still always sends a non-empty value, so this is
     // purely additive, not a loosening of validation for them.
     const safeCompanyName = typeof companyName === "string" && companyName.trim() ? companyName.trim() : "(not provided)"
+
+    // Proof of notice / consent (DPDP). Never blocks the enquiry; see dpdp-log.ts.
+    await logLeadConsent(req, {
+      email,
+      fullName,
+      form: isLeadForm(form) ? form : "contact-page",
+      marketingOptIn,
+    })
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -58,6 +70,7 @@ Phone: ${phone}
 Company: ${safeCompanyName}
 Team Size: ${manpower}
 Request Type: ${requestType}
+Marketing consent: ${marketingOptIn ? "YES (ticked the optional box)" : "No"}
 Message: ${message}
       `,
     })
@@ -74,6 +87,7 @@ Message: ${message}
           manpower,
           message,
           requestType,
+          marketingConsent: marketingOptIn,
           timestamp: new Date().toISOString(),
         }),
       })

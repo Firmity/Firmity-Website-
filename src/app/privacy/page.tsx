@@ -1,6 +1,10 @@
 // ─── Privacy Policy Page ──────────────────────────────────────────────────────
 // Content sourced from: privacypolicy.docx (14-clause Privacy Policy), reproduced verbatim.
-// Do not add, remove or reword policy text here. Deliberate differences from the document:
+// Do not reword the policy text here. Additions of 5 Nov 2026 (DPDP audit gaps): clauses 2.3-2.6
+// (mobile application, camera, location, device data — wording from the previous policy below),
+// 7.2 (retention table, from the Policy Pack's Retention schedule), 9.4-9.5 (withdrawing consent;
+// 9.5 is the Policy Pack's "What withdrawal means"), the registered-office PIN in 13.1, and 15
+// (Children, from the Policy Pack). Deliberate differences from the document:
 // the Support/Sales details, the Cookie Policy links, the live "Cookie settings" link, the
 // effective date (same as Terms), and the two clause cross-references corrected to 12 and 13.
 // Last Updated: 10-06-2026
@@ -86,6 +90,41 @@ const COLLECTION_ROWS: CollectionRow[] = [
   },
 ]
 
+// Clause 7.2 table: rows copied from the Retention schedule in the Firmity DPDP Audit
+// Policy Pack. The five rows the pack marked "[confirm]" or left in brackets (contracts and tax,
+// payroll, attendance, breach records, backups) were confirmed by the company on 5 Nov 2026.
+interface RetentionRow {
+  record: string
+  keepFor: string
+  countedFrom: string
+  basis: string
+}
+
+const RETENTION_ROWS: RetentionRow[] = [
+  { record: "Website enquiries and unconverted leads", keepFor: "12 months", countedFrom: "Last interaction", basis: "Purpose served when enquiry closes" },
+  { record: "Marketing contact data", keepFor: "Until consent is withdrawn, or 24 months of no engagement", countedFrom: "Consent or last engagement", basis: "Consent-based" },
+  { record: "Customer contacts and account administrators", keepFor: "Subscription term plus 3 years", countedFrom: "End of contract", basis: "Limitation Act, 1963 (3 years for contract claims)" },
+  { record: "Customer contracts, invoices and tax records", keepFor: "8 years", countedFrom: "End of the financial year concerned", basis: "Companies Act, 2013, Section 128; GST records" },
+  { record: "Job candidates, not hired", keepFor: "12 months", countedFrom: "Final decision", basis: "Handling of disputes" },
+  { record: "Job candidates in talent pool", keepFor: "24 months", countedFrom: "Consent date", basis: "Consent-based" },
+  { record: "Background-verification reports", keepFor: "Probation plus 12 months for hires; 6 months for non-hires", countedFrom: "Joining or decision", basis: "Employment purpose" },
+  { record: "Employee payroll, provident fund, ESI, tax and statutory records", keepFor: "8 years", countedFrom: "End of the financial year concerned", basis: "Company, tax and labour laws" },
+  { record: "Employee HR file (offer, appraisal, disciplinary, exit)", keepFor: "3 years", countedFrom: "Exit date", basis: "Limitation period for employment claims" },
+  { record: "Attendance and leave records", keepFor: "3 years", countedFrom: "End of the year concerned", basis: "Statutory" },
+  { record: "Biometric Templates (attendance)", keepFor: "Delete within 30 days", countedFrom: "Withdrawal of consent or exit", basis: "Consent-based; no longer needed" },
+  { record: "Office CCTV and visitor logs", keepFor: "60 days", countedFrom: "Date of recording", basis: "Security; deleted unless an incident is open" },
+  { record: "Security, access and system logs, including logs of personal-data Processing", keepFor: "365 days minimum, on tamper-resistant storage in India", countedFrom: "Date of log", basis: "CERT-In Directions (180 days) and DPDP Rules, 2025, Rule 8(3) (one year)" },
+  { record: "Support tickets", keepFor: "3 years", countedFrom: "Ticket closed", basis: "Limitation period" },
+  { record: "Call recordings", keepFor: "90 days", countedFrom: "Date of recording", basis: "Quality and training; consent-based" },
+  { record: "Consent records and notice versions", keepFor: "Duration of reliance plus 3 years", countedFrom: "Withdrawal or end of reliance", basis: "Proof of consent" },
+  { record: "Rights requests, grievances and erasure certificates", keepFor: "3 years", countedFrom: "Request closed", basis: "Accountability to the Board" },
+  { record: "Personal data breach records", keepFor: "5 years", countedFrom: "Incident closed", basis: "Regulatory and legal defence" },
+  { record: "Vendor contracts and contact data", keepFor: "Term plus 3 years", countedFrom: "End of contract", basis: "Limitation Act, 1963" },
+  { record: "Encrypted backups", keepFor: "Rolling 90 days", countedFrom: "Backup date", basis: "Business continuity; overwritten in cycle" },
+  { record: "Data under legal hold", keepFor: "Until released in writing by Legal", countedFrom: "Hold notice", basis: "Litigation or investigation" },
+  { record: "Customer Data in the platform (Firmity as Processor)", keepFor: "30-day Retention Window, then deleted or anonymised", countedFrom: "End of customer contract or customer instruction", basis: "DPA clause 10. Not governed by this schedule" },
+]
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function PrivacyPage() {
@@ -110,10 +149,10 @@ export default function PrivacyPage() {
                 Privacy Policy
               </h1>
               <p className="text-[13px] font-light text-white/[0.45] mt-2">
-                Last Updated: 10 June 2026
+                Last Updated: 5 November 2026
               </p>
               <p className="text-[13px] font-light text-white/[0.45] mt-1">
-                Document control: Version 1.0 &nbsp;·&nbsp; Effective 1 March 2026.
+                Document control: Version 2.0 &nbsp;·&nbsp; Effective 5 November 2026.
               </p>
               <p className="text-[13px] font-light text-white/[0.45] mt-1">
                 Reviewed: annually, or on change of purpose, vendor or law.
@@ -123,15 +162,22 @@ export default function PrivacyPage() {
                 <strong className="font-semibold text-white/70">Ufirm Technologies Private Limited</strong>,
                 which operates the Firmity platform (&ldquo;Firmity&rdquo;, &ldquo;we&rdquo;, &ldquo;us&rdquo;),
                 collects, uses, shares, stores and protects personal data. It is published to meet Section 5 of the
-                Digital Personal Data Protection Act, 2023 (the &ldquo;DPDP Act&rdquo;), the DPDP Rules, 2025,
-                Section 43A of the Information Technology Act, 2000, and Rule 4 of the SPDI Rules, 2011.
+                Digital Personal Data Protection Act, 2023 (the &ldquo;DPDP Act&rdquo;) and the DPDP Rules, 2025.
+                Firmity protects personal data as required by the Digital Personal Data Protection Act, 2023 and the
+                DPDP Rules, 2025.
               </p>
-              <p className="mt-5">
+              <p className="mt-5 flex flex-wrap gap-x-6 gap-y-2">
                 <Link
                   href="/cookie-policy"
                   className="inline-flex items-center gap-2 text-[12.5px] font-semibold text-[#63b3ed] hover:text-white transition-colors"
                 >
                   <Cookie size={13} strokeWidth={1.6} aria-hidden="true" /> Cookie Policy →
+                </Link>
+                <Link
+                  href="/notices/website-and-demo-enquiries"
+                  className="inline-flex items-center gap-2 text-[12.5px] font-semibold text-[#63b3ed] hover:text-white transition-colors"
+                >
+                  <Shield size={13} strokeWidth={1.6} aria-hidden="true" /> Privacy notices →
                 </Link>
               </p>
               {/* PREVIOUS POLICY — old hero intro (not rendered):
@@ -198,13 +244,41 @@ export default function PrivacyPage() {
                   </table>
                 </div>
                 <Clause n="2.1">
-                  <strong className="font-semibold text-[#1a202c]">Sensitive data.</strong> Biometric data is
-                  &ldquo;sensitive personal data&rdquo; under the SPDI Rules. We collect it only with your written
-                  consent, and we explain it in clause 8.
+                  <strong className="font-semibold text-[#1a202c]">Biometric data.</strong> We collect biometric data
+                  only with your written consent, and we explain it in clause 8.
                 </Clause>
                 <Clause n="2.2">
                   <strong className="font-semibold text-[#1a202c]">No sale.</strong> We do not sell personal data. We do
                   not use it to make solely automated decisions with legal effect on you.
+                </Clause>
+                <Clause n="2.3">
+                  <strong className="font-semibold text-[#1a202c]">Firmity mobile application.</strong> The mobile
+                  application may collect: user account information, attendance information, operational records,
+                  location data, device information, photographs and usage analytics. Data is used solely to provide
+                  Platform services, improve functionality, maintain security and comply with customer requirements,
+                  and is encrypted during transmission and storage.
+                </Clause>
+                <Clause n="2.4">
+                  <strong className="font-semibold text-[#1a202c]">Camera.</strong> Where camera access is requested by
+                  the Firmity mobile application, you are told why camera permission is required, that access is
+                  user-initiated, that there is no background recording, and how captured information is used.
+                </Clause>
+                <Clause n="2.5">
+                  <strong className="font-semibold text-[#1a202c]">Location.</strong> Where enabled by a customer,
+                  Firmity may collect, process, and store location-related information to facilitate attendance
+                  validation, geo-fencing enforcement, site presence verification, authorised facility access,
+                  workforce management, operational monitoring, and other business workflows supported by the Platform.
+                  Location information is collected only in connection with authorised platform functions and only to
+                  the extent necessary for providing the relevant services, and is not used for advertising,
+                  profiling, or unrelated tracking purposes.
+                </Clause>
+                <Clause n="2.6">
+                  <strong className="font-semibold text-[#1a202c]">Device data.</strong> Firmity automatically collects
+                  technical and diagnostic information generated through use of the Platform, including IP addresses,
+                  browser and device information, operating system details, network information, application logs,
+                  session identifiers, access records, performance metrics, crash reports, and user interaction
+                  analytics. It is used for system administration, security monitoring, authentication, performance
+                  optimisation, product improvement, compliance, and audit purposes.
                 </Clause>
               </PolicySection>
             </Reveal>
@@ -213,16 +287,10 @@ export default function PrivacyPage() {
             <Reveal>
               <PolicySection number="3" heading="Who we share data with">
                 <Clause n="3.1">
-                  We share personal data only as needed, with: (a) service providers who process data for us under
-                  written contracts, including cloud hosting providers in India regions (such as Amazon Web Services or
-                  Google Cloud), SMS and email gateways, payroll, background-verification and recruitment providers, and
-                  IT support; (b) professional advisers, auditors and insurers; (c) courts, regulators, CERT-In,
-                  law-enforcement and other authorities, when the law requires or permits; (d) a buyer or successor in a
-                  merger, acquisition or reorganisation, on the same protections; and (e) our customers, where we process
-                  your data for them as their processor.
-                </Clause>
-                <Clause n="3.2">
-                  We keep a current list of the processors we use and will give it to you on request.
+                  We share personal data only as needed, with: (a) professional advisers, auditors and insurers;
+                  (b) courts, regulators, CERT-In, law-enforcement and other authorities, when the law requires or
+                  permits; (c) a buyer or successor in a merger, acquisition or reorganisation, on the same
+                  protections; and (d) our customers, where we process your data for them as their processor.
                 </Clause>
               </PolicySection>
             </Reveal>
@@ -253,7 +321,7 @@ export default function PrivacyPage() {
             <Reveal>
               <PolicySection number="6" heading="How we protect data">
                 <Clause n="6.1">
-                  We take reasonable security safeguards as Section 8(5) of the DPDP Act and Rule 8 of the SPDI Rules
+                  We take reasonable security safeguards as Section 8(5) of the DPDP Act and the DPDP Rules, 2025
                   require, including encryption in transit (TLS 1.2 or higher) and at rest (AES-256), role-based access
                   with multi-factor authentication for administrators, activity logging and monitoring, regular security
                   testing, vendor due diligence, and staff training.
@@ -262,6 +330,9 @@ export default function PrivacyPage() {
                   No system is completely secure, and we cannot guarantee absolute security. If a personal data breach
                   affects you, we will notify the Data Protection Board of India and affected persons in the way the law
                   requires, and cooperate with CERT-In.
+                </Clause>
+                <Clause n="6.3">
+                  We report a breach to the Board and affected people without delay, and to customers within 24 hours.
                 </Clause>
               </PolicySection>
             </Reveal>
@@ -275,6 +346,31 @@ export default function PrivacyPage() {
                   records, such as accounting records, security logs and records needed for legal claims, are kept for
                   longer periods fixed by law.
                 </Clause>
+                <Clause n="7.2">
+                  Periods run from the trigger shown. The longest applicable period wins.
+                </Clause>
+                <div className="overflow-x-auto rounded-[20px] border border-[#dbe5f0] not-prose mt-2">
+                  <table className="w-full min-w-[760px] text-left text-[12.5px] leading-[1.6] border-collapse">
+                    <thead>
+                      <tr className="bg-[#eef3f9] text-[#1a202c]">
+                        <th scope="col" className="px-4 py-3 font-semibold">Record</th>
+                        <th scope="col" className="px-4 py-3 font-semibold">Keep for</th>
+                        <th scope="col" className="px-4 py-3 font-semibold">Counted from</th>
+                        <th scope="col" className="px-4 py-3 font-semibold">Basis</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {RETENTION_ROWS.map((row) => (
+                        <tr key={row.record} className="border-t border-[#dbe5f0] align-top text-[#4a5568]">
+                          <th scope="row" className="px-4 py-3 font-semibold text-[#1a202c]">{row.record}</th>
+                          <td className="px-4 py-3">{row.keepFor}</td>
+                          <td className="px-4 py-3">{row.countedFrom}</td>
+                          <td className="px-4 py-3">{row.basis}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </PolicySection>
             </Reveal>
 
@@ -303,7 +399,9 @@ export default function PrivacyPage() {
                 </Clause>
                 <Clause n="9.2">
                   <strong className="font-semibold text-[#1a202c]">How to ask.</strong> Write to the Grievance Officer in
-                  clause 13, stating your name, how you deal with us and what you want. We will acknowledge within 7 days,
+                  clause 13, stating your name, how you deal with us and what you want, or use the{" "}
+                  <Link href="/data-rights" className="text-[#2b6cb0] hover:underline">Your Data Rights</Link> form.
+                  We will acknowledge within 7 days,
                   ask you for information needed to verify your identity, and respond within 30 days, and in any case
                   within the period set by the DPDP Rules, which we will not exceed.
                 </Clause>
@@ -313,6 +411,20 @@ export default function PrivacyPage() {
                   with a law, to establish, exercise or defend legal claims, or to keep a security record; where granting
                   it would disclose another person&apos;s personal data; or where an exemption under Section 17 of the
                   DPDP Act applies. We will tell you the reason and how to complain.
+                </Clause>
+                <Clause n="9.4">
+                  <strong className="font-semibold text-[#1a202c]">How to withdraw consent.</strong> Withdrawal is as
+                  easy as giving consent. Step 1: click Unsubscribe in any marketing email. Step 2: or use the{" "}
+                  <Link href="/unsubscribe" className="text-[#2b6cb0] hover:underline">Withdraw consent</Link> form on
+                  firmity.in and enter your email address. Step 3: or write to{" "}
+                  <a href="mailto:dpo@ufirm.in" className="text-[#2b6cb0] hover:underline">dpo@ufirm.in</a>. We stop all
+                  marketing to you within 48 hours of your withdrawal.
+                </Clause>
+                <Clause n="9.5">
+                  <strong className="font-semibold text-[#1a202c]">What withdrawal means.</strong> Withdrawal does not
+                  affect Processing done lawfully before it (Section 6(5)). If a service or activity depends on the
+                  withdrawn data, we may not be able to continue it. We will then erase the data unless law requires us
+                  to keep it.
                 </Clause>
               </PolicySection>
             </Reveal>
@@ -364,7 +476,7 @@ export default function PrivacyPage() {
                       <p className="font-semibold text-[#1a202c] mb-1">Sanjeev Kumar</p>
                       <p className="text-[#4a5568]">Grievance Officer and DPO</p>
                       <p className="text-[#4a5568]">Ufirm Technologies Private Limited</p>
-                      <p className="text-[#4a5568]">Sector-63 H-64 Noida</p>
+                      <p className="text-[#4a5568]">Registered office: Sector-63 H-64 Noida, PIN 201301</p>
                       <p className="text-[#4a5568]">Email: <a href="mailto:dpo@ufirm.in" className="text-[#2b6cb0] hover:underline">dpo@ufirm.in</a></p>
                       <p className="text-[#4a5568]">M: +91 98689 99648</p>
                       <p className="text-[#4a5568]">Hours: Monday to Friday, 10:00 to 18:00 IST</p>
@@ -392,6 +504,24 @@ export default function PrivacyPage() {
                   This Policy is governed by the laws of India. Subject to your rights before the Data Protection Board of
                   India and any other forum the law gives you, the courts at Uttar Pradesh have jurisdiction over disputes
                   about it.
+                </Clause>
+              </PolicySection>
+            </Reveal>
+
+            {/* 15. Children — wording from the Policy Pack's Privacy Policy. Added as the last
+                clause so existing clause numbers (and the cross-references to them) stay stable. */}
+            <Reveal>
+              <PolicySection number="15" heading="Children">
+                <Clause n="15.1">
+                  Our services are for businesses and are not directed at children. We do not knowingly collect personal
+                  data from anyone under 18 years. If we learn that we have done so without verifiable parental or
+                  guardian consent, we will erase it. We do not track or monitor children&apos;s behaviour or send them
+                  targeted advertising.
+                </Clause>
+                <Clause n="15.2">
+                  Our customers may enter data about minors, for example a child who is a visitor or resident. The
+                  customer is the Data Fiduciary for that data and must obtain a parent&apos;s or guardian&apos;s
+                  consent where the law requires. Firmity supports this through the product.
                 </Clause>
               </PolicySection>
             </Reveal>

@@ -13,6 +13,7 @@ import type React from "react"
 import { Navigation } from "@/src/components/navigation"
 import { Footer } from "@/src/components/footer"
 import { HowDidYouHearForm } from "@/src/components/how-did-you-hear-form"
+import { ConsentNotice } from "@/src/components/consent-notice"
 import { useState, useRef, useCallback, type FC } from "react"
 import {
   Mail,
@@ -76,7 +77,7 @@ const TEAM_SIZES = ["1-10", "11-50", "51-100", "100+"] as const
 
 const CHANNELS: { Icon: FC<LucideProps>; title: string; detail: string; sub: string }[] = [
   { Icon: Mail,   title: "Email",    detail: "sales@firmity.in",          sub: "Reply within 24 hours" },
-  { Icon: Phone,  title: "Phone",    detail: "Available on request",     sub: "Mon–Sat, 9am–6pm IST" },
+  { Icon: Phone,  title: "Phone",    detail: "+91-92173 40884",          sub: "Mon–Sat, 9am–6pm IST" },
   { Icon: MapPin, title: "Office",   detail: "UFIRM Technologies (P) Ltd", sub: "Proudly Made in India" },
 ]
 
@@ -109,6 +110,8 @@ function Field({ label, required, children }: { label: string; required?: boolea
 
 export default function ContactPage() {
   const [formData, setFormData]   = useState<FormState>(INITIAL_FORM)
+  // Optional marketing consent — always starts unticked (DPDP s.6), never blocks submit.
+  const [marketingConsent, setMarketingConsent] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading]     = useState(false)
   const [error, setError]         = useState("")
@@ -152,11 +155,12 @@ export default function ContactPage() {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, marketingConsent, form: "contact-page" }),
       })
       if (!res.ok) throw new Error("Failed to submit form")
       setSubmitted(true)
       setFormData(INITIAL_FORM)
+      setMarketingConsent(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong")
     } finally {
@@ -403,6 +407,8 @@ export default function ContactPage() {
                       </div>
                     )}
 
+                    <ConsentNotice checked={marketingConsent} onChange={setMarketingConsent} />
+
                     <button
                       type="submit"
                       disabled={loading}
@@ -415,9 +421,6 @@ export default function ContactPage() {
                       )}
                     </button>
 
-                    <p className="text-center text-[10.5px] text-[#a0aec0] font-light">
-                      No spam, ever. Your details are used only to respond to this request.
-                    </p>
                   </form>
                 </>
               )}

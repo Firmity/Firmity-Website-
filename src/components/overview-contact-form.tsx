@@ -30,6 +30,7 @@ import { useState, useRef } from "react"
 import { Send, Loader2, CheckCircle, AlertCircle, MonitorPlay, Rocket, HelpCircle, Settings2, type LucideProps } from "lucide-react"
 import type { FC } from "react"
 import { HowDidYouHearForm } from "@/src/components/how-did-you-hear-form"
+import { ConsentNotice } from "@/src/components/consent-notice"
 
 const MIN_SUBMIT_MS = 1500
 const TEAM_SIZES = ["1-10", "11-50", "51-100", "100+"] as const
@@ -71,6 +72,8 @@ const inputClass =
 
 export function OverviewContactForm() {
   const [formData, setFormData] = useState<FormState>(INITIAL_FORM)
+  // Optional marketing consent — always starts unticked (DPDP s.6), never blocks submit.
+  const [marketingConsent, setMarketingConsent] = useState(false)
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState("")
@@ -101,11 +104,12 @@ export function OverviewContactForm() {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, marketingConsent, form: "home-form" }),
       })
       if (!res.ok) throw new Error("Failed to submit form")
       setSuccess(true)
       setFormData(INITIAL_FORM)
+      setMarketingConsent(false)
       // No auto-revert-to-form timeout here (there used to be one, 5s) — the
       // success state now embeds the "How did you hear about Firmity?"
       // re-ask (added 2026-09-04), which needs time to fill in. Matches
@@ -284,6 +288,8 @@ export function OverviewContactForm() {
           <p className="text-[12px] text-red-700">{error}</p>
         </div>
       )}
+
+      <ConsentNotice checked={marketingConsent} onChange={setMarketingConsent} />
 
       <button
         type="submit"

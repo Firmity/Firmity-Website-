@@ -25,6 +25,7 @@
 import type React from "react"
 import { useId, useRef, useState } from "react"
 import { Send, Loader2, CheckCircle, AlertCircle } from "lucide-react"
+import { ConsentNotice } from "@/src/components/consent-notice"
 
 const MIN_SUBMIT_MS = 1500
 
@@ -51,6 +52,8 @@ const inputClass =
 export function BlogCtaForm({ postTitle }: { postTitle?: string }) {
   const uid = useId()
   const [formData, setFormData] = useState<FormState>(INITIAL_FORM)
+  // Optional marketing consent — always starts unticked (DPDP s.6), never blocks submit.
+  const [marketingConsent, setMarketingConsent] = useState(false)
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState("")
@@ -88,11 +91,14 @@ export function BlogCtaForm({ postTitle }: { postTitle?: string }) {
           message: postTitle ? `Blog inquiry — from post: "${postTitle}"` : "Blog inquiry",
           requestType: "blog",
           website: formData.website,
+          marketingConsent,
+          form: "blog-cta",
         }),
       })
       if (!res.ok) throw new Error("Failed to submit form")
       setSuccess(true)
       setFormData(INITIAL_FORM)
+      setMarketingConsent(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong")
     } finally {
@@ -211,6 +217,8 @@ export function BlogCtaForm({ postTitle }: { postTitle?: string }) {
             <p className="text-[12px] text-red-700">{error}</p>
           </div>
         )}
+
+        <ConsentNotice checked={marketingConsent} onChange={setMarketingConsent} />
 
         <button
           type="submit"

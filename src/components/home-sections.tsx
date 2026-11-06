@@ -23,6 +23,7 @@
 import Link from "next/link"
 import { useEffect, useRef, useState, type CSSProperties, type FC, type FormEvent } from "react"
 import { Reveal } from "@/src/components/reveal"
+import { NewsletterNotice } from "@/src/components/consent-notice"
 import { ModuleVignette } from "@/src/components/module-vignette"
 import {
   ArrowRight,
@@ -1700,6 +1701,11 @@ export function KeepInTouchSection({
                   {submitting ? <Loader2 size={15} className="animate-spin" /> : "Sign up now"}
                 </button>
               </form>
+            )}
+            {!submitted && (
+              <div className="mt-2">
+                <NewsletterNotice tone="dark" />
+              </div>
             )}
             {error && (
               <div className="mt-2 flex items-center gap-1.5 text-[12px] text-red-200">
