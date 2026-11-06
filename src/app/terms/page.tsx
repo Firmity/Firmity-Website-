@@ -1,6 +1,9 @@
 // ─── Terms & Conditions Page ──────────────────────────────────────────────────
 // Content sourced from: june_2026_terms_and_conditions.docx
-// Effective Date: 1-03-2026 | Last Updated: 10-06-2026
+// Effective Date: 1-03-2026 | Last Updated: 05-11-2026
+// 5 Nov 2026 (DPDP audit gap): added confidentiality and data location (clause 8), breach notice to
+// customers (clause 12) and deletion after termination (clause 14). Facts come from the Policy Pack and
+// Privacy Policy: India hosting by default, 30-day Retention Window, 90-day backup expiry, 24-hour notice.
 // Aligned with the 10 June 2026 Privacy Policy (src/app/privacy/page.tsx): these Terms may only
 // mention services and practices the Privacy Policy mentions, and must not conflict with it.
 // Design language: dark navy hero, serif display, DM Sans body, 12/20px radii.
@@ -35,7 +38,7 @@ export default function TermsPage() {
                 Terms &amp; Conditions
               </h1>
               <p className="text-[13px] font-light text-white/[0.45] mt-2">
-                Effective Date: 1 March 2026 &nbsp;·&nbsp; Last Updated: 10 June 2026
+                Effective Date: 1 March 2026 &nbsp;·&nbsp; Last Updated: 5 November 2026
               </p>
               <p className="text-[13.5px] font-light text-white/[0.5] leading-[1.85] max-w-2xl mt-4">
                 These Terms &amp; Conditions (&ldquo;Terms&rdquo;) govern access to and use of the Firmity platform,
@@ -110,6 +113,8 @@ export default function TermsPage() {
             <Reveal>
               <TermsSection number="8" heading="Customer Data and Ownership">
                 <p>Customers retain ownership of all operational, administrative, employee, attendance, visitor, and other business data submitted to or generated through their use of the Platform. In respect of such data, Firmity acts as a Data Processor and processes it only on the customer&apos;s documented instructions, as described in the Privacy Policy, for the purpose of providing, maintaining, securing, and supporting the Platform in accordance with applicable agreements and laws.</p>
+                <p><strong className="font-semibold text-[#1a202c]">Confidentiality.</strong> Firmity keeps customer data confidential and uses it only to provide the service. Firmity allows its personnel to access customer data only where they need it for that purpose, and they are bound by confidentiality obligations. This duty continues after these Terms or the customer&apos;s subscription end.</p>
+                <p><strong className="font-semibold text-[#1a202c]">Data location.</strong> Customer data is hosted in India by default, as described in the Privacy Policy. Firmity transfers personal data outside India only as the Privacy Policy permits.</p>
               </TermsSection>
             </Reveal>
 
@@ -123,7 +128,7 @@ export default function TermsPage() {
             {/* 10. Third-Party Services and Integrations */}
             <Reveal>
               <TermsSection number="10" heading="Third-Party Services and Integrations">
-                <p>The Platform relies upon third-party service providers who process data for Firmity under written contracts, including cloud hosting providers, SMS and email gateways, background-verification and recruitment providers, and IT support providers, as described in the Privacy Policy. Firmity does not control, and shall not be responsible for, the availability or performance of third-party services outside its reasonable control. Use of third-party services may be governed by separate terms and policies established by such providers.</p>
+                <p>Firmity does not control, and shall not be responsible for, the availability or performance of third-party services outside its reasonable control. Use of third-party services may be governed by separate terms and policies established by such providers.</p>
               </TermsSection>
             </Reveal>
 
@@ -138,6 +143,7 @@ export default function TermsPage() {
             <Reveal>
               <TermsSection number="12" heading="Security">
                 <p>Firmity takes reasonable security safeguards as described in the Privacy Policy, which may include encryption in transit and at rest, role-based access controls, multi-factor authentication for administrators, activity logging and monitoring, and regular security testing. No system is completely secure, and absolute security against all threats, vulnerabilities, or unauthorised access cannot be guaranteed.</p>
+                <p><strong className="font-semibold text-[#1a202c]">Breach notice to customers.</strong> If a personal data breach affects customer data that Firmity processes for a customer, Firmity will notify that customer within 24 hours of becoming aware of it. The notice will say what happened, which data and how many people are affected, what action Firmity has taken, and what action Firmity suggests the customer take. Firmity will send further updates until the matter is resolved. The customer, as Data Fiduciary, then meets its own legal duties to the Data Protection Board of India and to the people affected.</p>
               </TermsSection>
             </Reveal>
 
@@ -152,6 +158,7 @@ export default function TermsPage() {
             <Reveal>
               <TermsSection number="14" heading="Data Export, Account Closure and Deletion">
                 <p>Subject to applicable laws, technical limitations, and verification requirements, customers may request data exports, account closure, or deletion of customer-controlled information processed through the Platform. Firmity keeps personal data only for as long as the purpose needs, or the law requires, as set out in the Privacy Policy, and some records, such as accounting records, security logs, and records needed for legal claims, are kept for longer periods fixed by law.</p>
+                <p><strong className="font-semibold text-[#1a202c]">Deletion after termination.</strong> Within 30 days after the end of the customer&apos;s contract or subscription (the Retention Window), Firmity returns or deletes the customer data, or anonymises it, unless the customer instructs otherwise in writing or the law requires Firmity to keep it. Copies in encrypted backups expire in the normal backup cycle, not later than 90 days after deletion from production.</p>
               </TermsSection>
             </Reveal>
 

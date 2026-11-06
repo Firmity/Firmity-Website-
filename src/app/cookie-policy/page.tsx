@@ -81,8 +81,8 @@ export default function CookiePolicyPage() {
                 uses cookies and similar technologies on the Firmity website. It forms part of, and must be read
                 together with, our{" "}
                 <Link href="/privacy" className="text-white/80 underline underline-offset-2 hover:text-white">Privacy Policy</Link>.
-                It is published under the Digital Personal Data Protection Act, 2023 (the &ldquo;DPDP Act&rdquo;), the
-                DPDP Rules, 2025, Section 43A of the Information Technology Act, 2000, and Rule 4 of the SPDI Rules, 2011.
+                It is published under the Digital Personal Data Protection Act, 2023 (the &ldquo;DPDP Act&rdquo;) and the
+                DPDP Rules, 2025.
               </p>
             </Reveal>
           </div>

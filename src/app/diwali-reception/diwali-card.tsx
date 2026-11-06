@@ -349,6 +349,11 @@ export function DiwaliCard() {
                   </p>
                 )}
 
+                <p className="text-[12px] leading-snug text-[#5d4d3f]">
+                  We use your name and number only to manage RSVPs for this event.{" "}
+                  <a href="/privacy" className="underline underline-offset-2">Privacy Policy</a>
+                </p>
+
                 <button
                   type="submit"
                   disabled={submitting}

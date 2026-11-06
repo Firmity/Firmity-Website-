@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import nodemailer from "nodemailer"
 import { isTrustedOrigin, FORBIDDEN_BODY } from "@/src/lib/request-guard"
+import { logLeadConsent } from "@/src/lib/dpdp-log"
 
 // ─── Newsletter signup — added 2026-09-04 ─────────────────────────────────────
 // Wires up the two previously UI-only "Sign up now" forms (KeepInTouchSection,
@@ -33,6 +34,15 @@ export async function POST(req: Request) {
     if (typeof email !== "string" || !EMAIL_RE.test(email.trim())) {
       return NextResponse.json({ success: false, error: "Please enter a valid email address" }, { status: 400 })
     }
+
+    // Subscribing is the consent: the sign-up forms say so next to the button.
+    // Only the marketing consent is logged (no separate enquiry row).
+    await logLeadConsent(req, {
+      email,
+      form: source === "footer" ? "newsletter-footer" : "newsletter-home",
+      marketingOptIn: true,
+      enquiry: false,
+    })
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
