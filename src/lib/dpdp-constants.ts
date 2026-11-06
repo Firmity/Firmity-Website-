@@ -3,7 +3,7 @@
 
 /** Bump whenever a notice or the marketing-consent wording changes (and update NOTICE_DATE). */
 export const NOTICE_VERSION = "1.0"
-export const NOTICE_DATE = "5 November 2026"
+export const NOTICE_DATE = "October 2026"
 
 export const DPO_EMAIL = "dpo@ufirm.in"
 
