@@ -38,7 +38,7 @@ export default function TermsPage() {
                 Terms &amp; Conditions
               </h1>
               <p className="text-[13px] font-light text-white/[0.45] mt-2">
-                Effective Date: 1 March 2026 &nbsp;·&nbsp; Last Updated: 5 November 2026
+                Effective Date: 1 March 2026 &nbsp;·&nbsp; Last Updated: October 2026
               </p>
               <p className="text-[13.5px] font-light text-white/[0.5] leading-[1.85] max-w-2xl mt-4">
                 These Terms &amp; Conditions (&ldquo;Terms&rdquo;) govern access to and use of the Firmity platform,

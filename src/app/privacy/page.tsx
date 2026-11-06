@@ -149,10 +149,10 @@ export default function PrivacyPage() {
                 Privacy Policy
               </h1>
               <p className="text-[13px] font-light text-white/[0.45] mt-2">
-                Last Updated: 5 November 2026
+                Last Updated: October 2026
               </p>
               <p className="text-[13px] font-light text-white/[0.45] mt-1">
-                Document control: Version 2.0 &nbsp;·&nbsp; Effective 5 November 2026.
+                Document control: Version 2.0 &nbsp;·&nbsp; Effective October 2026.
               </p>
               <p className="text-[13px] font-light text-white/[0.45] mt-1">
                 Reviewed: annually, or on change of purpose, vendor or law.
