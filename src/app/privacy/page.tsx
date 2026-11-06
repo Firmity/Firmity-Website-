@@ -477,6 +477,7 @@ export default function PrivacyPage() {
                       <p className="text-[#4a5568]">Grievance Officer and DPO</p>
                       <p className="text-[#4a5568]">Ufirm Technologies Private Limited</p>
                       <p className="text-[#4a5568]">Registered office: Sector-63 H-64 Noida, PIN 201301</p>
+                      <p className="text-[#4a5568]">CIN: U74999DL2016PTC306643</p>
                       <p className="text-[#4a5568]">Email: <a href="mailto:dpo@ufirm.in" className="text-[#2b6cb0] hover:underline">dpo@ufirm.in</a></p>
                       <p className="text-[#4a5568]">M: +91 98689 99648</p>
                       <p className="text-[#4a5568]">Hours: Monday to Friday, 10:00 to 18:00 IST</p>
