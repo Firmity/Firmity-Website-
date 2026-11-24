@@ -45,9 +45,9 @@ interface Tile {
 
 export default function LoginPage() {
   const tiles: Tile[] = [
-    { title: "Client Login", sub: "Your facility dashboard", glyph: "building", href: process.env.NEXT_PUBLIC_CLIENT_LOGIN_URL || "#", external: true },
-    { title: "Employee Login", sub: "Tasks, attendance & team", glyph: "people", href: process.env.NEXT_PUBLIC_EMPLOYEE_LOGIN_URL || "#", external: true },
-    { title: "Facility Manager", sub: "Maintenance & compliance", glyph: "shield", href: process.env.NEXT_PUBLIC_FM_LOGIN_URL || "#", external: true },
+    { title: "Client Login", sub: "Your facility dashboard", glyph: "building", href: "https://admin.urest.in:8078/login/client", external: true },
+    { title: "Employee Login", sub: "Tasks, attendance & team", glyph: "people", href: "https://admin.urest.in:8084/", external: true },
+    { title: "Facility Manager", sub: "Maintenance & compliance", glyph: "shield", href: "https://admin.urest.in:8078/login/client", external: true },
   ];
 
   function onExternal(e: React.MouseEvent, href: string) {
